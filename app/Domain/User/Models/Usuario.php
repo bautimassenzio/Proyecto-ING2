@@ -1,5 +1,5 @@
 <?php
-
+//pingo
 namespace App\Domain\User\Models;
 
 use Illuminate\Foundation\Auth\User as Authenticatable;
