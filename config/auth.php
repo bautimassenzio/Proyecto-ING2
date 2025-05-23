@@ -34,16 +34,26 @@ return [
     | Supported: "session"
     |
     */
+    /*
+    Un guard define el mecanismo de autenticación. Dejo aca para recordar
 
+    Por ejemplo:
+    ¿Usás sesiones? → driver: session
+    ¿Usás tokens? → driver: token (para APIs)
+    ¿Con qué tabla/modelo? → se lo indica el provider
+
+
+    Un provider le dice a Laravel dónde buscar el usuario: qué modelo usar y cómo consultar la base de datos.
+    */
     'guards' => [
         'web' => [
             'driver' => 'session',      // esto está bien
             'provider' => 'users',
         ],
     
-        'usuarios' => [
+        'users' => [
             'driver' => 'session',      // esto también está bien
-            'provider' => 'usuarios',
+            'provider' => 'users',
         ],
     ],
     /*
@@ -65,12 +75,7 @@ return [
 
     'providers' => [
     'users' => [
-        'driver' => 'eloquent',     // 👈 CORRECTO
-        'model' => App\Domain\User\Models\Usuario::class,
-    ],
-
-    'usuarios' => [
-        'driver' => 'eloquent',     // 👈 CORRECTO (NO "session")
+        'driver' => 'eloquent',  
         'model' => App\Domain\User\Models\Usuario::class,
     ],
 ],
