@@ -13,14 +13,8 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('users', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->string('email')->unique();
-            $table->timestamp('email_verified_at')->nullable();
-            $table->string('password');
-            $table->rememberToken();
-            $table->timestamps();
+        Schema::table('maquinarias', function (Blueprint $table) {
+            $table->foreign(['id_politica'], 'maquinarias_ibfk_1')->references(['id_politica'])->on('politicas');
         });
     }
 
@@ -31,6 +25,8 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('users');
+        Schema::table('maquinarias', function (Blueprint $table) {
+            $table->dropForeign('maquinarias_ibfk_1');
+        });
     }
 };

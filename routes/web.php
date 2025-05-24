@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Web\Reservas\ReservaController;
 
 
 /*
@@ -28,3 +29,10 @@ Route::get('/fail', function () {return view('inicioEjemploFail');
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [LoginController::class, 'login']);
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+
+
+Route::prefix('reservas')->group(function () {
+    Route::get('/crear', [ReservaController::class, 'create'])->name('reservas.create');
+    Route::post('/store', [ReservaController::class, 'store'])->name('reservas.store');
+});
+
