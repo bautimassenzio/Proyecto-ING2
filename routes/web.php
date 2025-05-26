@@ -2,7 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
-
+use App\Http\Controllers\Maq\MaquinariaController; // Asegúrate de importar el controlador
 
 /*
 |--------------------------------------------------------------------------
@@ -42,3 +42,18 @@ Route::get('/users', [UsuarioController::class, 'getUsuarios'])->middleware(['ch
 //         'cookie_laravel_session' => request()->cookie('laravel_session'),
 //     ]);
 // });
+
+
+// ... otras rutas
+
+Route::prefix('admin')->group(function () {
+    Route::get('/maquinarias/create', [MaquinariaController::class, 'create'])->name('maquinarias.create');
+    Route::post('/maquinarias', [MaquinariaController::class, 'store'])->name('maquinarias.store');
+    Route::get('/maquinarias', [MaquinariaController::class, 'index'])->name('maquinarias.index'); // Opcional: para listar
+    // Agrega rutas para editar, actualizar, eliminar si lo necesitas más adelante
+    // Route::get('/maquinarias/{maquinaria}/edit', [MaquinariaController::class, 'edit'])->name('maquinarias.edit');
+    // Route::put('/maquinarias/{maquinaria}', [MaquinariaController::class, 'update'])->name('maquinarias.update');
+    // Route::delete('/maquinarias/{maquinaria}', [MaquinariaController::class, 'destroy'])->name('maquinarias.destroy');
+});
+
+// ...

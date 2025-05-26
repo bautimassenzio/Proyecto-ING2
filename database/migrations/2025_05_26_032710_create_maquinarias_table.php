@@ -26,6 +26,7 @@ return new class extends Migration
             $table->string('foto_url')->nullable();
             $table->enum('estado', ['disponible', 'inactiva'])->nullable()->default('disponible');
             $table->integer('id_politica')->nullable()->index('id_politica');
+            $table->timestamps();
         });
     }
 
