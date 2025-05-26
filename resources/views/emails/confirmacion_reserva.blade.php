@@ -15,6 +15,7 @@
 <body>
     <div class="container">
         <div class="header">
+            <img src="{{ asset('public/images/Manny_Maquinarias_loco.png') }}" alt="Logo de ManyMaquinarias" style="max-height: 60px; margin-bottom: 10px;">
             <h2>¡Tu Reserva Ha Sido Confirmada!</h2>
         </div>
         <div class="content">
@@ -31,10 +32,10 @@
             <p>En breve nos pondremos en contacto contigo para coordinar los detalles de la entrega.</p>
             <p>¡Gracias por elegirnos!</p>
             <p>Saludos cordiales,</p>
-            <p>El Equipo de [Tu Empresa]</p>
+            <p>El Equipo de ManyMaquinarias</p>
         </div>
         <div class="footer">
-            <p>&copy; {{ date('Y') }} [Tu Empresa]. Todos los derechos reservados.</p>
+            <p>&copy; {{ date('Y') }} ManyMaquinarias. Todos los derechos reservados.</p>
         </div>
     </div>
 </body>
