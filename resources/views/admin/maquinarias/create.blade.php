@@ -57,13 +57,59 @@
             @enderror
         </div>
 
+        <div class="mb-3">
+            <label for="localidad" class="form-label">Localidad:</label>
+            <input type="text" class="form-control" id="localidad" name="localidad" value="{{ old('localidad') }}" required>
+            @error('localidad')
+                <div class="text-danger">{{ $message }}</div>
+            @enderror
+        </div>
 
         <div class="mb-3">
-            <label for="status" class="form-label">Estado:</label>
-            <select class="form-select" id="status" name="status" required>
-                <option value="available" {{ old('status') == 'available' ? 'selected' : '' }}>Disponible</option>
-                <option value="sold" {{ old('status') == 'sold' ? 'selected' : '' }}>Vendido</option>
-                <option value="rented" {{ old('status') == 'rented' ? 'selected' : '' }}>Alquilado</option>
+            <label for="anio" class="form-label">Año:</label>
+            <input type="number" class="form-control" id="anio" name="anio" value="{{ old('anio') }}" required>
+            @error('anio')
+                <div class="text-danger">{{ $message }}</div>
+            @enderror
+        </div>
+
+        <div class="mb-3">
+            <label for="uso" class="form-label">Uso:</label>
+            <input type="text" class="form-control" id="uso" name="uso" value="{{ old('uso') }}" required>
+            @error('uso')
+                <div class="text-danger">{{ $message }}</div>
+            @enderror
+        </div>
+
+        <div class="mb-3">
+            <label for="tipo_energia" class="form-label">Tipo de Energia:</label>
+            <select class="form-select" id="tipo_energia" name="tipo_energia" required>
+                <option value="electrica" {{ old('tipo_energia') == 'electrica' ? 'selected' : '' }}>Electrica</option>
+                <option value="combustion" {{ old('tipo_energia') == 'combustion' ? 'selected' : '' }}>Combustion</option>
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label for="id_politica" class="form-label">Política Asociada:</label>
+            <select class="form-control" id="id_politica" name="id_politica">
+                <option value="">Seleccione una Política</option>
+                @foreach($politicas as $politica)
+                    <option value="{{ $politica->id_politica }}" {{ old('id_politica') == $politica->id_politica ? 'selected' : '' }}>
+                        {{ $politica->tipo }}
+                        @if($politica->detalle) ({{ $politica->detalle }}) @endif
+                    </option>
+                @endforeach
+            </select>
+            @error('id_politica')
+                <div class="text-danger">{{ $message }}</div>
+            @enderror
+        </div>
+
+        <div class="mb-3">
+            <label for="estado" class="form-label">Estado:</label>
+            <select class="form-select" id="estado" name="estado" required>
+                <option value="disponible" {{ old('estado') == 'disponible' ? 'selected' : '' }}>Disponible</option>
+                <option value="inactiva" {{ old('estado') == 'inactiva' ? 'selected' : '' }}>Inactiva</option>
             </select>
         </div>
 
