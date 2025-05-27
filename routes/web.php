@@ -3,7 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Web\Reservas\ReservaController;
-
+use App\Http\Controllers\Web\Pago\PagoController;
 
 /*
 |--------------------------------------------------------------------------
@@ -36,3 +36,14 @@ Route::prefix('reservas')->group(function () {
     Route::post('/store', [ReservaController::class, 'store'])->name('reservas.store');
 });
 
+
+//MERCADOPAGO
+Route::get('/pagar', function() {
+    return view('pago.seleccionarpago');
+})->name('pago.seleccionar');
+
+Route::get('/pago/exito', [PagoController::class, 'exito'])->name('pago.exito');
+Route::get('/pago/fallo', [PagoController::class, 'fallo'])->name('pago.fallo');
+Route::get('/pago/pendiente', [PagoController::class, 'pendiente'])->name('pago.pendiente');
+
+Route::post('/pagar', [PagoController::class, 'pagar'])->name('pago.procesar');
