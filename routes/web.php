@@ -8,7 +8,7 @@ use App\Http\Controllers\Web\UsuarioController;
 use App\Http\Controllers\Web\ViewsController;
 
 Route::get('/', [ViewsController::class, 'vistaWelcome']);
-Route::get('/inicio', [ViewsController::class, 'vistaInicio']);
+Route::get('/inicio', [ViewsController::class, 'vistaInicio'])->name('inicio');
 Route::get('/fail', [ViewsController::class, 'vistaInicioFallido']);
 
 
@@ -31,5 +31,5 @@ Route::get('/confirmarAdmin', [ViewsController::class, 'vistaConfirmarAdmin']);
 Route::post('/confirmarAdmin', [AdminController::class, 'CodigoVerificacionMail'])->name('confirmarAdmin');
 
 
-Route::get('/users', [UsuarioController::class, 'getUsuarios']);//->middleware(['checkUserType:empleado']);
+Route::get('/users', [UsuarioController::class, 'getUsuarios'])->middleware(['checkUserType:cliente']);
 

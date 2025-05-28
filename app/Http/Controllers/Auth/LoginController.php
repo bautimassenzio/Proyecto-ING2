@@ -25,8 +25,8 @@ class LoginController extends Controller
             'admin' => 'layouts.admin',
             default => 'layouts.base',
         };
-    
-        return view('inicio', compact('layout'));
+        session(['layout' => $layout]); // Guardás el layout en sesión
+        return redirect()->route('inicio'); // Redirigís a la ruta GET
         }
 
     public function login (Request $request){
