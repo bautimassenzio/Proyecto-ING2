@@ -42,8 +42,12 @@ Route::get('/pagar', function() {
     return view('pago.seleccionarpago');
 })->name('pago.seleccionar');
 
-Route::get('/pago/exito', [PagoController::class, 'exito'])->name('pago.exito');
-Route::get('/pago/fallo', [PagoController::class, 'fallo'])->name('pago.fallo');
-Route::get('/pago/pendiente', [PagoController::class, 'pendiente'])->name('pago.pendiente');
+
+Route::prefix('pago')->group(function () {
+  
+    Route::get('/exito', [PagoController::class, 'exito'])->name('pago.exito');
+    Route::get('/fallo', [PagoController::class, 'fallo'])->name('pago.fallo');
+    Route::get('/pendiente', [PagoController::class, 'pendiente'])->name('pago.pendiente');
+});
 
 Route::post('/pagar', [PagoController::class, 'pagar'])->name('pago.procesar');

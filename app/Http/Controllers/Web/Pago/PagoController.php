@@ -6,73 +6,134 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use MercadoPago\SDK;
 use App\Domain\Pago\Models\Pago;
+use App\Domain\Reserva\Models\Reserva;
+use App\Domain\User\Models\Usuario;
+use App\Mail\ConfirmacionReserva;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log; // Agrega esta línea para usar el log de Laravel
 
 class PagoController extends Controller
 {
     public function pagar()
     {
-        SDK::setAccessToken(env('MERCADOPAGO_ACCESS_TOKEN'));
+        // 1. Verificar que el Access Token se está cargando correctamente
+        $accessToken = config('mercadopago.token');
+        if (empty($accessToken)) {
+            Log::error('Mercado Pago: Access Token no configurado o vacío.');
+            return redirect()->route('reservas.create')->withErrors(['error' => 'Error de configuración: Access Token de Mercado Pago no encontrado.']);
+        }
+        SDK::setAccessToken($accessToken);
 
-        $preference = new \MercadoPago\Preference();
+        $idreserva = session('reserva_id');
 
-        $idreserva = 1; // ← Este debería ser dinámico
-        // Crear un ítem de ejemplo
+        $reserva = Reserva::find($idreserva);
+        if (!$reserva) {
+            Log::error('Mercado Pago: Reserva no encontrada para ID: ' . $idreserva);
+            return redirect()->route('reservas.create')->withErrors(['error' => 'Reserva no encontrada.']);
+        }
+
+        // 2. Verificar el valor del total de la reserva
+        if (!isset($reserva->total) || !is_numeric($reserva->total) || $reserva->total <= 0) {
+            Log::error('Mercado Pago: El total de la reserva es inválido o cero. Total: ' . $reserva->total . ' para Reserva ID: ' . $idreserva);
+            return redirect()->route('reservas.create')->withErrors(['error' => 'El monto de la reserva es inválido para el pago.']);
+        }
+
         $item = new \MercadoPago\Item();
         $item->title = 'Reserva de habitación';
         $item->quantity = 1;
-        $item->unit_price = 5000; // Precio en ARS
+        $item->unit_price = (float)$reserva->total; // Asegúrate de que sea un float
 
+        $preference = new \MercadoPago\Preference();
         $preference->items = [$item];
 
-        //$preference->auto_return = "approved"; //Por ahora esto da error en la API de MP
+   $successUrl = route('pago.exito');
+$failureUrl = route('pago.fallo');
+$pendingUrl = route('pago.pendiente');
 
-        // URLs de retorno
-        $preference->back_urls = [
-            "success" => route('pago.exito'),
-            "failure" => route('pago.fallo'),
-            "pending" => route('pago.pendiente')
-        ];
-        
+$ngrokBase = 'https://81bb-181-23-147-34.ngrok-free.app'; // tu URL actual de ngrok
+
+$preference->back_urls = [
+    "success" => $ngrokBase . '/pago/exito',
+    "failure" => $ngrokBase . '/pago/fallo',
+    "pending" => $ngrokBase . '/pago/pendiente',
+];
+
+
 
         $preference->external_reference = $idreserva;
-        $preference->save();
-        //dd($preference);
+        $preference->auto_return = 'approved';
 
-        $publicKey = env('MERCADOPAGO_PUBLIC_KEY');
+        // 3. Imprimir el objeto Preference antes de intentar guardarlo
+        Log::info('Mercado Pago: Objeto Preference antes de save:', (array) $preference);
 
-        return redirect()->away($preference->sandbox_init_point);
+        try {
+            $preference->save(); // Intenta guardar la preferencia
+        } catch (\Exception $e) {
+            // 4. Capturar cualquier excepción que pueda ocurrir durante el save()
+            Log::error('Mercado Pago: Excepción al guardar la preferencia: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return redirect()->route('reservas.create')->withErrors(['error' => 'Error interno al procesar el pago.']);
+        }
+
+        // 5. Imprimir el objeto Preference después de intentar guardarlo
+        Log::info('Mercado Pago: Objeto Preference después de save:', (array) $preference);
+
+        // 6. Verificar si se generó la URL de sandbox o producción
+        $redirectUrl = null;
+        if (config('mercadopago.sandbox')) {
+            $redirectUrl = $preference->sandbox_init_point;
+        } else {
+            $redirectUrl = $preference->init_point;
+        }
+
+        if (empty($redirectUrl)) {
+            // Este es el dd que te está dando el error
+            Log::error('Mercado Pago: No se generó URL de pago. Objeto Preference final:', (array) $preference);
+            return redirect()->route('reservas.create')->withErrors(['error' => 'Error: No se pudo generar la URL de pago de Mercado Pago.']);
+        }
+
+        return redirect()->away($redirectUrl);
     }
 
-   public function exito(Request $request) {
-    // Simulamos los datos recibidos tras el pago (hay que adaptar)
-    $idreserva = $request->query('external_reference'); // id de la reserva pasada al crear la preferencia
-    $monto = $request->query('monto'); 
-    $estado = 'completo';
-    $metodo = 'mercadopago';
-    $fecha_pago = now();
+    // ... (tus funciones exito, fallo, pendiente)
+    public function exito(Request $request) {
+        $idreserva = $request->query('external_reference');
 
-    // Registrar en la base de datos
-    Pago::create([
-        'id_reserva' => $idreserva,
-        'monto' => $monto,
-        'fecha_pago' => $fecha_pago,
-        'metodo_pago' => $metodo,
-        'estado_pago' => $estado,
-    ]);
+        $reserva = Reserva::find($idreserva);
 
+        if (!$reserva) {
+            $mensaje = 'Error: No se encontró la reserva asociada al pago.';
+            return view('pago.botonhome', compact('mensaje'));
+        }
 
-    $mensaje = '✅ Pago exitoso. Confirmamos tu reserva.';
-    return view('pago.botonhome', compact('mensaje'));
-}
+        $monto = $reserva->total;
+        $estado = 'completo';
+        $metodo = 'mercadopago';
+        $fecha_pago = now();
 
-public function fallo() {
-    $mensaje = '❌ Ocurrió un error durante el pago.';
-    return view('pago.botonhome', compact('mensaje'));
-}
+        $pago = Pago::create([
+            'id_reserva' => $idreserva,
+            'monto' => $monto,
+            'fecha_pago' => $fecha_pago,
+            'metodo_pago' => $metodo,
+            'estado_pago' => $estado,
+        ]);
 
-public function pendiente() {
-    $mensaje = '⏳ Tu pago está pendiente.';
-    return view('pago.botonhome', compact('mensaje'));
-}
+        $cliente = Usuario::find($reserva->id_cliente);
+        if ($cliente && $cliente->email) {
+            Mail::to($cliente->email)->send(new ConfirmacionReserva($reserva, $cliente));
+        }
 
+        $mensaje = '✅ Pago exitoso. Confirmamos tu reserva.';
+        return view('pago.botonhome', compact('mensaje'));
+    }
+
+    public function fallo() {
+        $mensaje = '❌ Ocurrió un error durante el pago.';
+        return view('pago.botonhome', compact('mensaje'));
+    }
+
+    public function pendiente() {
+        $mensaje = '⏳ Tu pago está pendiente.';
+        return view('pago.botonhome', compact('mensaje'));
+    }
 }

@@ -6,9 +6,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Domain\Reserva\Models\Reserva;
 use App\Domain\User\Models\Usuario; // Para obtener clientes
-use Illuminate\Support\Facades\Mail; // Para el envío de correos
 use Carbon\Carbon; // Para trabajar con fechas
-use App\Mail\ConfirmacionReserva; // Añade esta línea
+
 
 class ReservaController extends Controller
 {
@@ -66,29 +65,32 @@ class ReservaController extends Controller
         $valorPorDia = 50; // Valor de prueba por día
         $pagoTotal = $valorPorDia * $duracion; // Cálculo simple de prueba
 
-        try {
-            // 5. Crear la reserva en la base de datos
-            $reserva = Reserva::create([
-                'id_cliente' => $request->id_cliente,
-                'id_maquinaria'=> 1,
-                'fecha_inicio' => $request->fecha_inicio,
-                'fecha_fin' => $request->fecha_fin,
-                'fecha_reserva' => Carbon::now(), // Fecha actual de la creación de la reserva
-                'estado' => 'pendiente', // Por defecto 'pendiente'
-                'total' => $pagoTotal, // Cambiado a 'total'
-                'id_empleado' => null, // El empleado se asigna después, por lo que es null inicialmente
-            ]);
+       try {
+        // 5. Crear la reserva en la base de datos
+        $reserva = Reserva::create([
+            'id_cliente' => $request->id_cliente,
+            'id_maquinaria'=> 1,
+            'fecha_inicio' => $request->fecha_inicio,
+            'fecha_fin' => $request->fecha_fin,
+            'fecha_reserva' => Carbon::now(),
+            'estado' => 'pendiente',
+            'total' => $pagoTotal,
+            'id_empleado' => null,
+        ]);
 
-            // 6. Enviar mail de confirmación
-            $cliente = Usuario::find($request->id_cliente); // Cambiado a id_cliente
-            if ($cliente && $cliente->email) {
-                Mail::to($cliente->email)->send(new \App\Mail\ConfirmacionReserva($reserva, $cliente));
-            }
+   
+    
 
-            return redirect()->route('reservas.create')->with('success', 'Reserva creada con éxito y correo de confirmación enviado.');
+        // Guardar el ID de la reserva en la sesión
+        session(['reserva_id' => $reserva->id_reserva]);
 
-        } catch (\Exception $e) {
-            return back()->withInput()->withErrors(['error' => 'Hubo un error al crear la reserva: ' . $e->getMessage()]);
-        }
+
+
+        // Redirigir a la página de pago
+        return redirect()->route('pago.seleccionar')->with('success', 'Reserva creada con éxito. Proceda al pago.');
+
+    } catch (\Exception $e) {
+        return back()->withInput()->withErrors(['error' => 'Hubo un error al crear la reserva: ' . $e->getMessage()]);
+    }
     }
 }
