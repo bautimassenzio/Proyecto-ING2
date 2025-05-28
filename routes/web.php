@@ -46,14 +46,15 @@ Route::get('/users', [UsuarioController::class, 'getUsuarios'])->middleware(['ch
 
 // ... otras rutas
 
-Route::prefix('admin')->group(function () {
+Route::prefix('admin')->middleware(['auth', 'checkUserType:administrador'])->group(function () {
+    // Rutas para la creación y guardado de maquinarias (solo para administradores)
     Route::get('/maquinarias/create', [MaquinariaController::class, 'create'])->name('maquinarias.create');
     Route::post('/maquinarias', [MaquinariaController::class, 'store'])->name('maquinarias.store');
-    Route::get('/maquinarias', [MaquinariaController::class, 'index'])->name('maquinarias.index'); // Opcional: para listar
-    // Agrega rutas para editar, actualizar, eliminar si lo necesitas más adelante
+
+    // Agrega rutas para editar, actualizar, eliminar si lo necesitas más adelante, y también estarán protegidas:
     // Route::get('/maquinarias/{maquinaria}/edit', [MaquinariaController::class, 'edit'])->name('maquinarias.edit');
     // Route::put('/maquinarias/{maquinaria}', [MaquinariaController::class, 'update'])->name('maquinarias.update');
     // Route::delete('/maquinarias/{maquinaria}', [MaquinariaController::class, 'destroy'])->name('maquinarias.destroy');
 });
-
+    Route::get('admin/maquinarias', [MaquinariaController::class, 'index'])->name('maquinarias.index');
 // ...
