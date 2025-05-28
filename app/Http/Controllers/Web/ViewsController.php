@@ -30,5 +30,9 @@ class ViewsController extends Controller
         return view('cambioContraseña');
     }
 
+    public function vistaConfirmarAdmin() {
+        return view('confirmarAdmin');
+    }
+
     
 }

@@ -6,21 +6,23 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use App\Enums\Roles;
+use App\Http\Controllers\Web\AdminController;
+
 
 class LoginController extends Controller
 {
 
-    
 
     public function showLoginForm(){
         return view('/auth/login');
     }
 
-    function definirLayout ($user) {
+    public static  function definirLayout ($user) {
         $layout = match ($user->rol) {
             'cliente' => 'layouts.cliente',
             'empleado' => 'layouts.empleado',
-            'administrador' => 'layouts.admin',
+            'admin' => 'layouts.admin',
             default => 'layouts.base',
         };
     
@@ -31,10 +33,15 @@ class LoginController extends Controller
         $credentials = $request->only('email', 'password');
         $user= \App\Domain\User\Models\Usuario::where('email', $credentials['email'])->first();
 
-        if ($user && Hash::check($credentials['password'], $user-> contraseña)){
-            Auth::guard('users')->login($user);
-            $request->session()->regenerate();
-            return $this->definirLayout($user);
+        if ($user && Hash::check($credentials['password'], $user->contraseña)){
+            if ($user->rol == Roles::ADMINISTRADOR->value){
+                return AdminController::isAdmin($user);
+            }
+            else{ 
+                Auth::guard('users')->login($user);
+                $request->session()->regenerate();
+                return $this->definirLayout($user);
+            }    
         }
         else {
             return redirect ('/fail');
