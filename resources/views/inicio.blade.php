@@ -11,5 +11,11 @@
         @csrf
         <button class="nav-link" type="submit"> Cerrar Sesion</button>
         </form>
+        
+        <a href="{{ route('passwordReset') }}" class="btn btn-primary">
+    Cambiar Contraseña
+</a>
+
+
     </li>
 @endsection

@@ -6,6 +6,9 @@ use Illuminate\Http\Request;
 use App\Domain\User\Models\Usuario;
 use App\Enums\Roles;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Str;
+use App\Mail\EnviarContraseña;
+use Illuminate\Support\Facades\Mail;
 
 class ClienteController extends Controller
 {
@@ -23,8 +26,14 @@ class ClienteController extends Controller
         ]);
     
         // Crear usuario
+        $usuario = $this->crearUsuario($request);
+    
+        return response()->json(['mensaje' => 'Usuario creado con éxito', 'usuario' => $usuario], 201);
+    }
+
+    public function crearUsuario($request){
         $rol=Roles::CLIENTE;
-        $usuario = Usuario::create([
+        return Usuario::create([
             'nombre' => $request->nombre,
             'email' => $request->email,
             'contraseña' => bcrypt($request->contraseña),
@@ -34,7 +43,14 @@ class ClienteController extends Controller
             'estado' => $request->estado,
             'fecha_alta' => $request->fecha_alta,
         ]);
-    
-        return response()->json(['mensaje' => 'Usuario creado con éxito', 'usuario' => $usuario], 201);
+    }
+
+    public function crearContraseña(Request $request){
+        $contraseñaGenerada = Str::random(8); // genera una contraseña aleatoria de 8 caracteres
+        $request->merge([
+            'contraseña' => $contraseñaGenerada
+        ]);
+        $this->storeClient($request);
+        Mail::to($request->email)->send(new EnviarContraseña($request->nombre, $contraseñaGenerada));
     }
 }

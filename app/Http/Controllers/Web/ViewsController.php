@@ -18,5 +18,17 @@ class ViewsController extends Controller
         return view('inicioFail');
     }
 
+    public function vistaRegistro() {
+        return view('registrarCliente');
+    }
 
+    public function vistaRegistroPorEmpleado() {
+        return view('registrarClientePorEmpleado');
+    }
+
+    public function vistaCambioContraseña() {
+        return view('cambioContraseña');
+    }
+
+    
 }
