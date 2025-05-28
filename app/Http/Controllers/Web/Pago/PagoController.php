@@ -32,7 +32,7 @@ class PagoController extends Controller
             return redirect()->route('reservas.create')->withErrors(['error' => 'Reserva no encontrada.']);
         }
 
-        // 2. Verificar el valor del total de la reserva
+        // 2. Verificar el valor del total de la reserva //holaaa
         if (!isset($reserva->total) || !is_numeric($reserva->total) || $reserva->total <= 0) {
             Log::error('Mercado Pago: El total de la reserva es inválido o cero. Total: ' . $reserva->total . ' para Reserva ID: ' . $idreserva);
             return redirect()->route('reservas.create')->withErrors(['error' => 'El monto de la reserva es inválido para el pago.']);
