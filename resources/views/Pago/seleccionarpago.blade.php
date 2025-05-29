@@ -11,6 +11,8 @@
         <button type="submit">Pagar con Mercado Pago</button>
     </form>
 
-    <button onclick="alert('Funcionalidad aún no implementada')">Pagar con Tarjeta</button>
+    <form action="{{ route('pago.procesar.tarjeta') }}" method="GET">
+        <button type="submit">Pagar con Tarjeta</button>
+    </form>
 </body>
 </html>

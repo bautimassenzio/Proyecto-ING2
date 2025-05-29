@@ -50,7 +50,7 @@ class PagoController extends Controller
 $failureUrl = route('pago.fallo');
 $pendingUrl = route('pago.pendiente');
 
-$ngrokBase = 'https://81bb-181-23-147-34.ngrok-free.app'; // tu URL actual de ngrok
+$ngrokBase = 'https://c8e1-190-18-16-103.ngrok-free.app'; // tu URL actual de ngrok
 
 $preference->back_urls = [
     "success" => $ngrokBase . '/pago/exito',
@@ -135,5 +135,10 @@ $preference->back_urls = [
     public function pendiente() {
         $mensaje = '⏳ Tu pago está pendiente.';
         return view('pago.botonhome', compact('mensaje'));
+    }
+
+     public function mostrarFormularioTarjeta()
+    {
+        return view('pago.formulario_tarjeta'); // Asegúrate de que esta vista exista
     }
 }

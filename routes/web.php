@@ -51,3 +51,5 @@ Route::prefix('pago')->group(function () {
 });
 
 Route::post('/pagar', [PagoController::class, 'pagar'])->name('pago.procesar');
+
+Route::get('/procesar-pago/tarjeta', [PagoController::class, 'mostrarFormularioTarjeta'])->name('pago.procesar.tarjeta');
