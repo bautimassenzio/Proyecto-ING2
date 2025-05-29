@@ -14,7 +14,7 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             MaquinariaSeeder::class, // ¡Asegúrate de que esta línea esté aquí!
-            // Otros seeders si tienes
+            ValidCardsTableSeeder::class,
         ]);
     }
 }

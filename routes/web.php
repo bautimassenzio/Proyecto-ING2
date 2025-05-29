@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Web\Reservas\ReservaController;
 use App\Http\Controllers\Web\Pago\PagoController;
+use App\Http\Controllers\Web\Visualizar\VisualizarController;
 
 /*
 |--------------------------------------------------------------------------
@@ -53,3 +54,8 @@ Route::prefix('pago')->group(function () {
 Route::post('/pagar', [PagoController::class, 'pagar'])->name('pago.procesar');
 
 Route::get('/procesar-pago/tarjeta', [PagoController::class, 'mostrarFormularioTarjeta'])->name('pago.procesar.tarjeta');
+Route::post('/procesar-pago/tarjeta', [PagoController::class, 'procesarPagoTarjeta'])->name('procesar.pago.tarjeta');
+
+Route::get('/preguntas-frecuentes', [VisualizarController::class, 'mostrarPreguntasFrecuentes'])->name('preguntas.frecuentes');
+
+Route::get('/info-contactos', [VisualizarController::class, 'mostrarInformacionContacto'])->name('info.contactos');
