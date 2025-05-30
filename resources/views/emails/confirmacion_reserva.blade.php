@@ -15,7 +15,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <img src="{{ asset('public/images/Manny_Maquinarias_loco.png') }}" alt="Logo de ManyMaquinarias" style="max-height: 60px; margin-bottom: 10px;">
+            <img src="{{ asset('images/Manny_Maquinarias_loco.png') }}" alt="Logo de ManyMaquinarias" style="max-height: 60px; margin-bottom: 10px;">
             <h2>¡Tu Reserva Ha Sido Confirmada!</h2>
         </div>
         <div class="content">

@@ -32,20 +32,14 @@
         <form action="{{ route('reservas.store') }}" method="POST">
             @csrf
 
-            <div class="mb-4">
-                <label for="id_cliente" class="block text-gray-700 text-sm font-bold mb-2">Cliente:</label>
-                <select name="id_cliente" id="id_cliente" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline @error('id_cliente') border-red-500 @enderror">
-                    <option value="">Selecciona un cliente</option>
-                    @foreach ($clientes as $cliente)
-                        <option value="{{ $cliente->id_usuario }}" {{ old('id_cliente') == $cliente->id_usuario ? 'selected' : '' }}>
-                            {{ $cliente->nombre }} ({{ $cliente->email }})
-                        </option>
-                    @endforeach
-                </select>
-                @error('id_cliente')
-                    <p class="text-red-500 text-xs italic">{{ $message }}</p>
-                @enderror
-            </div>
+            {{-- Aquí puedes mostrar el nombre del cliente autenticado si lo deseas, pero no el selector --}}
+            @if (isset($clienteAutenticado))
+                <div class="mb-4 p-3 bg-blue-100 border border-blue-400 text-blue-700 rounded-md">
+                    <p class="text-sm font-semibold">Realizando reserva para:</p>
+                    <p class="text-lg font-bold">{{ $clienteAutenticado->nombre }} ({{ $clienteAutenticado->email }})</p>
+                    {{-- No se necesita un campo oculto para id_cliente si lo obtienes del Auth::id() en el controlador --}}
+                </div>
+            @endif
 
             <div class="mb-4">
                 <label for="fecha_inicio" class="block text-gray-700 text-sm font-bold mb-2">Fecha de Inicio:</label>

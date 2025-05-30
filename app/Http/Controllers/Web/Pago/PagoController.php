@@ -50,7 +50,7 @@ class PagoController extends Controller
 $failureUrl = route('pago.fallo');
 $pendingUrl = route('pago.pendiente');
 
-$ngrokBase = 'https://81bb-181-23-147-34.ngrok-free.app'; // tu URL actual de ngrok
+$ngrokBase = 'https://ad1c-2802-8012-1a9-5100-fc7a-cb14-12db-f5cf.ngrok-free.app'; // tu URL actual de ngrok
 
 $preference->back_urls = [
     "success" => $ngrokBase . '/pago/exito',
@@ -106,7 +106,7 @@ $preference->back_urls = [
         }
 
         $monto = $reserva->total;
-        $estado = 'completo';
+        $estado_pago = 'completo';
         $metodo = 'mercadopago';
         $fecha_pago = now();
 
@@ -115,8 +115,12 @@ $preference->back_urls = [
             'monto' => $monto,
             'fecha_pago' => $fecha_pago,
             'metodo_pago' => $metodo,
-            'estado_pago' => $estado,
+            'estado_pago' => $estado_pago,
         ]);
+
+        $reserva->estado = 'aprobada';
+        $reserva->save();
+
 
         $cliente = Usuario::find($reserva->id_cliente);
         if ($cliente && $cliente->email) {

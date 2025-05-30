@@ -5,8 +5,9 @@ namespace App\Http\Controllers\Web\Reservas;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Domain\Reserva\Models\Reserva;
-use App\Domain\User\Models\Usuario; // Para obtener clientes
-use Carbon\Carbon; // Para trabajar con fechas
+use App\Domain\User\Models\Usuario;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth; // ¡Importa la fachada Auth!
 
 
 class ReservaController extends Controller
@@ -17,13 +18,13 @@ class ReservaController extends Controller
      */
     public function create()
     {
-        // En este formulario, solo necesitamos listar los usuarios que pueden ser clientes.
-        // Asumiendo que tienes un 'rol' en tu tabla de usuarios, podrías filtrarlos así:
-        // $clientes = Usuario::where('rol', 'cliente')->get();
-        // Por ahora, obtenemos todos para simplificar la prueba.
-        $clientes = Usuario::all();
+        // No necesitamos listar clientes si el ID viene de la sesión.
+        // Opcionalmente, podrías querer pasar el usuario autenticado a la vista
+        // para mostrar su nombre o email, pero no es estrictamente necesario
+        // para el ID.
+        $clienteAutenticado = Auth::user();
 
-        return view('reservas.create', compact('clientes'));
+        return view('reservas.create', compact('clienteAutenticado'));
     }
 
     /**
@@ -33,9 +34,19 @@ class ReservaController extends Controller
      */
     public function store(Request $request)
     {
+        // Obtener el ID del cliente autenticado
+        $idClienteAutenticado = Auth::guard('users')->id();
+
+        // Si no hay un usuario autenticado, redirigir con un error.
+        // Esto debería ser manejado por el middleware de autenticación,
+        // pero es una buena práctica de seguridad.
+        if (!$idClienteAutenticado) {
+            return back()->withErrors(['usuario' => 'Debes iniciar sesión para realizar una reserva.'])->withInput();
+        }
+
         // 1. Validación de los campos del formulario
+        // Eliminamos 'id_cliente' de la validación ya que no viene del formulario
         $request->validate([
-            'id_cliente' => 'required|exists:usuarios,id_usuario', // Cambiado a id_cliente
             'fecha_inicio' => 'required|date|after_or_equal:today',
             'fecha_fin' => 'required|date|after:fecha_inicio',
         ], [
@@ -52,45 +63,40 @@ class ReservaController extends Controller
             return back()->withErrors(['duracion' => 'La reserva debe ser entre 2 y 30 días.'])->withInput();
         }
 
-        // 3. Verificar si el usuario ya tiene una reserva pendiente o activa
-        $usuarioTieneReservaActiva = Reserva::where('id_cliente', $request->id_cliente) // Cambiado a id_cliente
-            ->whereIn('estado', ['pendiente', 'activa']) // Cambiado a 'estado'
+        // 3. Verificar si el usuario autenticado ya tiene una reserva pendiente o activa
+        $usuarioTieneReservaActiva = Reserva::where('id_cliente', $idClienteAutenticado)
+            ->whereIn('estado', ['pendiente', 'activa'])
             ->exists();
 
         if ($usuarioTieneReservaActiva) {
-            return back()->withErrors(['usuario' => 'El cliente ya tiene una reserva pendiente o activa.'])->withInput();
+            return back()->withErrors(['usuario' => 'Ya tienes una reserva pendiente o activa.'])->withInput();
         }
 
         // 4. Calcular el pago total (valor de prueba por ahora)
         $valorPorDia = 50; // Valor de prueba por día
         $pagoTotal = $valorPorDia * $duracion; // Cálculo simple de prueba
 
-       try {
-        // 5. Crear la reserva en la base de datos
-        $reserva = Reserva::create([
-            'id_cliente' => $request->id_cliente,
-            'id_maquinaria'=> 1,
-            'fecha_inicio' => $request->fecha_inicio,
-            'fecha_fin' => $request->fecha_fin,
-            'fecha_reserva' => Carbon::now(),
-            'estado' => 'pendiente',
-            'total' => $pagoTotal,
-            'id_empleado' => null,
-        ]);
+        try {
+            // 5. Crear la reserva en la base de datos usando el ID del usuario autenticado
+            $reserva = Reserva::create([
+                'id_cliente' => $idClienteAutenticado, // Usamos el ID del usuario autenticado
+                'id_maquinaria' => 1, // Mantener este valor o hacerlo dinámico si aplica
+                'fecha_inicio' => $request->fecha_inicio,
+                'fecha_fin' => $request->fecha_fin,
+                'fecha_reserva' => Carbon::now(),
+                'estado' => 'pendiente',
+                'total' => $pagoTotal,
+                'id_empleado' => null,
+            ]);
 
-   
-    
+            // Guardar el ID de la reserva en la sesión
+            session(['reserva_id' => $reserva->id_reserva]);
 
-        // Guardar el ID de la reserva en la sesión
-        session(['reserva_id' => $reserva->id_reserva]);
+            // Redirigir a la página de pago
+            return redirect()->route('pago.seleccionar')->with('success', 'Reserva creada con éxito. Proceda al pago.');
 
-
-
-        // Redirigir a la página de pago
-        return redirect()->route('pago.seleccionar')->with('success', 'Reserva creada con éxito. Proceda al pago.');
-
-    } catch (\Exception $e) {
-        return back()->withInput()->withErrors(['error' => 'Hubo un error al crear la reserva: ' . $e->getMessage()]);
-    }
+        } catch (\Exception $e) {
+            return back()->withInput()->withErrors(['error' => 'Hubo un error al crear la reserva: ' . $e->getMessage()]);
+        }
     }
 }
