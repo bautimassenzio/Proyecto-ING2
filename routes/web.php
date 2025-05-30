@@ -30,6 +30,5 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 Route::get('/confirmarAdmin', [ViewsController::class, 'vistaConfirmarAdmin']);
 Route::post('/confirmarAdmin', [AdminController::class, 'CodigoVerificacionMail'])->name('confirmarAdmin');
 
-
 Route::get('/users', [UsuarioController::class, 'getUsuarios'])->middleware(['checkUserType:cliente']);
 

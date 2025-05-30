@@ -21,8 +21,6 @@ class ClienteController extends Controller
             'contraseña' => 'required|string|min:4',
             'dni' => 'required|string|unique:usuarios,dni',
             'telefono' => 'required|string',
-            'estado' => 'required|string',
-            'fecha_alta' => 'required|date',
         ]);
     
         // Crear usuario
@@ -33,6 +31,7 @@ class ClienteController extends Controller
 
     public function crearUsuario($request){
         $rol=Roles::CLIENTE;
+        $estado='activo';
         return Usuario::create([
             'nombre' => $request->nombre,
             'email' => $request->email,
@@ -40,8 +39,8 @@ class ClienteController extends Controller
             'rol' => $rol,
             'dni' => $request->dni,
             'telefono' => $request->telefono,
-            'estado' => $request->estado,
-            'fecha_alta' => $request->fecha_alta,
+            'estado' => $estado,
+            'fecha_alta' => now(),
         ]);
     }
 

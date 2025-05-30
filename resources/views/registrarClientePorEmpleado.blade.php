@@ -33,15 +33,6 @@
             </div>
 
 
-            <!-- <div class="mb-3">
-                <label for="rol" class="form-label">Rol</label>
-                <select class="form-control" id="rol" name="rol" required>
-                    <option value="cliente">Cliente</option>
-                    <option value="empleado">Empleado</option>
-                    <option value="administrador">Administrador</option>
-                </select>
-            </div> -->
-
             <div class="mb-3">
                 <label for="dni" class="form-label">DNI</label>
                 <input type="text" class="form-control" id="dni" name="dni" required>
@@ -50,19 +41,6 @@
             <div class="mb-3">
                 <label for="telefono" class="form-label">Teléfono</label>
                 <input type="text" class="form-control" id="telefono" name="telefono" required>
-            </div>
-
-            <div class="mb-3">
-                <label for="estado" class="form-label">Estado</label>
-                <select class="form-control" id="estado" name="estado" required>
-                    <option value="activo">Activo</option>
-                    <option value="inactivo">Inactivo</option>
-                </select>
-            </div>
-
-            <div class="mb-3">
-                <label for="fecha_alta" class="form-label">Fecha de Alta</label>
-                <input type="date" class="form-control" id="fecha_alta" name="fecha_alta" value="{{ date('Y-m-d') }}" required>
             </div>
 
             <button type="submit" class="btn btn-primary">Registrar</button>
