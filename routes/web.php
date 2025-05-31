@@ -7,10 +7,7 @@ use App\Http\Controllers\Web\ClienteController;
 use App\Http\Controllers\Web\UsuarioController;
 use App\Http\Controllers\Web\ViewsController;
 
-Route::get('/', [ViewsController::class, 'vistaWelcome']);
-Route::get('/inicio', [ViewsController::class, 'vistaInicio'])->name('inicio');
-Route::get('/fail', [ViewsController::class, 'vistaInicioFallido']);
-
+Route::get('/', [ViewsController::class, 'vistaInicio'])->name('/');
 
 Route::get('/register', [ViewsController::class, 'vistaRegistro']);
 Route::post('/register', [ClienteController::class, 'storeClient'])->name('register');
@@ -30,5 +27,15 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 Route::get('/confirmarAdmin', [ViewsController::class, 'vistaConfirmarAdmin']);
 Route::post('/confirmarAdmin', [AdminController::class, 'CodigoVerificacionMail'])->name('confirmarAdmin');
 
-Route::get('/users', [UsuarioController::class, 'getUsuarios'])->middleware(['checkUserType:cliente']);
+
+Route::get('/exitoRegister', [ViewsController::class, 'exitoRegister']);
+
+Route::middleware(['checkUserType:empleado,admin'])->group(function () {
+    Route::get('/users', [UsuarioController::class, 'getUsuarios']);
+    Route::get('/users/{id}',[UsuarioController::class, 'getUsuario']);
+    Route::post('/users',[UsuarioController::class, 'store'] );
+    Route::put('/users/{id}',[UsuarioController::class, 'update']);
+    Route::delete('/users/{id}',[UsuarioController::class, 'delete']);
+});
+
 

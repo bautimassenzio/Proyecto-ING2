@@ -26,14 +26,16 @@ class LoginController extends Controller
             default => 'layouts.base',
         };
         session(['layout' => $layout]); // Guardás el layout en sesión
-        return redirect()->route('inicio'); // Redirigís a la ruta GET
+        return redirect()->route('/'); // Redirigís a la ruta GET
         }
 
     public function login (Request $request){
         $credentials = $request->only('email', 'password');
         $user= \App\Domain\User\Models\Usuario::where('email', $credentials['email'])->first();
 
-        if ($user && Hash::check($credentials['password'], $user->contraseña)){
+        if(!$user) return back()->withErrors(['email' => 'El mail ingresado no esta registrado en el sistema']);
+        if (!Hash::check($credentials['password'], $user->contraseña))return back()->withErrors(['password' => 'La contraseña ingresada es incorrecta']);
+
             if ($user->rol == Roles::ADMINISTRADOR->value){
                 return AdminController::isAdmin($user);
             }
@@ -42,17 +44,13 @@ class LoginController extends Controller
                 $request->session()->regenerate();
                 return $this->definirLayout($user);
             }    
-        }
-        else {
-            return redirect ('/fail');
-        }
     }
 
     public function logout(Request $request){
         Auth::guard('users')->logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        return redirect('/login');
+        return redirect('/');
     }
 
     

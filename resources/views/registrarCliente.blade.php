@@ -47,6 +47,18 @@
                 <input type="text" class="form-control" id="telefono" name="telefono" required>
             </div>
 
+            <div class="mb-3"> 
+                <label for="fecha_nacimiento">Fecha de nacimiento:</label>
+                <input 
+                    type="date" 
+                    id="fecha_nacimiento" 
+                    name="fecha_nacimiento" 
+                    value="{{ old('fecha_nacimiento') }}"
+                    max="{{ date('Y-m-d') }}" 
+                    required
+                >
+            </div>
+
 
             <button type="submit" class="btn btn-primary">Registrar</button>
         </form>
