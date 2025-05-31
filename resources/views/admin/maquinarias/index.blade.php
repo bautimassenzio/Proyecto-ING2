@@ -76,10 +76,10 @@
                                 <td>
                                     <a href="#" class="btn btn-info btn-sm me-1" title="Ver Detalles"><i class="fas fa-eye"></i> Ver</a>
                                     <a href="#" class="btn btn-warning btn-sm me-1" title="Editar"><i class="fas fa-edit"></i> Editar</a>
-                                    <form action="#" method="POST" class="d-inline">
+                                    <form action="{{ route('maquinarias.destroy', $maquinaria->id_maquinaria) }}" method="POST" style="display:inline;">
                                         @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-danger btn-sm" title="Eliminar" onclick="return confirm('¿Estás seguro de que quieres eliminar esta maquinaria?');"><i class="fas fa-trash-alt"></i> Eliminar</button>
+                                        @method('DELETE') 
+                                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('¿Estás seguro de que quieres dar de baja la maquinaria {{ $maquinaria->nro_inventario }}?');">Baja</button>
                                     </form>
                                 </td>
                             </tr>

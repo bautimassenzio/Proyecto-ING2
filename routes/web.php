@@ -54,7 +54,8 @@ Route::prefix('admin')->middleware(['auth', 'checkUserType:administrador'])->gro
     // Agrega rutas para editar, actualizar, eliminar si lo necesitas más adelante, y también estarán protegidas:
     // Route::get('/maquinarias/{maquinaria}/edit', [MaquinariaController::class, 'edit'])->name('maquinarias.edit');
     // Route::put('/maquinarias/{maquinaria}', [MaquinariaController::class, 'update'])->name('maquinarias.update');
-    // Route::delete('/maquinarias/{maquinaria}', [MaquinariaController::class, 'destroy'])->name('maquinarias.destroy');
+    //Route::delete('/maquinarias/{maquinaria}', [MaquinariaController::class, 'destroy'])->name('maquinarias.destroy');
 });
+    Route::delete('admin/maquinarias/{maquinaria}', [MaquinariaController::class, 'destroy'])->name('maquinarias.destroy');
     Route::get('admin/maquinarias', [MaquinariaController::class, 'index'])->name('maquinarias.index');
 // ...

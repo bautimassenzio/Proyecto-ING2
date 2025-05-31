@@ -11,11 +11,6 @@ use Illuminate\Support\Facades\Storage; // Para manejar la subida de imágenes
 class MaquinariaController extends Controller
 {
     /**
-     * Muestra una lista de todas las maquinarias.
-     */
-    
-
-    /**
      * Muestra el formulario para crear una nueva maquinaria.
      */
      public function create()
@@ -57,8 +52,7 @@ class MaquinariaController extends Controller
 
         // 3. Crear la maquinaria
         $maquinaria =Maquinaria::create($validatedData);
-        //temporal
-        //dd('Maquinaria guardada, a punto de redirigir');
+
         // 4. Redireccionar con un mensaje de éxito
         return redirect()->route('maquinarias.index')->with('success', 'Maquinaria creada exitosamente.');
     }
@@ -68,5 +62,12 @@ class MaquinariaController extends Controller
         $maquinarias = Maquinaria::all(); // Obtiene todas las maquinarias
         return view('admin.maquinarias.index', compact('maquinarias'));
     }
-    // Puedes agregar métodos edit, update, destroy si los necesitas
+    public function destroy(Maquinaria $maquinaria) // Route Model Binding para obtener la maquinaria
+    {
+        // Esto marca la maquinaria como eliminada (establece la columna 'deleted_at')
+        $maquinaria->delete();
+
+        // Puedes redirigir al listado con un mensaje de éxito
+        return redirect()->route('maquinarias.index')->with('success', 'Maquinaria dada de baja exitosamente.');
+    }
 }
