@@ -30,6 +30,9 @@ Route::post('/confirmarAdmin', [AdminController::class, 'CodigoVerificacionMail'
 
 Route::get('/exitoRegister', [ViewsController::class, 'exitoRegister']);
 
+Route::get('/eliminarCuenta', [ViewsController::class, 'vistaEliminarCuenta'])->middleware('checkUserType:cliente')->name('eliminarCuenta');
+Route::delete('/eliminarCuenta', [UsuarioController::class, 'eliminarCuentaPropia'])->middleware('checkUserType:cliente')->name('eliminarCuentaPost');
+
 Route::middleware(['checkUserType:empleado,admin'])->group(function () {
     Route::get('/users', [UsuarioController::class, 'getUsuarios']);
     Route::get('/users/{id}',[UsuarioController::class, 'getUsuario']);

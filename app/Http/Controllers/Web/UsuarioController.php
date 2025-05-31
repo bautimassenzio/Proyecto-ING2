@@ -151,4 +151,14 @@ if ($request->nueva_contraseña !== $request->nueva_contraseña_confirmation) {
         return back()->with('success', 'Contraseña actualizada correctamente');
     }
 
+    public function eliminarCuentaPropia()
+{
+    $usuario = Auth::guard('users')->user();
+    Auth::guard('users')->logout();
+    Auth::guard('users')->logout(); // cierra sesión
+    Usuario::where('dni', $usuario->dni)->delete();
+    session()->forget('layout');
+    return redirect('/')->with('success', 'Tu cuenta fue eliminada correctamente.');
+}
+
 }

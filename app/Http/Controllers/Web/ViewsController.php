@@ -44,4 +44,8 @@ class ViewsController extends Controller
         return view('visitante');
     }
 
+    public function vistaEliminarCuenta() {
+        return view('eliminarCuenta');
+    }
+
 }
