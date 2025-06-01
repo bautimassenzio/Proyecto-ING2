@@ -9,10 +9,47 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage; // Para manejar la subida de imágenes
 
 class MaquinariaController extends Controller
-{
+{   
+    public function __construct()
+    {
+        //$this->middleware('auth');Esta es la buena
+        $this->middleware('auth')->except(['index', 'show']);//Temporal para poder ver sin autenticar
+        $this->middleware('checkUserType:administrador')->only(['create', 'store', 'edit', 'update', 'destroy']);
+    }
+
     /**
-     * Muestra el formulario para crear una nueva maquinaria.
+     * Muestra los detalles de una maquinaria específica, adaptándose al rol.
+     * Si no quieres que los administradores vean los detalles de las dadas de baja
+     * por medio de este 'show', también deberías ajustar esta lógica.
      */
+    public function show($id_maquinaria)
+    {
+        $maquinaria = null;
+
+        if (Auth::check() && Auth::user()->role === 'administrador') {
+            // Si es administrador, buscamos la maquinaria.
+            // Para que el administrador tampoco vea los detalles de las dadas de baja,
+            // quitamos 'withTrashed()' aquí también.
+            $maquinaria = Maquinaria::findOrFail($id_maquinaria); // <-- Quitamos withTrashed()
+        } else {
+            // Para usuarios normales, solo buscamos maquinarias disponibles y activas
+            $maquinaria = Maquinaria::where('id_maquinaria', $id_maquinaria)
+                                     ->where('estado', 'disponible')
+                                     ->firstOrFail();
+        }
+
+        // Si la maquinaria está soft-deleted y el usuario no es admin o no debería verla,
+        // esto manejará el caso. Si se encuentra un 'trashed' y no es admin,
+        // el 'firstOrFail' en el else lo maneja. Si es admin, y el 'findOrFail'
+        // encuentra un 'trashed', aún la mostrará. Para evitarlo para admins también:
+        if ($maquinaria->trashed()) {
+            abort(404, 'Maquinaria no disponible o no encontrada.');
+        }
+
+        return view('admin.maquinarias.show', compact('maquinaria'));
+    }
+
+
      public function create()
     {
         $politicas = Politica::all(); // Obtiene todas las políticas

@@ -17,11 +17,13 @@
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         @endif
-
+        @auth
+        @if (Auth::user()->role === 'administrador')
         <a href="{{ route('maquinarias.create') }}" class="btn btn-primary mb-3">
             <i class="fas fa-plus-circle me-2"></i> Crear Nueva Maquinaria
         </a>
-
+        @endif
+        @endauth
         @if ($maquinarias->isEmpty())
             <div class="alert alert-info" role="alert">
                 No hay maquinarias registradas todavía.
@@ -73,15 +75,23 @@
                                         Sin imagen
                                     @endif
                                 </td>
+                                @auth
+                                @if (Auth::user()->role === 'administrador')
                                 <td>
-                                    <a href="#" class="btn btn-info btn-sm me-1" title="Ver Detalles"><i class="fas fa-eye"></i> Ver</a>
-                                    <a href="#" class="btn btn-warning btn-sm me-1" title="Editar"><i class="fas fa-edit"></i> Editar</a>
-                                    <form action="{{ route('maquinarias.destroy', $maquinaria->id_maquinaria) }}" method="POST" style="display:inline;">
+                                    {{-- Botón de Editar --}}
+                                    <a href="{{ route('maquinarias.edit', $maquinaria->id_maquinaria) }}" class="btn btn-warning btn-sm">Editar</a>
+                                    @if (!$maquinaria->trashed())
+                                        <form action="{{ route('maquinarias.destroy', $maquinaria->id_maquinaria) }}" method="POST" style="display:inline;">
                                         @csrf
-                                        @method('DELETE') 
-                                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('¿Estás seguro de que quieres dar de baja la maquinaria {{ $maquinaria->nro_inventario }}?');">Baja</button>
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-danger btn-sm ms-1" onclick="return confirm('¿Estás seguro de que quieres dar de baja la maquinaria {{ $maquinaria->nro_inventario }}?');">
+                                            Baja
+                                        </button>
                                     </form>
+                                    @endif
                                 </td>
+                                @endif
+                                @endauth
                             </tr>
                         @endforeach
                     </tbody>

@@ -1,5 +1,4 @@
 <?php
-
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Maq\MaquinariaController; // Asegúrate de importar el controlador
@@ -58,4 +57,9 @@ Route::prefix('admin')->middleware(['auth', 'checkUserType:administrador'])->gro
 });
     Route::delete('admin/maquinarias/{maquinaria}', [MaquinariaController::class, 'destroy'])->name('maquinarias.destroy');
     Route::get('admin/maquinarias', [MaquinariaController::class, 'index'])->name('maquinarias.index');
-// ...
+
+// --- Rutas del Catálogo Público (solo autenticados) ---
+//Route::middleware('auth')->group(function () {
+    Route::get('/catalogo', [MaquinariaController::class, 'index'])->name('catalogo.index'); // Catálogo Adaptativo
+    Route::get('/catalogo/{maquinaria}', [MaquinariaController::class, 'show'])->name('catalogo.show'); // Detalle Adaptativo
+//});
