@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Web\Users;
 use App\Domain\User\Models\Usuario;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Enums\Roles;
+use App\Enums\RolUsuario;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
@@ -119,12 +119,16 @@ class UsuarioController extends Controller
     public function updatePassword(Request $request){
         $request->validate([
     'password_actual' => 'required',
-    'nueva_contraseña' => 'required|min:6',
-    'nueva_contraseña_confirmation' => 'required|min:6|same:nueva_contraseña',
+    'nueva_contraseña' => 'required|min:5',
+    'nueva_contraseña_confirmation' => 'required|min:5|same:nueva_contraseña',
 ], [
-    'nueva_contraseña.min' => 'La nueva contraseña debe tener al menos 6 caracteres.',
+    'nueva_contraseña.min' => 'La nueva contraseña debe tener al menos 5 caracteres.',
     'nueva_contraseña_confirmation.min' => 'La confirmación no coincide con la nueva contraseña.',
 ]);
+
+if ($request->nueva_contraseña == $request->password_actual) {
+    return back()->withErrors(['nueva_contraseña_confirmation' => 'La nueva contraseña es igual a la anterior']);
+}
 
 if ($request->nueva_contraseña !== $request->nueva_contraseña_confirmation) {
     return back()->withErrors(['nueva_contraseña_confirmation' => 'La contraseña a confirmar es distinta de la nueva']);
@@ -146,5 +150,15 @@ if ($request->nueva_contraseña !== $request->nueva_contraseña_confirmation) {
     
         return back()->with('success', 'Contraseña actualizada correctamente');
     }
+
+    public function eliminarCuentaPropia()
+{
+    $usuario = Auth::guard('users')->user();
+    Auth::guard('users')->logout();
+    Auth::guard('users')->logout(); // cierra sesión
+    Usuario::where('dni', $usuario->dni)->delete();
+    session()->forget('layout');
+    return redirect('/')->with('success', 'Tu cuenta fue eliminada correctamente.');
+}
 
 }

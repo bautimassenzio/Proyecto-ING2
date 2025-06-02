@@ -9,6 +9,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Str;
 use App\Mail\EnviarContraseña;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Carbon;
 
 class ClienteController extends Controller
 {
@@ -21,18 +22,25 @@ class ClienteController extends Controller
             'contraseña' => 'required|string|min:4',
             'dni' => 'required|string|unique:usuarios,dni',
             'telefono' => 'required|string',
-            'estado' => 'required|string',
-            'fecha_alta' => 'required|date',
+            'fecha_nacimiento' => 'required|date'
         ]);
     
         // Crear usuario
-        $usuario = $this->crearUsuario($request);
+        if (! $this->mayor18($request->fecha_nacimiento)) return back()->withErrors(['mensaje' => 'No se pueden registrar usuarios menores a 18 años']);
+
+        $this->crearUsuario($request);
     
-        return response()->json(['mensaje' => 'Usuario creado con éxito', 'usuario' => $usuario], 201);
+        return redirect('/exitoRegister');
+    }
+
+    public function mayor18($fecha_nacimiento){
+        $fechaNacimiento=Carbon::parse($fecha_nacimiento);
+        return $fechaNacimiento->age >= 18;
     }
 
     public function crearUsuario($request){
         $rol=Roles::CLIENTE;
+        $estado='activo';
         return Usuario::create([
             'nombre' => $request->nombre,
             'email' => $request->email,
@@ -40,8 +48,9 @@ class ClienteController extends Controller
             'rol' => $rol,
             'dni' => $request->dni,
             'telefono' => $request->telefono,
-            'estado' => $request->estado,
-            'fecha_alta' => $request->fecha_alta,
+            'estado' => $estado,  
+            'fecha_nacimiento' => $request->fecha_nacimiento,      
+            'fecha_alta' => now(),
         ]);
     }
 

@@ -1,72 +1,89 @@
 <?php
-
 namespace App\Http\Controllers\Web\Maquinarias;
 
 use App\Http\Controllers\Controller;
-use App\Domain\Maquinaria\Models\Maquinaria; // O App\Domain\Maquinaria;
+use App\Domain\Maquinaria\Models\Maquinaria;
 use App\Domain\Maquinaria\Models\Politica;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage; // Para manejar la subida de imágenes
+use Illuminate\Support\Facades\Auth;
 
 class MaquinariaController extends Controller
 {
-    /**
-     * Muestra una lista de todas las maquinarias.
-     */
-    
-
-    /**
-     * Muestra el formulario para crear una nueva maquinaria.
-     */
-     public function create()
+     public function __construct()
     {
-        $politicas = Politica::all(); // Obtiene todas las políticas
+        $this->middleware('auth')->only(['create', 'store', 'edit', 'update', 'destroy']);
+        // USAMOS 'admin' aquí, como en tu Enum
+        $this->middleware('checkUserType:admin')->only(['create', 'store', 'edit', 'update', 'destroy']);
+    }
+
+    public function index()
+    {
+        // También usamos 'admin' aquí para consistencia
+        if (Auth::check() && Auth::user()->rol === 'admin') { // <-- Cambiado de 'administrador' a 'admin'
+            $maquinarias = Maquinaria::all();
+        } else {
+            $maquinarias = Maquinaria::where('estado', 'disponible')->get();
+        }
+        $usuario = Auth::check() ? Auth::user() : null;
+        return view('maquinarias.index', compact('maquinarias', 'usuario'));
+    }
+
+    public function show($id_maquinaria)
+    {
+        // También usamos 'admin' aquí para consistencia
+        if (Auth::check() && Auth::user()->rol === 'admin') { // <-- Cambiado de 'administrador' a 'admin'
+            $maquinaria = Maquinaria::findOrFail($id_maquinaria);
+        } else {
+            $maquinaria = Maquinaria::where('id_maquinaria', $id_maquinaria)
+                                     ->where('estado', 'disponible')
+                                     ->firstOrFail();
+        }
+        return view('maquinarias.createMaq', compact('maquinaria'));
+    }
+
+
+    // Crear maquinaria (solo admin)
+    public function create()
+    {
+        $politicas = Politica::all();
         return view('maquinarias.createMaq', compact('politicas'));
     }
 
-    /**
-     * Almacena una nueva maquinaria en la base de datos.
-     */
+    // Guardar maquinaria (solo admin)
     public function store(Request $request)
     {
-        // 1. Validación de los datos
         $validatedData = $request->validate([
             'nro_inventario' => 'required|string|max:255|unique:maquinarias',
             'precio_dia' => 'required|numeric|min:0',
-            'foto_url' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048', // Para imágenes
+            'foto_url' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'marca' => 'required|string|max:255',
             'modelo' => 'required|string|max:255',
             'anio' => 'required|integer|min:1900|max:' . date('Y'),
-            'uso'=> 'required|string|max:100',
+            'uso' => 'required|string|max:100',
             'tipo_energia' => 'required|string|in:electrica,combustion',
             'estado' => 'required|string|in:disponible,inactiva',
             'localidad' => 'required|string|max:100',
             'id_politica' => 'nullable|integer|exists:politicas,id_politica',
         ]);
 
-        // 2. Manejo de la subida de la imagen
         if ($request->hasFile('foto_url')) {
-            // Guarda la imagen en storage/app/public/maquinarias
-            // $imagePath contendrá algo como 'maquinarias/nombre_aleatorio.jpg'
             $imagePath = $request->file('foto_url')->store('maquinarias', 'public');
-            $validatedData['foto_url'] = $imagePath; // Guarda esta ruta relativa a 'storage/app/public'
+            $validatedData['foto_url'] = $imagePath;
         } else {
-            $validatedData['foto_url'] = null; // Asegura que sea null si no se sube imagen
+            $validatedData['foto_url'] = null;
         }
 
+        Maquinaria::create($validatedData);
 
-        // 3. Crear la maquinaria
-        $maquinaria =Maquinaria::create($validatedData);
-        //temporal
-        //dd('Maquinaria guardada, a punto de redirigir');
-        // 4. Redireccionar con un mensaje de éxito
         return redirect()->route('maquinarias.index')->with('success', 'Maquinaria creada exitosamente.');
     }
-    // ... otros métodos (index, show, edit, update, destroy) ...
-    public function index()
+
+    // Dar de baja maquinaria (solo admin)
+    public function destroy(Maquinaria $maquinaria)
     {
-        $maquinarias = Maquinaria::all(); // Obtiene todas las maquinarias
-        return view('maquinarias.index', compact('maquinarias'));
+        $maquinaria->estado = 'inactiva';
+        $maquinaria->save();
+
+        return redirect()->route('maquinarias.index')->with('success', 'Maquinaria dada de baja exitosamente.');
     }
-    // Puedes agregar métodos edit, update, destroy si los necesitas
 }

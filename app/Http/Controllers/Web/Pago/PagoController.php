@@ -50,7 +50,7 @@ class PagoController extends Controller
 $failureUrl = route('pago.fallo');
 $pendingUrl = route('pago.pendiente');
 
-$ngrokBase = 'https://ad1c-2802-8012-1a9-5100-fc7a-cb14-12db-f5cf.ngrok-free.app'; // tu URL actual de ngrok
+$ngrokBase = 'https://365e-2802-8012-106-9600-b839-2ac3-2414-a8d5.ngrok-free.app'; // tu URL actual de ngrok
 
 $preference->back_urls = [
     "success" => $ngrokBase . '/pago/exito',
@@ -95,13 +95,20 @@ $preference->back_urls = [
     }
 
     // ... (tus funciones exito, fallo, pendiente)
-    public function exito(Request $request) {
+   public function exito(Request $request) {
         $idreserva = $request->query('external_reference');
 
-        $reserva = Reserva::find($idreserva);
+        // *** CAMBIO CLAVE AQUÍ: Cargar la relación 'maquinaria' con la reserva ***
+        // Usamos find() y luego load() para obtener la reserva y su maquinaria relacionada.
+        $reserva = Reserva::find($idreserva); // Encuentra la reserva por su ID
+        if ($reserva) {
+            $reserva->load('maquinaria'); // Carga la maquinaria asociada a esta reserva
+        }
+        // **********************************************************************
 
         if (!$reserva) {
             $mensaje = 'Error: No se encontró la reserva asociada al pago.';
+            Log::error('Pago Exito: Reserva no encontrada para external_reference: ' . $idreserva);
             return view('pago.botonhome', compact('mensaje'));
         }
 
@@ -110,26 +117,37 @@ $preference->back_urls = [
         $metodo = 'mercadopago';
         $fecha_pago = now();
 
-        $pago = Pago::create([
-            'id_reserva' => $idreserva,
-            'monto' => $monto,
-            'fecha_pago' => $fecha_pago,
-            'metodo_pago' => $metodo,
-            'estado_pago' => $estado_pago,
-        ]);
+        try {
+            $pago = Pago::create([
+                'id_reserva' => $idreserva,
+                'monto' => $monto,
+                'fecha_pago' => $fecha_pago,
+                'metodo_pago' => $metodo,
+                'estado_pago' => $estado_pago,
+            ]);
 
-        $reserva->estado = 'aprobada';
-        $reserva->save();
+            $reserva->estado = 'aprobada'; // O el estado final que corresponda
+            $reserva->save();
 
+            $cliente = Usuario::find($reserva->id_cliente);
+            if ($cliente && $cliente->email) {
+                // Ahora, $reserva tiene la relación 'maquinaria' cargada y disponible.
+                Mail::to($cliente->email)->send(new ConfirmacionReserva($reserva, $cliente));
+                Log::info('Correo de confirmación de reserva enviado para Reserva ID: ' . $reserva->id_reserva . ' y Cliente: ' . $cliente->email);
+            } else {
+                Log::warning('No se pudo enviar correo de confirmación: Cliente o email no encontrados para Reserva ID: ' . $reserva->id_reserva);
+            }
 
-        $cliente = Usuario::find($reserva->id_cliente);
-        if ($cliente && $cliente->email) {
-            Mail::to($cliente->email)->send(new ConfirmacionReserva($reserva, $cliente));
+            $mensaje = '✅ Pago exitoso. Confirmamos tu reserva.';
+            return view('pago.botonhome', compact('mensaje'));
+
+        } catch (\Exception $e) {
+            Log::error('Error en PagoController@exito: ' . $e->getMessage(), ['trace' => $e->getTraceAsString(), 'reserva_id' => $idreserva]);
+            $mensaje = '❌ Error interno al procesar la confirmación del pago.';
+            return view('pago.botonhome', compact('mensaje'));
         }
-
-        $mensaje = '✅ Pago exitoso. Confirmamos tu reserva.';
-        return view('pago.botonhome', compact('mensaje'));
     }
+
 
     public function fallo() {
         $mensaje = '❌ Ocurrió un error durante el pago.';

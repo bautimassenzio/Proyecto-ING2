@@ -5,6 +5,7 @@ namespace App\Domain\Reserva\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Domain\User\Models\Usuario; // Importa el modelo Usuario
+use App\Domain\Maquinaria\Models\Maquinaria;
 
 class Reserva extends Model
 {
@@ -24,6 +25,12 @@ class Reserva extends Model
         'total',         // Cambiado de pago_total a total
         'id_empleado',   // Cambiado de id_empleado_entrega a id_empleado
     ];
+
+    public function maquinaria()
+{
+    return $this->belongsTo(Maquinaria::class, 'id_maquinaria');
+}
+
 
     /**
      * Relación con el usuario que realiza la reserva (el cliente).

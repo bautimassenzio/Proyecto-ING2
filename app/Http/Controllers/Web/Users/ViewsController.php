@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Web\Users;
 
 use App\Http\Controllers\Controller;
-use App\Http\Controllers\Users;
+
 
 class ViewsController extends Controller
 {
@@ -13,6 +13,7 @@ class ViewsController extends Controller
 
     public function vistaInicio() {
         $layout = session('layout', 'layouts.base'); // recupera o pone default
+        if ($layout == 'layouts.base') return view('users.visitante');
         return view('users.inicio', compact('layout'));
     }
 
@@ -36,5 +37,16 @@ class ViewsController extends Controller
         return view('users.confirmarAdmin');
     }
 
+    public function exitoRegister() {
+        return view('users.exitoRegistro');
+    }
     
+    public function vistaVisitante() {
+        return view('users.visitante');
+    }
+
+    public function vistaEliminarCuenta() {
+        return view('users.eliminarCuenta');
+    }
+
 }

@@ -122,4 +122,4 @@
         <button type="submit" class="btn btn-primary">Guardar Maquinaria</button>
     </form>
 </div>
-@endsection {{-- ¡NO DEBE HABER UN </html> DESPUÉS DE ESTO! --}}
+@endsection 

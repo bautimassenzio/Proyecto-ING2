@@ -2,8 +2,9 @@
 
 @section('navbar')
     <nav>
-        <a href="/inicio">Inicio</a> |
-        <a href="/admin/usuarios">Usuarios</a> |
+        <a href="/">Inicio</a> |
+        <a href="/users">Usuarios</a> |
         <a href="/admin/reportes">Reportes</a> |
+        <a href="/admin/maquinarias/create">Alta maquinaria</a> |
     </nav>
 @endsection

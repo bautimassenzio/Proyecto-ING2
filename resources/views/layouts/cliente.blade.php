@@ -2,7 +2,8 @@
 
 @section('navbar')
     <nav>
-        <a href="/inicio">Inicio</a> |
-        <a href="/reservas/crear">Reservar</a> |
+        <a href="/catalogo">Inicio</a> |
+        <a href="/mis-reservas">Mis reservas</a> |
+        <a href="/eliminarCuenta">Eliminar Cuenta</a>
     </nav>
 @endsection

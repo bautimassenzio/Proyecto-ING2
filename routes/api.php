@@ -18,9 +18,4 @@ use App\Http\Middleware\CheckUserType;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
-
-Route::get('/users', [UsuarioController::class, 'getUsuarios'])->middleware(['checkUserType:empleado']);
-Route::get('/users/{id}',[UsuarioController::class, 'getUsuario']);
 Route::post('/users',[UsuarioController::class, 'store'] );
-Route::put('/users/{id}',[UsuarioController::class, 'update']);
-Route::delete('/users/{id}',[UsuarioController::class, 'delete']);

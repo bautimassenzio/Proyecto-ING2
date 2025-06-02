@@ -10,7 +10,7 @@ use App\Http\Controllers\Auth\LoginController;
 use Illuminate\Http\Request;
 use App\Mail\CodigoVerificacionMail;
 use Illuminate\Support\Facades\Mail;
-
+ 
 
 class AdminController extends Controller
 {

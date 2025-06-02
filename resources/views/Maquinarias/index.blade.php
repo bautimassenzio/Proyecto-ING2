@@ -1,96 +1,59 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Listado de Maquinarias</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body>
-    <div class="container mt-4">
-        <h1 class="mb-4">Listado de Maquinarias</h1>
+@extends('layouts.base')
 
-        {{-- Bloque para mostrar el mensaje de éxito --}}
-        @if (session('success'))
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                {{ session('success') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        @endif
+@section('content')
+<div class="container">
+    <h1 class="mb-4">Catálogo de Maquinarias</h1>
 
-        <a href="{{ route('maquinarias.create') }}" class="btn btn-primary mb-3">
-            <i class="fas fa-plus-circle me-2"></i> Crear Nueva Maquinaria
-        </a>
+    <div class="row">
+        @foreach($maquinarias as $maquinaria)
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    @if($maquinaria->foto_url)
+                        <img src="{{ asset('storage/' . $maquinaria->foto_url) }}" class="card-img-top" alt="Imagen de la maquinaria">
+                    @endif
+                    <div class="card-body">
+                        <h5 class="card-title">{{ $maquinaria->marca }} {{ $maquinaria->modelo }}</h5>
+                        <p class="card-text">
+                            <strong>Precio por día:</strong> ${{ $maquinaria->precio_dia }}<br>
+                            <strong>Estado:</strong> {{ ucfirst($maquinaria->estado) }}<br>
+                            <strong>Localidad:</strong> {{ $maquinaria->localidad }}
+                        </p>
+                    </div>
+                    <div class="card-footer text-center">
+                        {{-- Lógica de botones según el tipo de usuario --}}
+                        {{-- CAMBIO CLAVE AQUÍ: Usamos @auth('users') para el guard 'users' --}}
+                        @auth('users')
+                            {{-- El usuario está autenticado en el guard 'users' --}}
+                            {{-- CAMBIO CLAVE AQUÍ: Usamos Auth::guard('users')->user() --}}
+                            @if(Auth::guard('users')->user()->rol === 'admin') {{-- Nota: Usé 'rol' en minúscula según tu modelo/DB --}}
+                                <a href="{{ route('maquinarias.edit', $maquinaria->id_maquinaria) }}" class="btn btn-warning btn-sm">Editar</a>
 
-        @if ($maquinarias->isEmpty())
-            <div class="alert alert-info" role="alert">
-                No hay maquinarias registradas todavía.
+                                <form action="{{ route('maquinarias.destroy', $maquinaria->id_maquinaria) }}" method="POST" class="d-inline-block" onsubmit="return confirm('¿Estás seguro que deseas dar de baja esta maquinaria?');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button class="btn btn-danger btn-sm">Dar de Baja</button>
+                                </form>
+                            {{-- CAMBIO CLAVE AQUÍ: Usamos Auth::guard('users')->user() --}}
+                            @elseif(Auth::guard('users')->user()->rol === 'cliente' && $maquinaria->estado === 'disponible')
+                                {{-- Asegúrate de que esta URL sea correcta. Tu ruta `reservas.create` espera `id_maquinaria`. --}}
+                                <a href="{{ url('reservas/crear?id_maquinaria=' . $maquinaria->id_maquinaria) }}" class="btn btn-primary btn-sm">Reservar</a>
+                            @else
+                                {{-- Usuarios autenticados que no son admin ni cliente, solo ven --}}
+                                <span class="text-muted">Solo visualización</span>
+                            @endif
+                        @endauth
+
+                        {{-- CAMBIO CLAVE AQUÍ: Usamos @guest('users') para el guard 'users' --}}
+                        @guest('users')
+                            {{-- El usuario NO está autenticado en el guard 'users' --}}
+                            @if($maquinaria->estado === 'disponible')
+                                <a href="{{ route('login') }}" class="btn btn-outline-primary btn-sm">Reservar</a>
+                            @endif
+                        @endguest
+                    </div>
+                </div>
             </div>
-        @else
-            <div class="table-responsive">
-                <table class="table table-striped table-hover align-middle">
-                    <thead class="table-dark">
-                        <tr>
-                            <th>ID</th>
-                            <th>Nro. Inventario</th>
-                            <th>Marca</th>
-                            <th>Modelo</th>
-                            <th>Precio/Día</th>
-                            <th>Año</th>
-                            <th>Uso</th>
-                            <th>Energía</th>
-                            <th>Estado</th>
-                            <th>Localidad</th>
-                            <th>Política</th>
-                            <th>Imagen</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($maquinarias as $maquinaria)
-                            <tr>
-                                <td>{{ $maquinaria->id_maquinaria }}</td> {{-- Usamos id_maquinaria como PK --}}
-                                <td>{{ $maquinaria->nro_inventario }}</td>
-                                <td>{{ $maquinaria->marca }}</td>
-                                <td>{{ $maquinaria->modelo }}</td>
-                                <td>${{ number_format($maquinaria->precio_dia, 2, ',', '.') }}</td>
-                                <td>{{ $maquinaria->anio }}</td>
-                                <td>{{ $maquinaria->uso }}</td>
-                                <td>{{ $maquinaria->tipo_energia }}</td>
-                                <td>{{ $maquinaria->estado }}</td>
-                                <td>{{ $maquinaria->localidad }}</td>
-                                <td>
-                                    @if ($maquinaria->politica)
-                                        {{ $maquinaria->politica->tipo }}
-                                    @else
-                                        N/A
-                                    @endif
-                                </td>
-                                <td>
-                                    @if ($maquinaria->foto_url)
-                                        <img src="{{ asset('storage/' . str_replace('public/', '', $maquinaria->foto_url)) }}" alt="Imagen de {{ $maquinaria->marca }}" class="img-thumbnail" style="width: 80px; height: 80px; object-fit: cover;">
-                                    @else
-                                        Sin imagen
-                                    @endif
-                                </td>
-                                <td>
-                                    <a href="#" class="btn btn-info btn-sm me-1" title="Ver Detalles"><i class="fas fa-eye"></i> Ver</a>
-                                    <a href="#" class="btn btn-warning btn-sm me-1" title="Editar"><i class="fas fa-edit"></i> Editar</a>
-                                    <form action="#" method="POST" class="d-inline">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-danger btn-sm" title="Eliminar" onclick="return confirm('¿Estás seguro de que quieres eliminar esta maquinaria?');"><i class="fas fa-trash-alt"></i> Eliminar</button>
-                                    </form>
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-        @endif
+        @endforeach
     </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://kit.fontawesome.com/your-font-awesome-kit-id.js" crossorigin="anonymous"></script>
-</body>
-</html>
+</div>
+@endsection
