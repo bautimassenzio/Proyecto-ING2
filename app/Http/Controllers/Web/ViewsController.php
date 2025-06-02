@@ -13,7 +13,7 @@ class ViewsController extends Controller
     public function vistaInicio() {
         $layout = session('layout', 'layouts.base'); // recupera o pone default
         if ($layout == 'layouts.base') return view('visitante');
-        return view('inicio', compact('layout'));
+        else return view('inicio', compact('layout'));
     }
 
     public function vistaIniciofallido() {
