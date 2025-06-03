@@ -10,8 +10,8 @@ use Illuminate\Support\Facades\Auth;
 class MaquinariaController extends Controller
 {
      public function __construct()
-    {
-        $this->middleware('auth')->only(['create', 'store', 'edit', 'update', 'destroy']);
+    {   
+       // $this->middleware('auth')->only(['create', 'store', 'edit', 'update', 'destroy']);
         // USAMOS 'admin' aquí, como en tu Enum
         $this->middleware('checkUserType:admin')->only(['create', 'store', 'edit', 'update', 'destroy']);
     }
@@ -76,7 +76,7 @@ class MaquinariaController extends Controller
 
         Maquinaria::create($validatedData);
 
-        return redirect()->route('maquinarias.index')->with('success', 'Maquinaria creada exitosamente.');
+        return redirect()->route('catalogo.index')->with('success', 'Maquinaria creada exitosamente.');
     }
 
     // Dar de baja maquinaria (solo admin)

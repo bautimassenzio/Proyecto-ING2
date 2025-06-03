@@ -22,6 +22,7 @@
 
     @if(Auth::guard('users')->user()->rol === 'admin')
         <!-- Admin Dashboard -->
+         <!--
         <div class="admin-stats">
             <div class="stat-card">
                 <div class="stat-icon">
@@ -30,6 +31,7 @@
                 <div class="stat-number">156</div>
                 <div class="stat-label">Usuarios Totales</div>
             </div>
+            
             <div class="stat-card">
                 <div class="stat-icon">
                     <i class="fas fa-cogs"></i>
@@ -52,13 +54,14 @@
                 <div class="stat-label">Ventas del Mes</div>
             </div>
         </div>
+        -->
 
         <div class="admin-actions">
             <a href="/users" class="action-btn">
                 <i class="fas fa-users-cog"></i>
                 <div>Gestionar Usuarios</div>
             </a>
-            <a href="#" class="action-btn">
+            <a href="/admin/maquinarias/create" class="action-btn">
                 <i class="fas fa-plus-circle"></i>
                 <div>Nueva Maquinaria</div>
             </a>
@@ -129,7 +132,8 @@
 
     @else
         <!-- Client Dashboard -->
-        <div class="client-overview">
+         <!--
+     <div class="client-overview">  
             <div class="overview-card">
                 <div class="overview-icon">
                     <i class="fas fa-shopping-cart"></i>
@@ -152,26 +156,30 @@
                 <div class="overview-value">12</div>
             </div>
         </div>
-
+````````-->
         <div class="client-actions">
-            <a href="#" class="client-action">
+            <a href="/catalogo" class="client-action">
                 <i class="fas fa-search"></i>
                 <div>Explorar Catálogo</div>
             </a>
+            <!--
             <a href="#" class="client-action">
                 <i class="fas fa-plus-circle"></i>
                 <div>Nuevo Pedido</div>
             </a>
+
             <a href="#" class="client-action">
                 <i class="fas fa-calculator"></i>
                 <div>Solicitar Cotización</div>
             </a>
+        
             <a href="#" class="client-action">
                 <i class="fas fa-headset"></i>
                 <div>Soporte Técnico</div>
             </a>
         </div>
-
+        -->
+        <!--
         <div class="recent-activity">
             <h5 class="mb-3"><i class="fas fa-clock me-2"></i>Actividad Reciente</h5>
             <div class="activity-item">
@@ -195,6 +203,7 @@
         </div>
     @endif
 </div>
+-->
 
 <style>
     .dashboard-welcome {

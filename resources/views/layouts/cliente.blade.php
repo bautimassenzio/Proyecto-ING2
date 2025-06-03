@@ -12,10 +12,11 @@
         </a>
     </li>
     <li class="nav-item">
-        <a class="nav-link" href="#">
-            <i class="fas fa-clipboard-list me-1"></i> Mis Pedidos
+        <a class="nav-link" href="mis-reservas">
+            <i class="fas fa-clipboard-list me-1"></i> Mis Reservas
         </a>
     </li>
+<!--
     <li class="nav-item">
         <a class="nav-link" href="#">
             <i class="fas fa-file-invoice me-1"></i> Cotizaciones
@@ -26,6 +27,7 @@
             <i class="fas fa-history me-1"></i> Historial
         </a>
     </li>
+-->
     <li class="nav-item dropdown">
         <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
             <i class="fas fa-user-circle me-1"></i> Mi Cuenta

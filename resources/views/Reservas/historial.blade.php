@@ -53,13 +53,13 @@
                                     $limite = \Carbon\Carbon::parse($reserva->fecha_inicio)->subDay();
                                 @endphp
 
-                                @if(in_array($reserva->estado, ['pendiente', 'activa']) && $ahora->lt($limite))
+                                @if(in_array($reserva->estado, ['pendiente']) && $ahora->lt($limite))
                                     <form action="{{ route('reservas.cancelar', $reserva->id_reserva) }}" method="POST" onsubmit="return confirm('¿Confirmas cancelar esta reserva?')">
                                         @csrf
                                         <button type="submit" class="btn btn-danger btn-sm">Cancelar</button>
                                     </form>
                                 @else
-                                    <button class="btn btn-secondary btn-sm" disabled>No cancelar</button>
+                                    <button class="btn btn-secondary btn-sm" disabled>Cancelar</button>
                                 @endif
                             </td>
                         </tr>

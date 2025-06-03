@@ -123,10 +123,11 @@ class ReservaController extends Controller
         }
 
         $reservas = Reserva::with('maquinaria')
-            ->where('id_cliente', $cliente->id)
+            ->where('id_cliente', $cliente->id_usuario)
             ->orderBy('fecha_reserva', 'desc')
             ->get();
 
+        
         return view('reservas.historial', compact('reservas'));
     }
 
@@ -138,14 +139,15 @@ class ReservaController extends Controller
             return redirect()->route('login')->withErrors(['auth' => 'Debes iniciar sesión para cancelar una reserva.']);
         }
 
-        $reserva = Reserva::with('maquinaria')->where('id_reserva', $id_reserva)->where('id_cliente', $cliente->id)->first();
+        $reserva = Reserva::with('maquinaria')->where('id_reserva', $id_reserva)->where('id_cliente', $cliente->id_usuario)->first();
 
         if (!$reserva) {
             return back()->withErrors(['reserva' => 'Reserva no encontrada.']);
         }
 
         $ahora = \Carbon\Carbon::now();
-        $limiteCancelacion = $reserva->fecha_inicio->copy()->subDay();
+        $limiteCancelacion = \Carbon\Carbon::parse($reserva->fecha_inicio)->subDay();
+      
 
         if ($ahora->gt($limiteCancelacion)) {
             return back()->withErrors(['cancelacion' => 'La reserva sólo puede cancelarse con al menos 24 horas de anticipación.']);

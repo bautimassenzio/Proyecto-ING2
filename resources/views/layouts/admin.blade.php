@@ -12,7 +12,7 @@
         </a>
     </li>
     <li class="nav-item">
-        <a class="nav-link" href="#">
+        <a class="nav-link" href="admin/maquinarias/create">
             <i class="fas fa-cogs me-1"></i> Maquinarias
         </a>
     </li>
