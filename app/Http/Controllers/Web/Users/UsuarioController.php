@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Web;
+namespace App\Http\Controllers\Web\Users;
 
 use App\Domain\User\Models\Usuario;
 use App\Http\Controllers\Controller;
@@ -12,11 +12,7 @@ use Illuminate\Support\Facades\Hash;
 
 class UsuarioController extends Controller
 {
-    //
 
-    //public function __construct(){
-     // $this->middleware('auth:usuarios');
-   //}
 
     public function getUsuarios(){
         return Usuario::all();
@@ -160,5 +156,8 @@ if ($request->nueva_contraseña !== $request->nueva_contraseña_confirmation) {
     session()->forget('layout');
     return redirect('/')->with('success', 'Tu cuenta fue eliminada correctamente.');
 }
+
+
+
 
 }

@@ -7,7 +7,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use App\Enums\Roles;
-use App\Http\Controllers\Web\AdminController;
+use App\Http\Controllers\Web\Users\AdminController;
+
 
 
 class LoginController extends Controller

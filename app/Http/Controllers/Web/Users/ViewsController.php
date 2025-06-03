@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Http\Controllers\Web;
+namespace App\Http\Controllers\Web\Users;
 
 use App\Http\Controllers\Controller;
+
 
 class ViewsController extends Controller
 {

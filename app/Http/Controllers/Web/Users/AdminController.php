@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Web;
+namespace App\Http\Controllers\Web\Users;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
@@ -10,7 +10,6 @@ use App\Http\Controllers\Auth\LoginController;
 use Illuminate\Http\Request;
 use App\Mail\CodigoVerificacionMail;
 use Illuminate\Support\Facades\Mail;
-
 
 class AdminController extends Controller
 {
