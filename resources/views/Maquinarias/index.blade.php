@@ -26,7 +26,7 @@
                             {{-- El usuario está autenticado en el guard 'users' --}}
                             {{-- CAMBIO CLAVE AQUÍ: Usamos Auth::guard('users')->user() --}}
                             @if(Auth::guard('users')->user()->rol === 'admin') {{-- Nota: Usé 'rol' en minúscula según tu modelo/DB --}}
-                                <a href="{{ route('maquinarias.edit', $maquinaria->id_maquinaria) }}" class="btn btn-warning btn-sm">Editar</a>
+                                <a href=" " class="btn btn-warning btn-sm">Editar</a>
 
                                 <form action="{{ route('maquinarias.destroy', $maquinaria->id_maquinaria) }}" method="POST" class="d-inline-block" onsubmit="return confirm('¿Estás seguro que deseas dar de baja esta maquinaria?');">
                                     @csrf

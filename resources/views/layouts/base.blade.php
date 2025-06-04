@@ -282,7 +282,7 @@
                 <!-- Brand -->
                 <a class="navbar-brand" href="{{ route('/') }}">
                     <i class="fas fa-cogs"></i>
-                    <span>MaquinaTech</span>
+                    <span>MannyMaquinarias</span>
                 </a>
 
                 <!-- Mobile Toggle -->
@@ -368,7 +368,7 @@
         <div class="container">
             <div class="footer-content">
                 <div>
-                    <p class="mb-0">© {{ date('Y') }} MaquinaTech - Sistema de Gestión de Maquinarias</p>
+                    <p class="mb-0">© {{ date('Y') }} MannyMaquinarias - Sistema de Gestión de Maquinarias</p>
                 </div>
                 <div class="footer-links">
                     <a href="#"><i class="fas fa-phone"></i> Contacto</a>

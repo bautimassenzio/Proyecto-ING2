@@ -9,6 +9,7 @@ use App\Http\Controllers\Web\Users\AdminController;
 use App\Http\Controllers\Web\Users\ClienteController;
 use App\Http\Controllers\Web\Users\UsuarioController;
 use App\Http\Controllers\Web\Users\ViewsController;
+use App\Http\Controllers\Web\Visualizar\VisualizarController;
 
 Route::get('/register', [ViewsController::class, 'vistaRegistro']);
 Route::post('/register', [ClienteController::class, 'storeClient'])->name('register');
@@ -89,3 +90,8 @@ Route::prefix('admin')->group(function () {
     Route::get('/catalogo/{maquinaria}', [MaquinariaController::class, 'show'])->name('catalogo.show'); // Detalle Adaptativo
 // ...
 
+Route::get('/info-contactos', [VisualizarController::class, 'mostrarInformacionContacto'])->name('info.contactos');
+Route::get('/preguntas-frecuentes', [VisualizarController::class, 'mostrarPreguntasFrecuentes'])->name('preguntas.frecuentes');
+
+Route::get('/procesar-pago/tarjeta', [PagoController::class, 'mostrarFormularioTarjeta'])->name('pago.procesar.tarjeta');
+Route::post('/procesar-pago/tarjeta', [PagoController::class, 'procesarPagoTarjeta'])->name('procesar.pago.tarjeta');

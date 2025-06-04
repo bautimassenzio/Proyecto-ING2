@@ -84,7 +84,20 @@ class MaquinariaController extends Controller
     {
         $maquinaria->estado = 'inactiva';
         $maquinaria->save();
+        $maquinarias = Maquinaria::all(); // O Maquinaria::where('estado', 'disponible')->get(); etc.
 
-        return redirect()->route('maquinarias.index')->with('success', 'Maquinaria dada de baja exitosamente.');
+        // 3. Obtener el usuario autenticado (si lo necesitas para la vista)
+        $usuario = Auth::guard('users')->user(); // Asumiendo que tu guard es 'users'
+
+        // 4. Obtener el layout de la sesión (si lo usas para la vista)
+        $layout = session('layout');
+
+
+        // 5. Redirigir a la vista de índice con los datos necesarios
+        //    Es más común y mejor práctica REDIRIGIR a la ruta del índice
+        //    en lugar de devolver directamente la vista después de una acción POST/DELETE.
+        //    Esto evita problemas como reenviar el formulario al recargar la página.
+        return redirect()->route('catalogo.index')->with('success', 'Maquinaria dada de baja exitosamente.');
+
     }
 }

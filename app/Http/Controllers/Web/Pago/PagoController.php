@@ -11,6 +11,7 @@ use App\Domain\User\Models\Usuario;
 use App\Mail\ConfirmacionReserva;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log; // Agrega esta línea para usar el log de Laravel
+use App\Domain\Pago\Models\ValidCard;
 
 class PagoController extends Controller
 {
@@ -39,7 +40,7 @@ class PagoController extends Controller
         }
 
         $item = new \MercadoPago\Item();
-        $item->title = 'Reserva de habitación';
+        $item->title = 'Reserva';
         $item->quantity = 1;
         $item->unit_price = (float)$reserva->total; // Asegúrate de que sea un float
 
@@ -158,4 +159,38 @@ $preference->back_urls = [
         $mensaje = '⏳ Tu pago está pendiente.';
         return view('pago.botonhome', compact('mensaje'));
     }
+
+    public function mostrarFormularioTarjeta()
+    {
+        return view('pago.formulario_tarjeta'); // Asegúrate de que esta vista exista
+    }
+
+    public function procesarPagoTarjeta(Request $request)
+    {
+        // 1. Validar los datos del formulario
+        $request->validate([
+           // 'card_number' => 'required|digits:19',
+            'expiry_month' => 'required|digits:2|min:1|max:12',
+            'expiry_year' => 'required|digits:2',
+            'cvv' => 'required|digits_between:3,4',
+        ]);
+
+        // 2. Buscar una tarjeta que coincida en la base de datos
+        $tarjetaValida = ValidCard::where('card_number', $request->input('card_number'))
+            ->where('expiry_month', $request->input('expiry_month'))
+            ->where('expiry_year', $request->input('expiry_year'))
+            ->where('cvv', $request->input('cvv'))
+            ->first();
+
+        // 3. Verificar si se encontró una tarjeta válida
+        if ($tarjetaValida) {
+            // Simulación de pago exitoso
+            $mensaje = '✅ Pago exitoso. Confirmamos tu reserva.';
+            return view('pago.botonhome', compact('mensaje')); // Debes crear esta vista
+        } else {
+            $mensaje = '❌ Ocurrió un error durante el pago, datos incorrectos.';
+            return view('pago.botonhome', compact('mensaje'));
+        }
+    }
+
 }

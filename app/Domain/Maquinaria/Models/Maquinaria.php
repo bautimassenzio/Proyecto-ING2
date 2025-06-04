@@ -11,6 +11,7 @@ class Maquinaria extends Model
     use HasFactory;
     protected $primaryKey = 'id_maquinaria';
     public $incrementing= true;
+    public $timestamps = false;
     protected $fillable = [
         'nro_inventario',
         'marca',
