@@ -127,8 +127,8 @@ class ReservaController extends Controller
             ->orderBy('fecha_reserva', 'desc')
             ->get();
 
-        
-        return view('reservas.historial', compact('reservas'));
+        $layout = session('layout', 'layouts.base');
+        return view('reservas.historial', compact('reservas', 'layout'));
     }
 
     public function cancelar(Request $request, $id_reserva)

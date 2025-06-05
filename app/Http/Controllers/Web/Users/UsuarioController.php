@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers\Web\Users;
 
+use App\Domain\Reserva\Models\Reserva;
 use App\Domain\User\Models\Usuario;
+use App\Enums\Roles;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Enums\RolUsuario;
@@ -150,7 +152,12 @@ if ($request->nueva_contraseña !== $request->nueva_contraseña_confirmation) {
     public function eliminarCuentaPropia()
 {
     $usuario = Auth::guard('users')->user();
-    Auth::guard('users')->logout();
+    $rol=$usuario->rol;
+    if ($rol=='cliente' && Reserva::where('id_cliente', $usuario->id_usuario)
+            ->whereIn('estado', ['pendiente', 'activa'])
+            ->exists()){
+        return back()->with('error', 'No se puede eliminar una cuenta con reservas confirmadas o pendientes');
+    }
     Auth::guard('users')->logout(); // cierra sesión
     Usuario::where('dni', $usuario->dni)->delete();
     session()->forget('layout');

@@ -60,6 +60,12 @@
             gap: 0.5rem;
         }
 
+         .navbar-brand .logo-img {
+            height: 70px; /* Ajusta esto según el tamaño de tu logo */
+            width: auto; /* Mantiene la proporción */
+            margin-right: 8px; /* Espacio entre el logo y el texto (si mantienes texto) */
+        }
+
         .navbar-brand i {
             font-size: 1.8rem;
             color: var(--dark-bg);
@@ -281,8 +287,9 @@
             <div class="container">
                 <!-- Brand -->
                 <a class="navbar-brand" href="{{ route('/') }}">
-                    <i class="fas fa-cogs"></i>
-                    <span>MannyMaquinarias</span>
+                    <img src="{{ asset('images/Manny_Maquinarias_Logov2.png') }}" alt="MannyMaquinarias Logo" class="logo-img">
+                    
+                    <!-- <span>MannyMaquinarias</span> -->
                 </a>
 
                 <!-- Mobile Toggle -->
@@ -371,9 +378,9 @@
                     <p class="mb-0">© {{ date('Y') }} MannyMaquinarias - Sistema de Gestión de Maquinarias</p>
                 </div>
                 <div class="footer-links">
-                    <a href="#"><i class="fas fa-phone"></i> Contacto</a>
-                    <a href="#"><i class="fas fa-info-circle"></i> Acerca de</a>
-                    <a href="#"><i class="fas fa-shield-alt"></i> Privacidad</a>
+                    <a href="/info-contactos"><i class="fas fa-phone"></i> Contacto</a>
+                    <a href="/preguntas-frecuentes"><i class="fas fa-info-circle"></i> Preguntas Frecuentes</a>
+                    
                 </div>
             </div>
         </div>

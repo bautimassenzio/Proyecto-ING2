@@ -1,4 +1,4 @@
-@extends('layouts.base') {{-- O el layout que estés usando --}}
+@extends($layout) {{-- O el layout que estés usando --}}
 
 @section('title', 'Mis Reservas')
 
@@ -20,7 +20,7 @@
                         <th>Fecha Inicio</th>
                         <th>Fecha Fin</th>
                         <th>Días</th>
-                        <th>Total (USD)</th>
+                        <th>Total (ARS)</th>
                         <th>Estado</th>
                         <th>Acciones</th>
                     </tr>
@@ -40,6 +40,7 @@
                                     $color = match($estado) {
                                         'pendiente' => 'warning',
                                         'activa' => 'success',
+                                        'aprobada' => 'success',
                                         'completada' => 'secondary',
                                         'cancelada' => 'danger',
                                         default => 'light'

@@ -1,6 +1,6 @@
 @extends($layout)
 
-@section('title', 'Dashboard - MaquinaTech')
+@section('title', 'Dashboard - MannyMaquinarias')
 
 @section('content')
 <div class="dashboard-welcome">
@@ -65,7 +65,7 @@
                 <i class="fas fa-plus-circle"></i>
                 <div>Nueva Maquinaria</div>
             </a>
-            <a href="#" class="action-btn">
+           <!-- <a href="#" class="action-btn">
                 <i class="fas fa-chart-bar"></i>
                 <div>Ver Reportes</div>
             </a>
@@ -73,7 +73,7 @@
                 <i class="fas fa-cog"></i>
                 <div>Configuración</div>
             </a>
-        </div>
+        </div>  -->
 
     @elseif(Auth::guard('users')->user()->rol === 'empleado')
         <!-- Employee Dashboard -->
