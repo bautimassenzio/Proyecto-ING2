@@ -251,11 +251,7 @@ $preference->back_urls = [
                 return view('pago.botonhome', compact('mensaje'));
             }
         } else {
-            // Si la tarjeta no es válida (no se encontró en ValidCard)
-            $mensaje = '❌ Datos de tarjeta incorrectos o no válidos. Intente de nuevo.';
-            // Puedes redirigir de vuelta al formulario con un mensaje de error si lo prefieres
-            return view('pago.botonhome', compact('mensaje'));
-        }
+            return redirect()->route('pago.procesar.tarjeta')->withErrors(['tarjeta' => 'Los datos de la tarjeta son incorrectos o la tarjeta no es válida.'])->withInput($request->only('card_number', 'expiry_month', 'expiry_year'));        }
     }
     
 

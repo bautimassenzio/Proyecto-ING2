@@ -39,23 +39,23 @@
 
         <div class="faq-list"> {{-- Contenedor opcional para los ítems de FAQ --}}
             <div class="faq-item mb-4 pb-3 border-bottom"> {{-- Clases de Bootstrap para margen y borde --}}
-                <h2 class="question text-primary mb-2" style="cursor: pointer;">¿Cuál es su política de cancelación?</h2> {{-- Mantengo tu estilo y cursor --}}
+                <h2 class="question text-primary mb-2" style="cursor: pointer;">¿Cuáles son los requisitos para alquilar maquinaria?</h2> {{-- Mantengo tu estilo y cursor --}}
                 <div class="answer" style="display: none;"> {{-- Oculto por defecto, se maneja con JS --}}
-                    <p class="text-secondary">Nuestra política de cancelación permite cancelaciones hasta 24 horas antes de la fecha de llegada para recibir un reembolso completo. Las cancelaciones posteriores no son reembolsables.</p>
+                    <p class="text-secondary">Para alquilar nuestras máquinas, generalmente solicitamos:</p>
                 </div>
             </div>
 
             <div class="faq-item mb-4 pb-3 border-bottom">
-                <h2 class="question text-primary mb-2" style="cursor: pointer;">¿A qué hora es el check-in y el check-out?</h2>
+                <h2 class="question text-primary mb-2" style="cursor: pointer;">¿Qué sucede si la maquinaria se daña o sufre una avería durante el período de alquiler?</h2>
                 <div class="answer" style="display: none;">
-                    <p class="text-secondary">El check-in es a partir de las 3:00 PM y el check-out es a las 12:00 PM.</p>
+                    <p class="text-secondary">Es importante notificar cualquier daño o avería de inmediato. Nuestro contrato de alquiler especifica las responsabilidades.</p>
                 </div>
             </div>
 
             <div class="faq-item mb-0 pb-0"> {{-- Último ítem sin borde inferior ni margen --}}
-                <h2 class="question text-primary mb-2" style="cursor: pointer;">¿Se admiten mascotas?</h2>
+                <h2 class="question text-primary mb-2" style="cursor: pointer;">¿Existe un tiempo mínimo y máximo de alquiler? ¿Se pueden extender los plazos?</h2>
                 <div class="answer" style="display: none;">
-                    <p class="text-secondary">Lo sentimos, no se admiten mascotas en nuestras instalaciones.</p>
+                    <p class="text-secondary">Sí, contamos con diferentes modalidades de alquiler para adaptarnos a tus necesidades.</p>
                 </div>
             </div>
         </div>
