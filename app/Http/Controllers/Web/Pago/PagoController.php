@@ -185,6 +185,7 @@ $preference->back_urls = [
         // 3. Verificar si se encontró una tarjeta válida
         if ($tarjetaValida) {
             // Simulación de pago exitoso
+            
             $mensaje = '✅ Pago exitoso. Confirmamos tu reserva.';
             return view('pago.botonhome', compact('mensaje')); // Debes crear esta vista
         } else {
