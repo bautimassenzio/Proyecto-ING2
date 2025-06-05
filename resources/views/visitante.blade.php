@@ -1,13 +1,13 @@
 @extends('layouts.base')
 
-@section('title', 'MaquinaTech')
+@section('title', 'MannyMaquinarias')
 
 @section('content')
 <div class="visitor-simple">
     <div class="auth-container">
         <div class="brand">
             <i class="fas fa-cogs"></i>
-            <h1>MaquinaTech</h1>
+            <h1>MannyMaquinarias</h1>
         </div>
         
         <div class="auth-buttons">

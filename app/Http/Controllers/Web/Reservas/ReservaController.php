@@ -22,7 +22,7 @@ class ReservaController extends Controller
         $maquinaria = Maquinaria::findOrFail($idMaquinaria);
         
         $fechasOcupadas = Reserva::where('id_maquinaria', $idMaquinaria)
-            ->whereIn('estado', ['pendiente', 'activa'])
+            ->whereIn('estado', ['pendiente', 'aprobada'])
             ->get(['fecha_inicio', 'fecha_fin']);
         
         return view('reservas.create', compact('clienteAutenticado', 'maquinaria', 'fechasOcupadas'));
@@ -52,7 +52,7 @@ class ReservaController extends Controller
 
         // --- VERIFICACIÓN DE SOLAPAMIENTO DE RESERVAS PARA EL CLIENTE ---
         $clienteTieneReservaSolapada = Reserva::where('id_cliente', $idClienteAutenticado)
-            ->whereIn('estado', ['pendiente', 'activa'])
+            ->whereIn('estado', ['pendiente', 'aprobada'])
             ->where(function ($query) use ($fechaInicio, $fechaFin) {
                 // Un rango [A, B] se solapa con [C, D] si A <= D AND C <= B
                 // En nuestro caso:
@@ -66,14 +66,14 @@ class ReservaController extends Controller
             ->exists();
 
         if ($clienteTieneReservaSolapada) {
-            return back()->withErrors(['usuario' => 'Ya tienes una reserva activa o pendiente en ese rango de fechas.'])->withInput();
+            return back()->withErrors(['usuario' => 'Ya tienes una reserva aprobada o pendiente en ese rango de fechas.'])->withInput();
         }
         // --- FIN VERIFICACIÓN DE SOLAPAMIENTO DE RESERVAS PARA EL CLIENTE ---
 
 
         // --- VERIFICACIÓN DE SOLAPAMIENTO DE RESERVAS PARA LA MAQUINARIA ---
         $maquinariaReservada = Reserva::where('id_maquinaria', $request->id_maquinaria)
-            ->whereIn('estado', ['pendiente', 'activa'])
+            ->whereIn('estado', ['pendiente', 'aprobada'])
             ->where(function ($query) use ($fechaInicio, $fechaFin) {
                 // La misma lógica de solapamiento para la maquinaria
                 $query->where('fecha_inicio', '<=', $fechaFin)
@@ -156,7 +156,7 @@ class ReservaController extends Controller
         $reserva->estado = 'cancelada';
         $reserva->save();
 
-        $politicaCancelacion = $reserva->maquinaria->politica_cancelacion;
+        $politicaCancelacion = $reserva->maquinaria->politica->tipo;
         Mail::to($cliente->email)->send(new ReservaCancelada($reserva, $politicaCancelacion));
 
         return back()->with('success', 'Reserva cancelada con éxito. Se ha enviado un correo con la política de cancelación.');

@@ -8,16 +8,19 @@ con fecha de inicio {{ \Carbon\Carbon::parse($reserva->fecha_inicio)->format('d/
 
 **Política de cancelación aplicada:**  
 @switch($politicaCancelacion)
-    @case('20%')
+    @case('reembolso_parcial')
+        Reembolso parcial
         Se aplicará una penalización del 20% sobre el total de la reserva.  
         Total reservado: ${{ number_format($reserva->total, 2) }}  
         Penalización: ${{ number_format($reserva->total * 0.20, 2) }}  
         Monto a reembolsar: ${{ number_format($reserva->total * 0.80, 2) }}
         @break
-    @case('total')
+    @case('sin_reembolso')
+        Sin reembolso
         Se aplicará la penalización del 100%, no hay reembolso.
         @break
-    @case('0')
+    @case('reembolso_total')
+        Reembolso total
         No se aplican penalizaciones, tienes reembolso completo.
         @break
     @default
@@ -27,5 +30,5 @@ con fecha de inicio {{ \Carbon\Carbon::parse($reserva->fecha_inicio)->format('d/
 Gracias por usar nuestro servicio.
 
 Saludos,  
-{{ config('app.name') }}
+MannyMaquinarias
 @endcomponent

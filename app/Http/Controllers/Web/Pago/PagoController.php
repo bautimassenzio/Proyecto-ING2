@@ -51,7 +51,7 @@ class PagoController extends Controller
 $failureUrl = route('pago.fallo');
 $pendingUrl = route('pago.pendiente');
 
-$ngrokBase = 'https://ce24-181-23-144-16.ngrok-free.app'; // tu URL actual de ngrok
+$ngrokBase = 'https://b943-181-23-144-16.ngrok-free.app'; // tu URL actual de ngrok
 
 $preference->back_urls = [
     "success" => $ngrokBase . '/pago/exito',
@@ -127,7 +127,7 @@ $preference->back_urls = [
                 'estado_pago' => $estado_pago,
             ]);
 
-            $reserva->estado = 'pendiente'; // O el estado final que corresponda
+            $reserva->estado = 'aprobada'; // O el estado final que corresponda
             $reserva->save();
 
             $cliente = Usuario::find($reserva->id_cliente);

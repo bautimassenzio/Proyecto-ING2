@@ -3,7 +3,7 @@
 @section('navigation')
     <li class="nav-item">
         <a class="nav-link {{ request()->routeIs('/') ? 'active' : '' }}" href="{{ route('/') }}">
-            <i class="fas fa-home me-1"></i> Dashboard
+            <i class="fas fa-home me-1"></i> Inicio
         </a>
     </li>
     <li class="nav-item">
@@ -13,10 +13,15 @@
     </li>
     <li class="nav-item">
         <a class="nav-link" href="admin/maquinarias/create">
+            <i class="fas fa-cogs me-1"></i> Agregar maquinarias
+        </a>
+    </li>
+     <li class="nav-item">
+        <a class="nav-link" href="catalogo">
             <i class="fas fa-cogs me-1"></i> Maquinarias
         </a>
     </li>
-    <li class="nav-item">
+   <!-- <li class="nav-item">
         <a class="nav-link" href="#">
             <i class="fas fa-clipboard-list me-1"></i> Pedidos
         </a>
@@ -31,6 +36,7 @@
             <i class="fas fa-cog me-1"></i> Configuración
         </a>
     </li>
+-->
     <li class="nav-item dropdown">
         <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
             <i class="fas fa-user-circle me-1"></i> Mi Cuenta
