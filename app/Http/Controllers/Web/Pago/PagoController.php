@@ -51,7 +51,7 @@ class PagoController extends Controller
 $failureUrl = route('pago.fallo');
 $pendingUrl = route('pago.pendiente');
 
-$ngrokBase = 'https://b943-181-23-144-16.ngrok-free.app'; // tu URL actual de ngrok
+$ngrokBase = 'https://ce24-181-23-144-16.ngrok-free.app'; // tu URL actual de ngrok
 
 $preference->back_urls = [
     "success" => $ngrokBase . '/pago/exito',
@@ -161,31 +161,56 @@ $preference->back_urls = [
     }
 
     public function mostrarFormularioTarjeta()
-    {
-        return view('pago.formulario_tarjeta'); // Asegúrate de que esta vista exista
+    {   
+        // Recuperar el id_reserva de la sesión
+        $reserva_id = session('reserva_id');
+
+        // Opcional: Si el id_reserva no está en la sesión, puedes redirigir o mostrar un error
+        if (empty($reserva_id)) {
+            Log::warning('Pago Tarjeta: Intento de acceder al formulario sin reserva_id en sesión.');
+            return redirect()->route('reservas.create')->withErrors(['error' => 'No hay una reserva activa para procesar.']);
+        }
+
+        // Pasar el id_reserva a la vista del formulario de la tarjeta
+        return view('pago.formulario_tarjeta', compact('reserva_id'));
     }
 
     public function procesarPagoTarjeta(Request $request)
     {
         // 1. Validar los datos del formulario
         $request->validate([
-           // 'card_number' => 'required|digits:19',
+            'card_number' => 'required|string', // Considera 'digits:19' si esperas el formato con espacios o ajusta el patrón
             'expiry_month' => 'required|digits:2|min:1|max:12',
             'expiry_year' => 'required|digits:2',
             'cvv' => 'required|digits_between:3,4',
+            // ¡NUEVO! Validamos que el id_reserva venga y exista
+            'reserva_id' => 'required|exists:reservas,id_reserva', // Asumo 'id_reserva' es la PK en tu tabla reservas
         ]);
 
-        // 2. Buscar una tarjeta que coincida en la base de datos
+        // 2. Obtener el ID de la reserva enviado desde el campo oculto del formulario
+        $idreserva = $request->input('reserva_id');
+
+        // 3. Cargar la reserva desde la base de datos
+        // Importante: Asegurarse de que la relación 'maquinaria' esté cargada si se necesita en el Mailable
+        $reserva = Reserva::with('maquinaria')->find($idreserva); // Carga la reserva y su maquinaria
+
+        // Verificar si la reserva fue encontrada
+        if (!$reserva) {
+            Log::error('Pago Tarjeta: Reserva no encontrada para ID: ' . $idreserva);
+            $mensaje = 'Error: No se encontró la reserva asociada al pago.';
+            return view('pago.botonhome', compact('mensaje')); // O redirige a una ruta de error
+        }
+
+        // 4. Buscar una tarjeta que coincida en la base de datos (simulación)
         $tarjetaValida = ValidCard::where('card_number', $request->input('card_number'))
             ->where('expiry_month', $request->input('expiry_month'))
             ->where('expiry_year', $request->input('expiry_year'))
             ->where('cvv', $request->input('cvv'))
             ->first();
 
-        // 3. Verificar si se encontró una tarjeta válida
+        // 5. Procesar el pago si la tarjeta es válida
         if ($tarjetaValida) {
             // Simulación de pago exitoso
-            
             $mensaje = '✅ Pago exitoso. Confirmamos tu reserva.';
             return view('pago.botonhome', compact('mensaje')); // Debes crear esta vista
         } else {
@@ -193,5 +218,7 @@ $preference->back_urls = [
             return view('pago.botonhome', compact('mensaje'));
         }
     }
+    
+
 
 }

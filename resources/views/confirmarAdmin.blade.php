@@ -1,141 +1,87 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Verificación de Código</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+{{-- resources/views/auth/verify-code.blade.php --}}
 
-    {{-- Bootstrap 5 --}}
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+@extends('layouts.base') {{-- ¡Asegúrate de que 'layouts.base' sea el nombre correcto de tu archivo de layout! --}}
 
-    <style>
-        body {
-            background: #f2f5fa;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
+@section('title', 'Verificación de Código') {{-- Título específico para esta página --}}
 
-        .main-wrapper {
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
+{{-- Opcional: Define la navegación si la necesitas, aunque para una página de verificación,
+     quizás no haya muchos enlaces de navegación. --}}
+@section('navigation')
+    {{-- Por ejemplo, si un usuario ya inició sesión pero necesita verificar, o si hay un enlace para volver --}}
+    <li class="nav-item">
+        <a class="nav-link" href="{{ url('/') }}">Volver al Inicio</a>
+    </li>
+@endsection
 
-        .card {
-            border-radius: 16px;
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
-            width: 100%;
-            max-width: 450px;
-        }
+@section('content')
+<div class="row justify-content-center"> {{-- Usamos las clases de Bootstrap para centrar el contenido --}}
+    <div class="col-md-7 col-lg-5"> {{-- Limitamos el ancho para que la tarjeta se vea bien --}}
+        {{-- Aquí se insertará el contenido de la tarjeta de verificación --}}
+        <div class="card">
+            <div class="card-header text-white text-center bg-primary"> {{-- Usamos bg-primary para el color de fondo --}}
+                <h4 class="mb-0">🔐 Verificación de Código</h4>
+            </div>
 
-        .card-header {
-            font-size: 1.25rem;
-            font-weight: 600;
-            background: linear-gradient(90deg, #007bff, #0056b3);
-            border-top-left-radius: 16px !important;
-            border-top-right-radius: 16px !important;
-        }
+            <div class="card-body p-4">
 
-        .form-label {
-            font-weight: 500;
-            color: #333;
-        }
+                {{-- Mensajes de error (manejo de Laravel $errors) --}}
+                @if ($errors->any())
+                    <div class="alert alert-danger" role="alert">
+                        <ul class="mb-0 ps-3"> {{-- Agregamos ps-3 para padding-left en la lista --}}
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
 
-        .form-control {
-            border-radius: 10px;
-            border: 1px solid #ced4da;
-        }
+                {{-- Mensaje de éxito (manejo de sesión) --}}
+                @if(session('success'))
+                    <div class="alert alert-success" role="alert">
+                        {{ session('success') }}
+                    </div>
+                @endif
+                @if(session('error')) {{-- Por si acaso también hay un mensaje 'error' de sesión --}}
+                    <div class="alert alert-danger" role="alert">
+                        {{ session('error') }}
+                    </div>
+                @endif
 
-        .form-control:focus {
-            border-color: #007bff;
-            box-shadow: 0 0 0 0.15rem rgba(0, 123, 255, 0.25);
-        }
+                {{-- Formulario de verificación --}}
+                <form method="POST" action="{{ route('confirmarAdmin') }}">
+                    @csrf
 
-        .btn-primary {
-            background: linear-gradient(90deg, #007bff, #0056b3);
-            border: none;
-            font-weight: 600;
-            border-radius: 10px;
-            padding: 10px;
-        }
+                    <div class="mb-3">
+                        <label for="codigo" class="form-label">Ingrese el código enviado a su correo</label>
+                        <input type="text" name="codigo" id="codigo"
+                            class="form-control @error('codigo') is-invalid @enderror"
+                            maxlength="6" required autofocus>
 
-        .btn-secondary {
-            margin-top: 10px;
-            background-color: #6c757d;
-            font-weight: 500;
-            border-radius: 10px;
-            width: 100%;
-        }
+                        @error('codigo')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
 
-        .alert {
-            font-size: 0.95rem;
-            border-radius: 8px;
-        }
-    </style>
-</head>
-<body>
+                    <button type="submit" class="btn btn-primary w-100 mb-3"> {{-- Agregamos w-100 y mb-3 --}}
+                        ✅ Verificar Código
+                    </button>
+                </form>
 
-<div class="main-wrapper">
-    <div class="card">
-        <div class="card-header text-white text-center">
-            <h4 class="mb-0">🔐 Verificación de Código</h4>
-        </div>
+                {{-- Botón para reenviar código --}}
+                <form method="POST" action="{{ route('reenviarCodigo') }}">
+                    @csrf
+                    <button type="submit" class="btn btn-secondary w-100"> {{-- Agregamos w-100 --}}
+                        🔄 Reenviar código
+                    </button>
+                </form>
 
-        <div class="card-body p-4">
-
-            {{-- Mensajes de error --}}
-            @if ($errors->any())
-                <div class="alert alert-danger">
-                    <ul class="mb-0">
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
+                <div class="text-center mt-3">
+                    <small class="text-muted">Este código expirará en 5 minutos.</small>
                 </div>
-            @endif
-
-            {{-- Mensaje de éxito --}}
-            @if(session('success'))
-                <div class="alert alert-success">
-                    {{ session('success') }}
-                </div>
-            @endif
-
-            {{-- Formulario de verificación --}}
-            <form method="POST" action="{{ route('confirmarAdmin') }}">
-                @csrf
-
-                <div class="mb-3">
-                    <label for="codigo" class="form-label">Ingrese el código enviado a su correo</label>
-                    <input type="text" name="codigo" id="codigo"
-                        class="form-control @error('codigo') is-invalid @enderror"
-                        maxlength="6" required autofocus>
-
-                    @error('codigo')
-                        <div class="invalid-feedback">{{ $message }}</div>
-                    @enderror
-                </div>
-
-                <button type="submit" class="btn btn-primary w-100">
-                    ✅ Verificar Código
-                </button>
-            </form>
-
-            {{-- Botón para reenviar código --}}
-            <form method="POST" action="{{ route('reenviarCodigo') }}">
-                @csrf
-                <button type="submit" class="btn btn-secondary">
-                    🔄 Reenviar código
-                </button>
-            </form>
-
-            <div class="text-center mt-3">
-                <small class="text-muted">Este código expirará en 5 minutos.</small>
             </div>
         </div>
     </div>
 </div>
+@endsection
 
-</body>
-</html>
+{{-- No se necesitan scripts adicionales, ya que no hay JS específico en esta vista --}}

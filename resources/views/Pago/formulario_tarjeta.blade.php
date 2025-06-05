@@ -1,6 +1,6 @@
-{{-- resources/views/pago/tarjeta.blade.php (o el nombre de tu archivo) --}}
+{{-- resources/views/pago/tarjeta.blade.php --}}
 
-@extends('layouts.base') {{-- Asegúrate de que 'layouts.base' sea el nombre correcto de tu layout --}}
+@extends('layouts.base')
 
 @section('title', 'Pago con Tarjeta')
 
@@ -25,9 +25,14 @@
     <li class="nav-item">
         <a class="nav-link" href="{{ route('pago.seleccionar') }}">Seleccionar Pago</a>
     </li>
-    <li class="nav-item">
+    {{-- La siguiente línea en tu navegación no es necesaria si este es el formulario actual.
+         Normalmente, un "active" sería para la página actual, pero procesar.pago.tarjeta
+         es la acción POST, no la vista GET. La ruta para esta vista es 'pago.formularioTarjeta'.
+         Considera cambiarla a: <a class="nav-link active" aria-current="page" href="{{ route('pago.formularioTarjeta') }}">Pago con Tarjeta</a>
+    --}}
+    {{-- <li class="nav-item">
         <a class="nav-link active" aria-current="page" href="{{ route('procesar.pago.tarjeta') }}">Pago con Tarjeta</a>
-    </li>
+    </li> --}}
 @endsection
 
 @section('content')
@@ -48,8 +53,12 @@
                     </div>
                 @endif
 
-                <form action="{{ route('procesar.pago.tarjeta') }}" method="POST">
+                <form action="{{ route('pago.procesar.tarjeta') }}" method="POST">
                     @csrf
+
+                    {{-- ¡AÑADE ESTA LÍNEA! --}}
+                    {{-- El valor de $reserva_id viene del controlador que renderiza esta vista --}}
+                    <input type="hidden" name="reserva_id" value="{{ $reserva_id ?? '' }}">
 
                     <div class="mb-3">
                         <label for="card_number" class="form-label">Número de Tarjeta:</label>
