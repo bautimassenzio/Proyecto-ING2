@@ -51,7 +51,7 @@ class PagoController extends Controller
 $failureUrl = route('pago.fallo');
 $pendingUrl = route('pago.pendiente');
 
-$ngrokBase = 'https://ce24-181-23-144-16.ngrok-free.app'; // tu URL actual de ngrok
+$ngrokBase = ' https://b7ef-190-18-16-103.ngrok-free.app'; // tu URL actual de ngrok
 
 $preference->back_urls = [
     "success" => $ngrokBase . '/pago/exito',
@@ -161,36 +161,103 @@ $preference->back_urls = [
     }
 
     public function mostrarFormularioTarjeta()
-    {
-        return view('pago.formulario_tarjeta'); // Asegúrate de que esta vista exista
+    {   
+        // Recuperar el id_reserva de la sesión
+        $reserva_id = session('reserva_id');
+
+        // Opcional: Si el id_reserva no está en la sesión, puedes redirigir o mostrar un error
+        if (empty($reserva_id)) {
+            Log::warning('Pago Tarjeta: Intento de acceder al formulario sin reserva_id en sesión.');
+            return redirect()->route('reservas.create')->withErrors(['error' => 'No hay una reserva activa para procesar.']);
+        }
+
+        // Pasar el id_reserva a la vista del formulario de la tarjeta
+        return view('pago.formulario_tarjeta', compact('reserva_id'));
     }
 
     public function procesarPagoTarjeta(Request $request)
     {
         // 1. Validar los datos del formulario
         $request->validate([
-           // 'card_number' => 'required|digits:19',
+            'card_number' => 'required|string', // Considera 'digits:19' si esperas el formato con espacios o ajusta el patrón
             'expiry_month' => 'required|digits:2|min:1|max:12',
             'expiry_year' => 'required|digits:2',
             'cvv' => 'required|digits_between:3,4',
+            // ¡NUEVO! Validamos que el id_reserva venga y exista
+            'reserva_id' => 'required|exists:reservas,id_reserva', // Asumo 'id_reserva' es la PK en tu tabla reservas
         ]);
 
-        // 2. Buscar una tarjeta que coincida en la base de datos
+        // 2. Obtener el ID de la reserva enviado desde el campo oculto del formulario
+        $idreserva = $request->input('reserva_id');
+
+        // 3. Cargar la reserva desde la base de datos
+        // Importante: Asegurarse de que la relación 'maquinaria' esté cargada si se necesita en el Mailable
+        $reserva = Reserva::with('maquinaria')->find($idreserva); // Carga la reserva y su maquinaria
+
+        // Verificar si la reserva fue encontrada
+        if (!$reserva) {
+            Log::error('Pago Tarjeta: Reserva no encontrada para ID: ' . $idreserva);
+            $mensaje = 'Error: No se encontró la reserva asociada al pago.';
+            return view('pago.botonhome', compact('mensaje')); // O redirige a una ruta de error
+        }
+
+        // 4. Buscar una tarjeta que coincida en la base de datos (simulación)
         $tarjetaValida = ValidCard::where('card_number', $request->input('card_number'))
             ->where('expiry_month', $request->input('expiry_month'))
             ->where('expiry_year', $request->input('expiry_year'))
             ->where('cvv', $request->input('cvv'))
             ->first();
 
-        // 3. Verificar si se encontró una tarjeta válida
+        // 5. Procesar el pago si la tarjeta es válida
         if ($tarjetaValida) {
             // Simulación de pago exitoso
-            $mensaje = '✅ Pago exitoso. Confirmamos tu reserva.';
-            return view('pago.botonhome', compact('mensaje')); // Debes crear esta vista
+            $monto = $reserva->total;
+            $estado_pago = 'completo';
+            $metodo = 'tarjeta'; // Indicamos que el método de pago es tarjeta
+            $fecha_pago = now();
+
+            try {
+                // Crear el registro de pago en tu tabla 'pagos'
+                $pago = Pago::create([
+                    'id_reserva' => $idreserva,
+                    'monto' => $monto,
+                    'fecha_pago' => $fecha_pago,
+                    'metodo_pago' => $metodo,
+                    'estado_pago' => $estado_pago,
+                ]);
+
+                // Actualizar el estado de la reserva
+                $reserva->estado = 'pendiente'; // O el estado final que corresponda
+                $reserva->save();
+
+                // 6. Enviar el correo de confirmación de reserva (si aplica para pagos con tarjeta)
+                $cliente = Usuario::find($reserva->id_cliente);
+                if ($cliente && $cliente->email) {
+                    // El objeto $reserva ya tiene la relación 'maquinaria' cargada.
+                    Mail::to($cliente->email)->send(new ConfirmacionReserva($reserva, $cliente));
+                    Log::info('Correo de confirmación de reserva enviado para Reserva ID: ' . $reserva->id_reserva . ' y Cliente: ' . $cliente->email . ' (Pago con Tarjeta)');
+                } else {
+                    Log::warning('No se pudo enviar correo de confirmación: Cliente o email no encontrados para Reserva ID: ' . $reserva->id_reserva . ' (Pago con Tarjeta)');
+                }
+
+                // 7. Redirigir a una vista de éxito
+                $mensaje = '✅ Pago exitoso con tarjeta. Confirmamos tu reserva.';
+                return view('pago.botonhome', compact('mensaje'));
+
+            } catch (\Exception $e) {
+                // Capturar y loguear cualquier error durante la creación del pago o el envío del correo
+                Log::error('Error en PagoController@procesarPagoTarjeta: ' . $e->getMessage(), ['trace' => $e->getTraceAsString(), 'reserva_id' => $idreserva]);
+                $mensaje = '❌ Error interno al procesar la confirmación del pago con tarjeta.';
+                return view('pago.botonhome', compact('mensaje'));
+            }
         } else {
-            $mensaje = '❌ Ocurrió un error durante el pago, datos incorrectos.';
+            // Si la tarjeta no es válida (no se encontró en ValidCard)
+            $mensaje = '❌ Datos de tarjeta incorrectos o no válidos. Intente de nuevo.';
+            // Puedes redirigir de vuelta al formulario con un mensaje de error si lo prefieres
             return view('pago.botonhome', compact('mensaje'));
         }
     }
+    
+
 
 }
