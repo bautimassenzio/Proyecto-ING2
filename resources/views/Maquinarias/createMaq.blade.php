@@ -73,6 +73,17 @@
             @enderror
         </div>
 
+        <!-- Descripción (Opcional) -->
+            <div class="mb-3"> <!-- Ocupa las dos columnas en pantallas medianas y grandes -->
+                <label for="descripcion" class="form-label">Descripción (Opcional)</label>
+                <textarea name="descripcion" id="descripcion" rows="3"
+                          class="form-control"
+                          placeholder="Ej: Maquinaria especial para terrenos irregulares. Requiere permiso clase B para operación.">{{ old('descripcion') }}</textarea>
+                @error('descripcion')
+                    <p class="text-danger">{{ $message }}</p>
+                @enderror
+            </div>
+
         <div class="mb-3">
             <label for="uso" class="form-label">Uso:</label>
             <input type="text" class="form-control" id="uso" name="uso" value="{{ old('uso') }}" required>

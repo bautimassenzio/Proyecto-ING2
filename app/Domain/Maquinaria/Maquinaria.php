@@ -23,6 +23,7 @@ class Maquinaria extends Model
         'estado',
         'localidad',
         'id_politica',
+        'descripcion',
     ];
 
     public function politica()

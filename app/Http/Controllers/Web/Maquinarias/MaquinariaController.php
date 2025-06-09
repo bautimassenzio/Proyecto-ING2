@@ -66,6 +66,7 @@ class MaquinariaController extends Controller
             'estado' => 'required|string|in:disponible,inactiva',
             'localidad' => 'required|string|max:100',
             'id_politica' => 'required|integer|exists:politicas,id_politica',
+            'descripcion' => 'nullable|string|max:1000',
         ]);
 
         if ($request->hasFile('foto_url')) {

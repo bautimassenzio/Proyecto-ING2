@@ -23,15 +23,7 @@
             @method('PUT') <!-- Indicar a Laravel que esta es una solicitud PUT -->
 
             <div class="mb-3">
-                <!-- Nro. Inventario -->
-                <div>
-                    <label for="nro_inventario" class="form-label">Número de Inventario</label>
-                    <input type="text" name="nro_inventario" id="nro_inventario" value="{{ old('nro_inventario', $maquinaria->nro_inventario) }}" class="form-control">
-                    @error('nro_inventario')
-                        <p class="text-danger">{{ $message }}</p>
-                    @enderror
-                </div>
-
+                
                 <!-- Precio por Día -->
                 <div>
                     <label for="precio_dia" class="form-label">Precio por Día</label>
@@ -39,74 +31,6 @@
                            value="{{ old('precio_dia', $maquinaria->precio_dia) }}"
                            class="form-control">
                     @error('precio_dia')
-                        <p class="text-danger">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <!-- Marca -->
-                <div>
-                    <label for="marca" class="form-label">Marca</label>
-                    <input type="text" name="marca" id="marca"
-                           value="{{ old('marca', $maquinaria->marca) }}"
-                           class="form-control">
-                    @error('marca')
-                        <p class="text-danger">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <!-- Modelo -->
-                <div>
-                    <label for="modelo" class="form-label">Modelo</label>
-                    <input type="text" name="modelo" id="modelo"
-                           value="{{ old('modelo', $maquinaria->modelo) }}"
-                           class="form-control">
-                    @error('modelo')
-                        <p class="text-danger">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <!-- Localidad -->
-                <div>
-                    <label for="localidad" class="form-label">Localidad</label>
-                    <input type="text" name="localidad" id="localidad"
-                           value="{{ old('localidad', $maquinaria->localidad) }}"
-                           class="form-control">
-                    @error('localidad')
-                        <p class="text-danger">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <!-- Año -->
-                <div>
-                    <label for="anio" class="form-label">Año</label>
-                    <input type="number" name="anio" id="anio"
-                           value="{{ old('anio', $maquinaria->anio) }}"
-                           class="form-control">
-                    @error('anio')
-                        <p class="text-danger">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <!-- Uso -->
-                <div>
-                    <label for="uso" class="form-label">Uso</label>
-                    <input type="text" name="uso" id="uso"
-                           value="{{ old('uso', $maquinaria->uso) }}"
-                           class="form-control">
-                    @error('uso')
-                        <p class="text-danger">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <!-- Tipo de Energía -->
-                <div>
-                    <label for="tipo_energia" class="form-label">Tipo de Energía</label>
-                    <select name="tipo_energia" id="tipo_energia"
-                            class="form-select">
-                        <option value="electrica" {{ old('tipo_energia', $maquinaria->tipo_energia) == 'electrica' ? 'selected' : '' }}>Eléctrica</option>
-                        <option value="combustion" {{ old('tipo_energia', $maquinaria->tipo_energia) == 'combustion' ? 'selected' : '' }}>Combustión</option>
-                    </select>
-                    @error('tipo_energia')
                         <p class="text-danger">{{ $message }}</p>
                     @enderror
                 </div>
@@ -123,45 +47,6 @@
                         <p class="text-danger">{{ $message }}</p>
                     @enderror
                 </div>
-
-                <!-- Política -->
-                <div>
-                    <label for="id_politica" class="form-label">
-                    Política Asociada:
-                    </label>
-                    <select name="id_politica" id="id_politica" required
-                    class="form-select">
-                        @foreach ($politicas as $politica)
-                        <option value="{{ $politica->id_politica }}"
-                        {{ old('id_politica', $maquinaria->id_politica ?? '') == $politica->id_politica ? 'selected' : '' }}>
-                        {{ $politica->tipo }} @if($politica->detalle) ({{ $politica->detalle }}) @endif
-                        </option>
-                        @endforeach
-                    </select>
-                    @error('id_politica')
-                    <p class="text-danger">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <!-- Foto Actual (si existe) y Campo de Carga de Nueva Foto -->
-                <div class="mb-3">
-                    <label for="foto_url" class="form-label">Foto de la Maquinaria</label>
-                    @if ($maquinaria->foto_url)
-                        <div class="mb-4">
-                            <p class="text-sm text-gray-600 mb-2">Foto actual:</p>
-                            <img src="{{ Storage::url($maquinaria->foto_url) }}" alt="Foto de {{ $maquinaria->nro_inventario }}" class="w-48 h-auto object-cover rounded-md shadow-md">
-                        </div>
-                    @else
-                        <p class="text-sm text-gray-600 mb-2">No hay foto actual.</p>
-                    @endif
-                    <input type="file" name="foto_url" id="foto_url"
-                           class="form-control">
-                    <p class="mt-1 text-xs text-gray-500">Solo JPG, JPEG, PNG. Tamaño máximo 5MB.</p>
-                    @error('foto_url')
-                        <p class="text-danger">{{ $message }}</p>
-                    @enderror
-                </div>
-            </div>
 
             <!-- Botones de Acción -->
             <div class="mt-8 flex justify-end space-x-4">
