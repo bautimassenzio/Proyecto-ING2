@@ -1,0 +1,66 @@
+<?php
+
+namespace App\Http\Controllers\Web\Users;
+
+use Illuminate\Http\Request;
+use App\Domain\User\Models\Usuario;
+use App\Enums\Roles;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Str;
+use App\Mail\EnviarContraseña;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Carbon;
+
+class ClienteController extends Controller
+{
+    public function storeClient(Request $request)
+    {
+        // Validación básica (opcional pero recomendable)
+        $request->validate([
+            'nombre' => 'required|string',
+            'email' => 'required|email|unique:usuarios,email',
+            'contraseña' => 'required|string|min:4',
+            'dni' => 'required|string|unique:usuarios,dni',
+            'telefono' => 'required|string',
+            'fecha_nacimiento' => 'required|date',
+            'rol' => ['nullable', 'string', 'in:cliente,empleado,admin'], // Añade esta validación TEMPORAL
+        ]);
+    
+        // Crear usuario
+        if (! $this->mayor18($request->fecha_nacimiento)) return back()->withErrors(['mensaje' => 'No se pueden registrar usuarios menores a 18 años']);
+
+        $this->crearUsuario($request);
+    
+        return redirect('/exitoRegister');
+    }
+
+    public function mayor18($fecha_nacimiento){
+        $fechaNacimiento=Carbon::parse($fecha_nacimiento);
+        return $fechaNacimiento->age >= 18;
+    }
+
+    public function crearUsuario($request){
+        $rol=Roles::CLIENTE;
+        $estado='activo';
+        return Usuario::create([
+            'nombre' => $request->nombre,
+            'email' => $request->email,
+            'contraseña' => bcrypt($request->contraseña),
+            'rol' => $request->input('rol', 'cliente'),//se debe eliminar despues
+            'dni' => $request->dni,
+            'telefono' => $request->telefono,
+            'estado' => $estado,  
+            'fecha_nacimiento' => $request->fecha_nacimiento,      
+            'fecha_alta' => now(),
+        ]);
+    }
+
+    public function crearContraseña(Request $request){
+        $contraseñaGenerada = Str::random(8); // genera una contraseña aleatoria de 8 caracteres
+        $request->merge([
+            'contraseña' => $contraseñaGenerada
+        ]);
+        $this->storeClient($request);
+        Mail::to($request->email)->send(new EnviarContraseña($request->nombre, $contraseñaGenerada));
+    }
+}

@@ -9,16 +9,18 @@ use Illuminate\Support\Facades\Auth;
 class CheckUserType
 {
  
-    public function handle(Request $request, Closure $next, $role)
+    public function handle(Request $request, Closure $next, ...$roles)
     {
         if (!Auth::guard('users')->check()) {
             return redirect('/login');
         }
         
-        if (Auth::guard('users')->user()->rol != $role) {
+        $userRole = Auth::guard('users')->user()->rol;
+        
+        if (!in_array($userRole, $roles)) {
             return redirect('/login');
         }
-        
-        return $next($request); // importantísimo: dejar pasar la petición cuando el rol sí coincide
+    
+        return $next($request);
     }
 }

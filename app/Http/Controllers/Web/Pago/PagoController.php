@@ -1,0 +1,224 @@
+<?php
+
+namespace App\Http\Controllers\Web\Pago;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use MercadoPago\SDK;
+use App\Domain\Pago\Models\Pago;
+use App\Domain\Reserva\Models\Reserva;
+use App\Domain\User\Models\Usuario;
+use App\Mail\ConfirmacionReserva;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log; // Agrega esta línea para usar el log de Laravel
+use App\Domain\Pago\Models\ValidCard;
+
+class PagoController extends Controller
+{
+    public function pagar()
+    {
+        // 1. Verificar que el Access Token se está cargando correctamente
+        $accessToken = config('mercadopago.token');
+        if (empty($accessToken)) {
+            Log::error('Mercado Pago: Access Token no configurado o vacío.');
+            return redirect()->route('reservas.create')->withErrors(['error' => 'Error de configuración: Access Token de Mercado Pago no encontrado.']);
+        }
+        SDK::setAccessToken($accessToken);
+
+        $idreserva = session('reserva_id');
+
+        $reserva = Reserva::find($idreserva);
+        if (!$reserva) {
+            Log::error('Mercado Pago: Reserva no encontrada para ID: ' . $idreserva);
+            return redirect()->route('reservas.create')->withErrors(['error' => 'Reserva no encontrada.']);
+        }
+
+        // 2. Verificar el valor del total de la reserva
+        if (!isset($reserva->total) || !is_numeric($reserva->total) || $reserva->total <= 0) {
+            Log::error('Mercado Pago: El total de la reserva es inválido o cero. Total: ' . $reserva->total . ' para Reserva ID: ' . $idreserva);
+            return redirect()->route('reservas.create')->withErrors(['error' => 'El monto de la reserva es inválido para el pago.']);
+        }
+
+        $item = new \MercadoPago\Item();
+        $item->title = 'Reserva';
+        $item->quantity = 1;
+        $item->unit_price = (float)$reserva->total; // Asegúrate de que sea un float
+
+        $preference = new \MercadoPago\Preference();
+        $preference->items = [$item];
+
+   $successUrl = route('pago.exito');
+$failureUrl = route('pago.fallo');
+$pendingUrl = route('pago.pendiente');
+
+$ngrokBase = 'https://ce24-181-23-144-16.ngrok-free.app'; // tu URL actual de ngrok
+
+$preference->back_urls = [
+    "success" => $ngrokBase . '/pago/exito',
+    "failure" => $ngrokBase . '/pago/fallo',
+    "pending" => $ngrokBase . '/pago/pendiente',
+];
+
+
+
+        $preference->external_reference = $idreserva;
+        $preference->auto_return = 'approved';
+
+        // 3. Imprimir el objeto Preference antes de intentar guardarlo
+        Log::info('Mercado Pago: Objeto Preference antes de save:', (array) $preference);
+
+        try {
+            $preference->save(); // Intenta guardar la preferencia
+        } catch (\Exception $e) {
+            // 4. Capturar cualquier excepción que pueda ocurrir durante el save()
+            Log::error('Mercado Pago: Excepción al guardar la preferencia: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return redirect()->route('reservas.create')->withErrors(['error' => 'Error interno al procesar el pago.']);
+        }
+
+        // 5. Imprimir el objeto Preference después de intentar guardarlo
+        Log::info('Mercado Pago: Objeto Preference después de save:', (array) $preference);
+
+        // 6. Verificar si se generó la URL de sandbox o producción
+        $redirectUrl = null;
+        if (config('mercadopago.sandbox')) {
+            $redirectUrl = $preference->sandbox_init_point;
+        } else {
+            $redirectUrl = $preference->init_point;
+        }
+
+        if (empty($redirectUrl)) {
+            // Este es el dd que te está dando el error
+            Log::error('Mercado Pago: No se generó URL de pago. Objeto Preference final:', (array) $preference);
+            return redirect()->route('reservas.create')->withErrors(['error' => 'Error: No se pudo generar la URL de pago de Mercado Pago.']);
+        }
+
+        return redirect()->away($redirectUrl);
+    }
+
+    // ... (tus funciones exito, fallo, pendiente)
+   public function exito(Request $request) {
+        $idreserva = $request->query('external_reference');
+
+        // *** CAMBIO CLAVE AQUÍ: Cargar la relación 'maquinaria' con la reserva ***
+        // Usamos find() y luego load() para obtener la reserva y su maquinaria relacionada.
+        $reserva = Reserva::find($idreserva); // Encuentra la reserva por su ID
+        if ($reserva) {
+            $reserva->load('maquinaria'); // Carga la maquinaria asociada a esta reserva
+        }
+        // **********************************************************************
+
+        if (!$reserva) {
+            $mensaje = 'Error: No se encontró la reserva asociada al pago.';
+            Log::error('Pago Exito: Reserva no encontrada para external_reference: ' . $idreserva);
+            return view('pago.botonhome', compact('mensaje'));
+        }
+
+        $monto = $reserva->total;
+        $estado_pago = 'completo';
+        $metodo = 'mercadopago';
+        $fecha_pago = now();
+
+        try {
+            $pago = Pago::create([
+                'id_reserva' => $idreserva,
+                'monto' => $monto,
+                'fecha_pago' => $fecha_pago,
+                'metodo_pago' => $metodo,
+                'estado_pago' => $estado_pago,
+            ]);
+
+            $reserva->estado = 'aprobada'; // O el estado final que corresponda
+            $reserva->save();
+
+            $cliente = Usuario::find($reserva->id_cliente);
+            if ($cliente && $cliente->email) {
+                // Ahora, $reserva tiene la relación 'maquinaria' cargada y disponible.
+                Mail::to($cliente->email)->send(new ConfirmacionReserva($reserva, $cliente));
+                Log::info('Correo de confirmación de reserva enviado para Reserva ID: ' . $reserva->id_reserva . ' y Cliente: ' . $cliente->email);
+            } else {
+                Log::warning('No se pudo enviar correo de confirmación: Cliente o email no encontrados para Reserva ID: ' . $reserva->id_reserva);
+            }
+
+            $mensaje = '✅ Pago exitoso. Confirmamos tu reserva.';
+            return view('pago.botonhome', compact('mensaje'));
+
+        } catch (\Exception $e) {
+            Log::error('Error en PagoController@exito: ' . $e->getMessage(), ['trace' => $e->getTraceAsString(), 'reserva_id' => $idreserva]);
+            $mensaje = '❌ Error interno al procesar la confirmación del pago.';
+            return view('pago.botonhome', compact('mensaje'));
+        }
+    }
+
+
+    public function fallo() {
+        $mensaje = '❌ Ocurrió un error durante el pago.';
+        return view('pago.botonhome', compact('mensaje'));
+    }
+
+    public function pendiente() {
+        $mensaje = '⏳ Tu pago está pendiente.';
+        return view('pago.botonhome', compact('mensaje'));
+    }
+
+    public function mostrarFormularioTarjeta()
+    {   
+        // Recuperar el id_reserva de la sesión
+        $reserva_id = session('reserva_id');
+
+        // Opcional: Si el id_reserva no está en la sesión, puedes redirigir o mostrar un error
+        if (empty($reserva_id)) {
+            Log::warning('Pago Tarjeta: Intento de acceder al formulario sin reserva_id en sesión.');
+            return redirect()->route('reservas.create')->withErrors(['error' => 'No hay una reserva activa para procesar.']);
+        }
+
+        // Pasar el id_reserva a la vista del formulario de la tarjeta
+        return view('pago.formulario_tarjeta', compact('reserva_id'));
+    }
+
+    public function procesarPagoTarjeta(Request $request)
+    {
+        // 1. Validar los datos del formulario
+        $request->validate([
+            'card_number' => 'required|string', // Considera 'digits:19' si esperas el formato con espacios o ajusta el patrón
+            'expiry_month' => 'required|digits:2|min:1|max:12',
+            'expiry_year' => 'required|digits:2',
+            'cvv' => 'required|digits_between:3,4',
+            // ¡NUEVO! Validamos que el id_reserva venga y exista
+            'reserva_id' => 'required|exists:reservas,id_reserva', // Asumo 'id_reserva' es la PK en tu tabla reservas
+        ]);
+
+        // 2. Obtener el ID de la reserva enviado desde el campo oculto del formulario
+        $idreserva = $request->input('reserva_id');
+
+        // 3. Cargar la reserva desde la base de datos
+        // Importante: Asegurarse de que la relación 'maquinaria' esté cargada si se necesita en el Mailable
+        $reserva = Reserva::with('maquinaria')->find($idreserva); // Carga la reserva y su maquinaria
+
+        // Verificar si la reserva fue encontrada
+        if (!$reserva) {
+            Log::error('Pago Tarjeta: Reserva no encontrada para ID: ' . $idreserva);
+            $mensaje = 'Error: No se encontró la reserva asociada al pago.';
+            return view('pago.botonhome', compact('mensaje')); // O redirige a una ruta de error
+        }
+
+        // 4. Buscar una tarjeta que coincida en la base de datos (simulación)
+        $tarjetaValida = ValidCard::where('card_number', $request->input('card_number'))
+            ->where('expiry_month', $request->input('expiry_month'))
+            ->where('expiry_year', $request->input('expiry_year'))
+            ->where('cvv', $request->input('cvv'))
+            ->first();
+
+        // 5. Procesar el pago si la tarjeta es válida
+        if ($tarjetaValida) {
+            // Simulación de pago exitoso
+            $mensaje = '✅ Pago exitoso. Confirmamos tu reserva.';
+            return view('pago.botonhome', compact('mensaje')); // Debes crear esta vista
+        } else {
+            $mensaje = '❌ Ocurrió un error durante el pago, datos incorrectos.';
+            return view('pago.botonhome', compact('mensaje'));
+        }
+    }
+    
+
+
+}

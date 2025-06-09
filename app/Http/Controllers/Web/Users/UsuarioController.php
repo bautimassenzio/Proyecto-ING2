@@ -1,19 +1,20 @@
 <?php
 
-namespace App\Http\Controllers\Web;
+namespace App\Http\Controllers\Web\Users;
 
+use App\Domain\Reserva\Models\Reserva;
 use App\Domain\User\Models\Usuario;
+use App\Enums\Roles;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Enums\RolUsuario;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+
 
 class UsuarioController extends Controller
 {
-    //
 
-    //public function __construct(){
-     // $this->middleware('auth:usuarios');
-   //}
 
     public function getUsuarios(){
         return Usuario::all();
@@ -68,9 +69,9 @@ class UsuarioController extends Controller
     }
 
     // Actualizar usuario por DNI (PUT)
-    public function update(Request $request, $dni)
+    public function update(Request $request, $email)
     {
-        $usuario = Usuario::where('dni', $dni)->first();
+        $usuario = Usuario::where('email', $email)->first();
 
         if (!$usuario) {
             return response()->json(['mensaje' => 'Usuario no encontrado'], 404);
@@ -112,6 +113,58 @@ class UsuarioController extends Controller
 
         return response()->json(['mensaje' => 'Usuario eliminado con éxito']);
     }
+
+    public function updatePassword(Request $request){
+        $request->validate([
+    'password_actual' => 'required',
+    'nueva_contraseña' => 'required|min:5',
+    'nueva_contraseña_confirmation' => 'required|min:5|same:nueva_contraseña',
+], [
+    'nueva_contraseña.min' => 'La nueva contraseña debe tener al menos 5 caracteres.',
+    'nueva_contraseña_confirmation.min' => 'La confirmación no coincide con la nueva contraseña.',
+]);
+
+if ($request->nueva_contraseña == $request->password_actual) {
+    return back()->withErrors(['nueva_contraseña_confirmation' => 'La nueva contraseña es igual a la anterior']);
+}
+
+if ($request->nueva_contraseña !== $request->nueva_contraseña_confirmation) {
+    return back()->withErrors(['nueva_contraseña_confirmation' => 'La contraseña a confirmar es distinta de la nueva']);
+}
+    
+        $usuarioSession = Auth::guard('users')->user();
+        $usuario = Usuario::where('dni', $usuarioSession->dni)->first();
+    
+        if (!$usuario) {
+            return back()->withErrors(['mensaje' => 'Usuario no encontrado']);
+        }
+    
+        if (!Hash::check($request->password_actual, $usuario->contraseña)) {
+            return back()->withErrors(['password_actual' => 'La contraseña actual no es correcta']);
+        }
+    
+        $usuario->contraseña = bcrypt($request->nueva_contraseña);
+        $usuario->save();
+    
+        return back()->with('success', 'Contraseña actualizada correctamente');
+    }
+
+    public function eliminarCuentaPropia()
+{
+    $usuario = Auth::guard('users')->user();
+    $rol=$usuario->rol;
+    if ($rol=='cliente' && Reserva::where('id_cliente', $usuario->id_usuario)
+            ->whereIn('estado', ['pendiente', 'activa'])
+            ->exists()){
+        return back()->with('error', 'No se puede eliminar una cuenta con reservas confirmadas o pendientes');
+    }
+    Auth::guard('users')->logout(); // cierra sesión
+    Usuario::where('dni', $usuario->dni)->delete();
+    session()->forget('layout');
+    return redirect('/')->with('success', 'Tu cuenta fue eliminada correctamente.');
+}
+
+
 
 
 }

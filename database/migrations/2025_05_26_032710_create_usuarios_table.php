@@ -22,6 +22,7 @@ return new class extends Migration
             $table->string('dni', 20)->unique('dni');
             $table->string('telefono', 20)->nullable();
             $table->enum('estado', ['activo', 'inactivo'])->nullable()->default('activo');
+            $table->date('fecha_nacimiento')->nullable();
             $table->date('fecha_alta')->nullable()->default('CURRENT_DATE');
         });
     }
