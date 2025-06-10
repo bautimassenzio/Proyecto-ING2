@@ -15,7 +15,7 @@ class ReservaController extends Controller
 {
     public function create(Request $request)
     {
-        
+       
         $clienteAutenticado = Auth::user();
         $idMaquinaria = $request->query('id_maquinaria');
 

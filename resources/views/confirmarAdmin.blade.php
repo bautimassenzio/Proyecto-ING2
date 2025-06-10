@@ -24,16 +24,7 @@
 
             <div class="card-body p-4">
 
-                {{-- Mensajes de error (manejo de Laravel $errors) --}}
-                @if ($errors->any())
-                    <div class="alert alert-danger" role="alert">
-                        <ul class="mb-0 ps-3"> {{-- Agregamos ps-3 para padding-left en la lista --}}
-                            @foreach ($errors->all() as $error)
-                                <li>{{ $error }}</li>
-                            @endforeach
-                        </ul>
-                    </div>
-                @endif
+               
 
                 {{-- Mensaje de éxito (manejo de sesión) --}}
                 @if(session('success'))
@@ -41,11 +32,7 @@
                         {{ session('success') }}
                     </div>
                 @endif
-                @if(session('error')) {{-- Por si acaso también hay un mensaje 'error' de sesión --}}
-                    <div class="alert alert-danger" role="alert">
-                        {{ session('error') }}
-                    </div>
-                @endif
+               
 
                 {{-- Formulario de verificación --}}
                 <form method="POST" action="{{ route('confirmarAdmin') }}">
@@ -54,12 +41,10 @@
                     <div class="mb-3">
                         <label for="codigo" class="form-label">Ingrese el código enviado a su correo</label>
                         <input type="text" name="codigo" id="codigo"
-                            class="form-control @error('codigo') is-invalid @enderror"
+                            class="form-control"
                             maxlength="6" required autofocus>
 
-                        @error('codigo')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
+                       
                     </div>
 
                     <button type="submit" class="btn btn-primary w-100 mb-3"> {{-- Agregamos w-100 y mb-3 --}}

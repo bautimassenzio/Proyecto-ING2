@@ -288,8 +288,7 @@
                 <!-- Brand -->
                 <a class="navbar-brand" href="{{ route('/') }}">
                     <img src="{{ asset('images/Manny_Maquinarias_Logov2.png') }}" alt="MannyMaquinarias Logo" class="logo-img">
-                    
-                    <!-- <span>MannyMaquinarias</span> -->
+
                 </a>
 
                 <!-- Mobile Toggle -->
@@ -316,7 +315,7 @@
                                         <i class="fas fa-crown"></i> Administrador
                                     @elseif(Auth::guard('users')->user()->rol === 'empleado')
                                         <i class="fas fa-user-tie"></i> Empleado
-                                    @else
+                                    @else 
                                         <i class="fas fa-user"></i> Cliente
                                     @endif
                                 </div>
@@ -375,7 +374,7 @@
         <div class="container">
             <div class="footer-content">
                 <div>
-                    <p class="mb-0">© {{ date('Y') }} MannyMaquinarias - Sistema de Gestión de Maquinarias</p>
+                    <p class="-mb0">© {{ date('Y') }} MannyMaquinarias - Sistema de Gestión de Maquinarias</p>
                 </div>
                 <div class="footer-links">
                     <a href="/info-contactos"><i class="fas fa-phone"></i> Contacto</a>

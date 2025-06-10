@@ -1,26 +1,27 @@
 @extends('layouts.base')
 
 @section('navigation')
-    <li class="nav-item">
-        <a class="nav-link {{ request()->routeIs('/') ? 'active' : '' }}" href="{{ route('/') }}">
-            <i class="fas fa-home me-1"></i> Inicio
-        </a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link {{ request()->is('users*') ? 'active' : '' }}" href="/users">
-            <i class="fas fa-users me-1"></i> Gestión de Usuarios
-        </a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link" href="admin/maquinarias/create">
-            <i class="fas fa-cogs me-1"></i> Agregar maquinarias
-        </a>
-    </li>
-     <li class="nav-item">
-        <a class="nav-link" href="catalogo">
-            <i class="fas fa-cogs me-1"></i> Maquinarias
-        </a>
-    </li>
+<li class="nav-item">
+    <a class="nav-link {{ request()->routeIs('/') ? 'active' : '' }}" href="{{ route('/') }}">
+        <i class="fas fa-home me-1"></i> Inicio
+    </a>
+</li>
+<li class="nav-item">
+    <a class="nav-link {{ request()->is('users*') ? 'active' : '' }}" href="{{ url('/users') }}">
+        <i class="fas fa-users me-1"></i> Gestión de Usuarios
+    </a>
+</li>
+<li class="nav-item">
+    <a class="nav-link {{ request()->is('admin/maquinarias/create') ? 'active' : '' }}" href="{{ url('admin/maquinarias/create') }}">
+        <i class="fas fa-cogs me-1"></i> Agregar maquinarias
+    </a>
+</li>
+<li class="nav-item">
+    <a class="nav-link {{ request()->is('catalogo') ? 'active' : '' }}" href="{{ url('catalogo') }}">
+        <i class="fas fa-cogs me-1"></i> Maquinarias
+    </a>
+</li>
+
    <!-- <li class="nav-item">
         <a class="nav-link" href="#">
             <i class="fas fa-clipboard-list me-1"></i> Pedidos

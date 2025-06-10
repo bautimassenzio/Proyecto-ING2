@@ -1,4 +1,4 @@
-@extends('layouts.base') {{-- ESTA LÍNEA ES CORRECTA --}}
+@extends($layout) {{-- ESTA LÍNEA ES CORRECTA --}}
 
 @section('content') {{-- Y ESTO DEBE CONTENER SOLAMENTE EL CONTENIDO --}}
 <div class="container">

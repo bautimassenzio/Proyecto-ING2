@@ -25,7 +25,7 @@ class MaquinariaController extends Controller
             $maquinarias = Maquinaria::where('estado', 'disponible')->get();
         }
         $usuario = Auth::check() ? Auth::user() : null;
-        $layout = session('layout', 'layouts.base');
+        $layout = session('layout', 'layouts.visitante');
         return view('maquinarias.index', compact('maquinarias', 'usuario', 'layout'));
     }
 
@@ -47,7 +47,8 @@ class MaquinariaController extends Controller
     public function create()
     {
         $politicas = Politica::all();
-        return view('maquinarias.createMaq', compact('politicas'));
+        $layout=session('layout');
+        return view('maquinarias.createMaq', compact('politicas','layout'));
     }
 
     // Guardar maquinaria (solo admin)
