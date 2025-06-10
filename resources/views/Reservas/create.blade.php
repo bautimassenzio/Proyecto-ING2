@@ -485,7 +485,7 @@
                     // Asegúrate de que la fecha de fin no pueda ser anterior a la fecha de inicio
                     // Suma un día para que el mínimo de fin sea el día siguiente al inicio
                     const minDateFin = new Date(startDate);
-                    minDateFin.setDate(startDate.getDate() + 1);
+                    minDateFin.setDate(startDate.getDate() + 2);
                     finPicker.set('minDate', minDateFin);
 
                     // También deshabilita los rangos ocupados en el segundo picker

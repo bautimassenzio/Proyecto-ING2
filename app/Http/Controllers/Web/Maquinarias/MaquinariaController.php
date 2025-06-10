@@ -56,7 +56,7 @@ class MaquinariaController extends Controller
         $validatedData = $request->validate([
             'nro_inventario' => 'required|string|max:255|unique:maquinarias',
             'precio_dia' => 'required|numeric|min:0',
-            'foto_url' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'foto_url' => 'required|image|mimes:jpeg,png,jpg|max:5120',
             'marca' => 'required|string|max:255',
             'modelo' => 'required|string|max:255',
             'anio' => 'required|integer|min:1900|max:' . date('Y'),

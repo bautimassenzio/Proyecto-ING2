@@ -176,6 +176,24 @@
             box-shadow: var(--shadow-lg);
         }
 
+          .btn-danger2 {
+            background: linear-gradient(135deg,rgb(113, 10, 20) 0%,rgb(93, 0, 9) 100%);
+            border: none;
+            color: white;
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow);
+        }
+
+        /* Hover */
+        .btn-danger2:hover {
+            background: linear-gradient(135deg, rgb(113, 10, 20) 0%,rgb(93, 0, 9) 100%);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
         .btn-outline-primary {
             border: 2px solid var(--primary-yellow);
             color: var(--primary-yellow);
@@ -190,6 +208,8 @@
             color: var(--dark-bg);
             transform: translateY(-2px);
         }
+
+        
 
         /* Footer */
         .main-footer {

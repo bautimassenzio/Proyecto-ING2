@@ -20,10 +20,21 @@ class ReservaController extends Controller
         $idMaquinaria = $request->query('id_maquinaria');
 
         $maquinaria = Maquinaria::findOrFail($idMaquinaria);
-        
-        $fechasOcupadas = Reserva::where('id_maquinaria', $idMaquinaria)
-            ->whereIn('estado', ['pendiente', 'aprobada'])
-            ->get(['fecha_inicio', 'fecha_fin']);
+
+        $fechasMaquinaria = Reserva::where('id_maquinaria', $idMaquinaria)
+        ->whereIn('estado', ['pendiente', 'aprobada'])
+        ->get(['fecha_inicio', 'fecha_fin']);
+
+        $fechasCliente = Reserva::where('id_cliente', $clienteAutenticado->id_usuario)
+        ->whereIn('estado', ['pendiente', 'aprobada'])
+        ->get(['fecha_inicio', 'fecha_fin']);
+
+       $fechasOcupadas = $fechasMaquinaria->concat($fechasCliente)->map(function($reserva) {
+        return [
+            'fecha_inicio' => \Carbon\Carbon::parse($reserva->fecha_inicio)->toDateString(),
+            'fecha_fin' => \Carbon\Carbon::parse($reserva->fecha_fin)->toDateString(),
+        ];
+    })->values();
         
         return view('reservas.create', compact('clienteAutenticado', 'maquinaria', 'fechasOcupadas'));
     }
@@ -145,6 +156,10 @@ class ReservaController extends Controller
             return back()->withErrors(['reserva' => 'Reserva no encontrada.']);
         }
 
+        if ($reserva->estado === 'cancelada') {
+        return back()->withErrors(['cancelacion' => 'No se puede cancelar una reserva que ya ha sido cancelada.']);
+        }
+
         $ahora = \Carbon\Carbon::now();
         $limiteCancelacion = \Carbon\Carbon::parse($reserva->fecha_inicio)->subDay();
       
@@ -160,5 +175,24 @@ class ReservaController extends Controller
         Mail::to($cliente->email)->send(new ReservaCancelada($reserva, $politicaCancelacion));
 
         return back()->with('success', 'Reserva cancelada con éxito. Se ha enviado un correo con la política de cancelación.');
+    }
+
+    public function pagarDesdeHistorial($id_reserva)
+    {
+        $reserva = Reserva::find($id_reserva);
+
+        if (!$reserva) {
+            return back()->withErrors(['reserva' => 'Reserva no encontrada.']);
+        }
+
+        // Verifica que la reserva esté pendiente y pertenezca al usuario autenticado
+        if ($reserva->estado !== 'pendiente' || $reserva->id_cliente !== Auth::id()) {
+            return back()->withErrors(['reserva' => 'Solo se pueden pagar reservas pendientes.']);
+        }
+
+        // Establece el ID de la reserva en la sesión para que el PagoController la use
+        session(['reserva_id' => $reserva->id_reserva]);
+
+        return redirect()->route('pago.seleccionar')->with('success', 'Proceda a seleccionar el método de pago.');
     }
 }

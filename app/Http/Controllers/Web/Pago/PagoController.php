@@ -51,7 +51,7 @@ class PagoController extends Controller
 $failureUrl = route('pago.fallo');
 $pendingUrl = route('pago.pendiente');
 
-$ngrokBase = 'https://ce24-181-23-144-16.ngrok-free.app'; // tu URL actual de ngrok
+$ngrokBase = 'https://3984-2800-340-52-144-50b3-7086-7165-1501.ngrok-free.app'; // tu URL actual de ngrok
 
 $preference->back_urls = [
     "success" => $ngrokBase . '/pago/exito',
@@ -211,10 +211,49 @@ $preference->back_urls = [
         // 5. Procesar el pago si la tarjeta es válida
         if ($tarjetaValida) {
             // Simulación de pago exitoso
-            $mensaje = '✅ Pago exitoso. Confirmamos tu reserva.';
-            return view('pago.botonhome', compact('mensaje')); // Debes crear esta vista
+            $monto = $reserva->total;
+            $estado_pago = 'completo';
+            $metodo = 'tarjeta'; // Indicamos que el método de pago es tarjeta
+            $fecha_pago = now();
+
+            try {
+                // Crear el registro de pago en tu tabla 'pagos'
+                $pago = Pago::create([
+                    'id_reserva' => $idreserva,
+                    'monto' => $monto,
+                    'fecha_pago' => $fecha_pago,
+                    'metodo_pago' => $metodo,
+                    'estado_pago' => $estado_pago,
+                ]);
+
+                // Actualizar el estado de la reserva
+                $reserva->estado = 'aprobada'; // O el estado final que corresponda
+                $reserva->save();
+
+                // 6. Enviar el correo de confirmación de reserva (si aplica para pagos con tarjeta)
+                $cliente = Usuario::find($reserva->id_cliente);
+                if ($cliente && $cliente->email) {
+                    // El objeto $reserva ya tiene la relación 'maquinaria' cargada.
+                    Mail::to($cliente->email)->send(new ConfirmacionReserva($reserva, $cliente));
+                    Log::info('Correo de confirmación de reserva enviado para Reserva ID: ' . $reserva->id_reserva . ' y Cliente: ' . $cliente->email . ' (Pago con Tarjeta)');
+                } else {
+                    Log::warning('No se pudo enviar correo de confirmación: Cliente o email no encontrados para Reserva ID: ' . $reserva->id_reserva . ' (Pago con Tarjeta)');
+                }
+
+                // 7. Redirigir a una vista de éxito
+                $mensaje = '✅ Pago exitoso con tarjeta. Confirmamos tu reserva.';
+                return view('pago.botonhome', compact('mensaje'));
+
+            } catch (\Exception $e) {
+                // Capturar y loguear cualquier error durante la creación del pago o el envío del correo
+                Log::error('Error en PagoController@procesarPagoTarjeta: ' . $e->getMessage(), ['trace' => $e->getTraceAsString(), 'reserva_id' => $idreserva]);
+                $mensaje = '❌ Error interno al procesar la confirmación del pago con tarjeta.';
+                return view('pago.botonhome', compact('mensaje'));
+            }
         } else {
-            $mensaje = '❌ Ocurrió un error durante el pago, datos incorrectos.';
+            // Si la tarjeta no es válida (no se encontró en ValidCard)
+            $mensaje = '❌ Datos de tarjeta incorrectos o no válidos. Intente de nuevo.';
+            // Puedes redirigir de vuelta al formulario con un mensaje de error si lo prefieres
             return view('pago.botonhome', compact('mensaje'));
         }
     }

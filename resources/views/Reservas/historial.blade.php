@@ -1,10 +1,17 @@
-@extends($layout) {{-- O el layout que estés usando --}}
+@extends($layout)
 
 @section('title', 'Mis Reservas')
 
 @section('content')
 <div class="container py-5">
     <h2 class="mb-4">Historial de Reservas</h2>
+
+    {{-- Mensaje de error desde el controlador --}}
+    @if(session('error'))
+        <div class="alert alert-danger">
+            {{ session('error') }}
+        </div>
+    @endif
 
     @if($reservas->isEmpty())
         <div class="alert alert-info">
@@ -23,6 +30,7 @@
                         <th>Total (ARS)</th>
                         <th>Estado</th>
                         <th>Acciones</th>
+                        <th>Pagar</th> <!-- Nueva columna -->
                     </tr>
                 </thead>
                 <tbody>
@@ -49,19 +57,13 @@
                                 <span class="badge bg-{{ $color }}">{{ ucfirst($estado) }}</span>
                             </td>
                             <td>
-                                @php
-                                    $ahora = \Carbon\Carbon::now();
-                                    $limite = \Carbon\Carbon::parse($reserva->fecha_inicio)->subDay();
-                                @endphp
-
-                                @if(in_array($reserva->estado, ['pendiente','aprobada']) && $ahora->lt($limite))
-                                    <form action="{{ route('reservas.cancelar', $reserva->id_reserva) }}" method="POST" onsubmit="return confirm('¿Confirmas cancelar esta reserva?')">
-                                        @csrf
-                                        <button type="submit" class="btn btn-danger btn-sm">Cancelar</button>
-                                    </form>
-                                @else
-                                    <button class="btn btn-secondary btn-sm" disabled>Cancelar</button>
-                                @endif
+                                <form action="{{ route('reservas.cancelar', $reserva->id_reserva) }}" method="POST" onsubmit="return confirm('¿Confirmas cancelar esta reserva?')">
+                                    @csrf
+                                    <button type="submit" class="btn btn-danger btn-sm">Cancelar</button>
+                                </form>
+                            </td>
+                            <td>
+                                <a href="{{ route('reservas.pagarDesdeHistorial', $reserva->id_reserva) }}" class="btn btn-success btn-sm">Pagar</a>
                             </td>
                         </tr>
                     @endforeach

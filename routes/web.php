@@ -54,6 +54,7 @@ Route::prefix('reservas')->middleware('auth:users')->group(function () {
     Route::get('/crear', [ReservaController::class, 'create'])->name('reservas.create');
     Route::post('/', [ReservaController::class, 'store'])->name('reservas.store');
     Route::post('/{id_reserva}/cancelar', [ReservaController::class, 'cancelar'])->name('reservas.cancelar');
+    Route::get('/reservas/{id_reserva}/pagar', [ReservaController::class, 'pagarDesdeHistorial'])->name('reservas.pagarDesdeHistorial');
 });
 
 // Historial de reservas del cliente
