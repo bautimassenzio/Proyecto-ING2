@@ -127,7 +127,7 @@ $preference->back_urls = [
                 'estado_pago' => $estado_pago,
             ]);
 
-            $reserva->estado = 'pendiente'; // O el estado final que corresponda
+            $reserva->estado = 'aprobada'; // O el estado final que corresponda
             $reserva->save();
 
             $cliente = Usuario::find($reserva->id_cliente);
@@ -210,7 +210,23 @@ $preference->back_urls = [
 
         // 5. Procesar el pago si la tarjeta es válida
         if ($tarjetaValida) {
-            // Simulación de pago exitoso
+            // --- NUEVA LÓGICA: Verificar conexión y saldo ---
+
+            // Si la conexión no es válida
+            if (!$tarjetaValida->conexion) {
+                Log::warning('Intento de pago con tarjeta sin conexión válida: ' . $request->input('card_number'));
+                return redirect()->route('pago.procesar.tarjeta')->withErrors(['tarjeta' => 'No pudimos establecer conexión con la tarjeta. Intenta de nuevo.'])->withInput($request->only('card_number', 'expiry_month', 'expiry_year'));
+            }
+
+            // Si hay conexión pero el saldo es insuficiente
+            if (!$tarjetaValida->saldo) {
+                Log::warning('Intento de pago con tarjeta con saldo insuficiente: ' . $request->input('card_number'));
+                return redirect()->route('pago.procesar.tarjeta')->withErrors(['tarjeta' => 'Saldo insuficiente en la tarjeta. Por favor, verifica tus fondos o usa otra tarjeta.'])->withInput($request->only('card_number', 'expiry_month', 'expiry_year'));
+            }
+
+            // --- FIN NUEVA LÓGICA ---
+
+            // Simulación de pago exitoso (si la tarjeta es válida, tiene conexión y saldo)
             $monto = $reserva->total;
             $estado_pago = 'completo';
             $metodo = 'tarjeta'; // Indicamos que el método de pago es tarjeta
@@ -227,7 +243,7 @@ $preference->back_urls = [
                 ]);
 
                 // Actualizar el estado de la reserva
-                $reserva->estado = 'pendiente'; // O el estado final que corresponda
+                $reserva->estado = 'aprobada'; // O el estado final que corresponda
                 $reserva->save();
 
                 // 6. Enviar el correo de confirmación de reserva (si aplica para pagos con tarjeta)
@@ -251,7 +267,9 @@ $preference->back_urls = [
                 return view('pago.botonhome', compact('mensaje'));
             }
         } else {
-            return redirect()->route('pago.procesar.tarjeta')->withErrors(['tarjeta' => 'Los datos de la tarjeta son incorrectos o la tarjeta no es válida.'])->withInput($request->only('card_number', 'expiry_month', 'expiry_year'));        }
+            // Si la tarjeta no se encontró por datos incorrectos
+            return redirect()->route('pago.procesar.tarjeta')->withErrors(['tarjeta' => 'Los datos de la tarjeta son incorrectos o la tarjeta no es válida.'])->withInput($request->only('card_number', 'expiry_month', 'expiry_year'));
+        }
     }
     
 

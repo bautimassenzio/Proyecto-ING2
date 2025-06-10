@@ -10,7 +10,7 @@ class ValidCard extends Model
     use HasFactory;
     protected $table = 'valid_cards'; 
     protected $primaryKey = 'id';
-    protected $fillable = ['card_number', 'expiry_month', 'expiry_year', 'cvv', 'cardholder_name'];
+    protected $fillable = ['card_number', 'expiry_month', 'expiry_year', 'cvv', 'cardholder_name', 'conexion', 'saldo'];
 
     public $timestamps = false;
 }
