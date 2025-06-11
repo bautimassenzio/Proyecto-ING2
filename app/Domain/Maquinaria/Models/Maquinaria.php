@@ -4,6 +4,7 @@ namespace App\Domain\Maquinaria\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Domain\Reserva\Models\Reserva;
 
 
 class Maquinaria extends Model
@@ -24,6 +25,7 @@ class Maquinaria extends Model
         'estado',
         'localidad',
         'id_politica',
+        'descripcion',
     ];
 
     public function politica()
@@ -32,4 +34,10 @@ class Maquinaria extends Model
         // El primer 'id_politica' es la FK en Maquinaria,
         // el segundo 'id_politica' es la PK en Politica
     }
+
+    public function reserva()
+{
+    return $this->hasMany(Reserva::class, 'id_maquinaria');
+}
+
 }

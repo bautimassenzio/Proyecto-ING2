@@ -1,8 +1,9 @@
 @extends('layouts.base')
 
 @section('navigation')
+
 <li class="nav-item">
-    <a class="nav-link {{ request()->routeIs('/') ? 'active' : '' }}" href="{{ route('/') }}">
+    <a class="nav-link {{ request()->is('/') ? 'active' : '' }}" href="{{ url('/') }}">
         <i class="fas fa-home me-1"></i> Inicio
     </a>
 </li>
@@ -37,7 +38,7 @@
             <i class="fas fa-cog me-1"></i> Configuración
         </a>
     </li>
--->
+    -->
     <li class="nav-item dropdown">
         <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
             <i class="fas fa-user-circle me-1"></i> Mi Cuenta

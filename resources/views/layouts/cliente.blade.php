@@ -1,8 +1,9 @@
 @extends('layouts.base')
 
 @section('navigation')
+
 <li class="nav-item">
-    <a class="nav-link {{ request()->routeIs('/') ? 'active' : '' }}" href="{{ route('/') }}">
+    <a class="nav-link {{ request()->is('/') ? 'active' : '' }}" href="{{ url('/') }}">
         <i class="fas fa-home me-1"></i> Mi Panel
     </a>
 </li>
@@ -16,6 +17,7 @@
         <i class="fas fa-clipboard-list me-1"></i> Mis Reservas
     </a>
 </li>
+
 
 <!--
     <li class="nav-item">

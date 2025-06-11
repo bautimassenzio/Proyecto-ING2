@@ -16,7 +16,8 @@ class LoginController extends Controller
 
 
     public function showLoginForm(){
-        return view('/auth/login');
+        $layout=session('layout', 'layouts.visitante');
+        return view('/auth/login', compact('layout'));
     }
 
     public static  function definirLayout ($user) {

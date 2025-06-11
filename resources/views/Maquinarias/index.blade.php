@@ -1,5 +1,6 @@
 @extends($layout)
 
+
 @section('content')
 <div class="container">
     <h1 class="mb-4">Catálogo de Maquinarias</h1>
@@ -16,7 +17,8 @@
                         <p class="card-text">
                             <strong>Precio por día:</strong> ${{ $maquinaria->precio_dia }}<br>
                             <strong>Estado:</strong> {{ ucfirst($maquinaria->estado) }}<br>
-                            <strong>Localidad:</strong> {{ $maquinaria->localidad }}
+                            <strong>Localidad:</strong> {{ $maquinaria->localidad }}<br>
+                            <strong>Descripcion:</strong> {{ $maquinaria->descripcion }}
                         </p>
                     </div>
                     <div class="card-footer text-center">
@@ -26,7 +28,7 @@
                             {{-- El usuario está autenticado en el guard 'users' --}}
                             {{-- CAMBIO CLAVE AQUÍ: Usamos Auth::guard('users')->user() --}}
                             @if(Auth::guard('users')->user()->rol === 'admin') {{-- Nota: Usé 'rol' en minúscula según tu modelo/DB --}}
-                                <a href=" " class="btn btn-warning btn-sm">Editar</a>
+                                <a href="{{ route('maquinarias.edit', $maquinaria->id_maquinaria) }}" class="btn btn-warning btn-sm">Editar</a>
 
                                 <form action="{{ route('maquinarias.destroy', $maquinaria->id_maquinaria) }}" method="POST" class="d-inline-block" onsubmit="return confirm('¿Estás seguro que deseas dar de baja esta maquinaria?');">
                                     @csrf
@@ -103,3 +105,5 @@
     }
 </style>
 @endsection
+
+

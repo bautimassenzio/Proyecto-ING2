@@ -23,7 +23,8 @@
         @endif
 
         {{-- Formulario para volver al inicio --}}
-        <form action="{{ url('/') }}" method="get">
+        {{-- CAMBIO AQUÍ: URL absoluta forzada a localhost --}}
+        <form action="http://localhost:8000/" method="get">
             <button type="submit" class="btn btn-primary btn-lg">Volver al inicio</button> {{-- Clases de Bootstrap para el botón --}}
         </form>
     </div>

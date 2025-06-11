@@ -50,6 +50,8 @@
             border-bottom: 3px solid var(--dark-yellow);
         }
 
+        
+
         .navbar-brand {
             font-weight: 700;
             font-size: 1.5rem;
@@ -218,6 +220,10 @@
             color: var(--secondary-yellow);
         }
 
+        #navbarNav {
+            justify-content: space-evenly;
+        }
+
         /* Mobile Responsive */
         @media (max-width: 768px) {
             .navbar-nav {
@@ -297,8 +303,8 @@
                 </button>
 
                 <!-- Navigation -->
-                <div class="collapse navbar-collapse" id="navbarNav">
-                    <ul class="navbar-nav me-auto">
+                <div class="collapse navbar-collapse d-flex" id="navbarNav">
+                    <ul class="navbar-nav">
                         @yield('navigation')
                     </ul>
 
@@ -389,5 +395,23 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
     @yield('additional-scripts')
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const links = document.querySelectorAll('.nav-link');
+
+        links.forEach(link => {
+            link.addEventListener('click', function (e) {
+                const current = window.location.pathname.replace(/\/+$/, '');
+                const target = new URL(link.href).pathname.replace(/\/+$/, '');
+
+                if (current === target) {
+                    e.preventDefault(); // Evita la recarga
+                }
+            });
+        });
+    });
+</script>
+
 </body>
 </html>

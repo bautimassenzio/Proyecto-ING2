@@ -54,6 +54,7 @@ Route::prefix('reservas')->middleware('auth:users')->group(function () {
     Route::get('/crear', [ReservaController::class, 'create'])->name('reservas.create');
     Route::post('/', [ReservaController::class, 'store'])->name('reservas.store');
     Route::post('/{id_reserva}/cancelar', [ReservaController::class, 'cancelar'])->name('reservas.cancelar');
+    Route::get('/reservas/{id_reserva}/pagar', [ReservaController::class, 'pagarDesdeHistorial'])->name('reservas.pagarDesdeHistorial');
 });
 
 // Historial de reservas del cliente
@@ -64,7 +65,8 @@ Route::get('/mis-reservas', [ReservaController::class, 'index'])
 
 //MERCADOPAGO
 Route::get('/pagar', function() {
-    return view('pago.seleccionarpago');
+    $layout=session('layout','layouts.base');
+    return view('pago.seleccionarpago', compact('layout'));
 })->name('pago.seleccionar');
 
 
@@ -84,6 +86,10 @@ Route::prefix('admin')->group(function () {
     Route::post('/maquinarias', [MaquinariaController::class, 'store'])->name('maquinarias.store');
 
 });
+
+Route::get('admin/maquinarias/{maquinaria}/edit', [MaquinariaController::class, 'edit'])->name('maquinarias.edit');
+Route::put('admin/maquinarias/{maquinaria}', [MaquinariaController::class, 'update'])->name('maquinarias.update');
+
      Route::delete('admin/maquinarias/{maquinaria}', [MaquinariaController::class, 'destroy'])->name('maquinarias.destroy');
     //Route::get('admin/maquinarias', [MaquinariaController::class, 'index'])->name('maquinarias.index');
      Route::get('/catalogo', [MaquinariaController::class, 'index'])->name('catalogo.index'); // Catálogo Adaptativo

@@ -6,10 +6,13 @@ use App\Domain\Maquinaria\Models\Maquinaria;
 use App\Domain\Maquinaria\Models\Politica;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Storage;
+
 
 class MaquinariaController extends Controller
 {
-     public function __construct()
+ public function __construct()
     {   
        // $this->middleware('auth')->only(['create', 'store', 'edit', 'update', 'destroy']);
         // USAMOS 'admin' aquí, como en tu Enum
@@ -56,7 +59,7 @@ class MaquinariaController extends Controller
     {
         $validatedData = $request->validate([
             'nro_inventario' => 'required|string|max:255|unique:maquinarias',
-            'precio_dia' => 'required|numeric|min:0',
+            'precio_dia' => 'required|numeric|min:1',
             'foto_url' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'marca' => 'required|string|max:255',
             'modelo' => 'required|string|max:255',
@@ -66,7 +69,31 @@ class MaquinariaController extends Controller
             'estado' => 'required|string|in:disponible,inactiva',
             'localidad' => 'required|string|max:100',
             'id_politica' => 'required|integer|exists:politicas,id_politica',
+            'descripcion' => 'required|string|max:1000',
+        ], [
+            'nro_inventario.required' => 'El número de inventario es obligatorio.',
+            'nro_inventario.unique' => 'Ya existe una maquinaria con ese número de inventario.',
+            'precio_dia.required' => 'El precio por día es obligatorio.',
+            'foto_url.required' => 'Debe subir una imagen de la maquinaria.',
+            'foto_url.image' => 'El archivo debe ser una imagen.',
+            'foto_url.mimes' => 'La imagen debe ser de tipo jpeg, png, jpg, gif o svg.',
+            'marca.required' => 'La marca es obligatoria.',
+            'modelo.required' => 'El modelo es obligatorio.',
+            'anio.required' => 'El año es obligatorio.',
+            'anio.integer' => 'El año debe ser un número.',
+            'anio.min' => 'El año no puede ser menor a 1900.',
+            'anio.max' => 'El año no puede ser mayor al actual.',
+            'uso.required' => 'El uso es obligatorio.',
+            'tipo_energia.required' => 'Debe especificar el tipo de energía.',
+            'tipo_energia.in' => 'El tipo de energía debe ser eléctrica o combustión.',
+            'estado.required' => 'Debe especificar el estado de la maquinaria.',
+            'estado.in' => 'El estado debe ser disponible o inactiva.',
+            'localidad.required' => 'La localidad es obligatoria.',
+            'id_politica.required' => 'Debe seleccionar una política.',
+            'id_politica.exists' => 'La política seleccionada no existe.',
+            'descripcion.required' => 'La descripción es obligatoria.',
         ]);
+
 
         if ($request->hasFile('foto_url')) {
             $imagePath = $request->file('foto_url')->store('maquinarias', 'public');
@@ -81,24 +108,105 @@ class MaquinariaController extends Controller
     }
 
     // Dar de baja maquinaria (solo admin)
-    public function destroy(Maquinaria $maquinaria)
+public function destroy(Maquinaria $maquinaria)
+{
+    // Verificar si tiene reservas asociadas
+    if ($maquinaria->reserva()->exists()) {
+        return redirect()->route('catalogo.index')
+            ->with('error', 'No se puede eliminar la maquinaria porque tiene reservas asociadas.');
+    }
+
+    // Eliminar la maquinaria completamente de la base de datos
+    $maquinaria->delete();
+
+    return redirect()->route('catalogo.index')
+        ->with('success', 'Maquinaria eliminada exitosamente.');
+}
+
+
+    /**
+     * Muestra el formulario para editar una maquinaria existente.
+     */
+    public function edit(Maquinaria $maquinaria)
     {
-        $maquinaria->estado = 'inactiva';
-        $maquinaria->save();
-        $maquinarias = Maquinaria::all(); // O Maquinaria::where('estado', 'disponible')->get(); etc.
+        // El Route Model Binding (Maquinaria $maquinaria) ya busca la maquinaria
+        // por su ID y la inyecta directamente. Si no la encuentra, Laravel arroja un 404.
+        $politicas = Politica::all(); // Si necesitas políticas para un select en el form
+        $layout=session('layout','layouts.base');
+        return view('Maquinarias.edit', compact('maquinaria', 'politicas','layout'));
+    }
 
-        // 3. Obtener el usuario autenticado (si lo necesitas para la vista)
-        $usuario = Auth::guard('users')->user(); // Asumiendo que tu guard es 'users'
+    /**
+     * Actualiza una maquinaria existente en la base de datos.
+     */
+    public function update(Request $request, Maquinaria $maquinaria)
+    {
 
-        // 4. Obtener el layout de la sesión (si lo usas para la vista)
-        $layout = session('layout');
+        $request->validate([
+                'nro_inventario' => [
+                    'sometimes',
+                    'required',
+                    'string',
+                    'max:255',
+                    Rule::unique('maquinarias', 'nro_inventario')->ignore($maquinaria->id_maquinaria, 'id_maquinaria'),
+                ],
+                'precio_dia' => 'sometimes|required|numeric|min:1',
+                'marca' => 'sometimes|required|string|max:255',
+                'modelo' => 'sometimes|required|string|max:255',
+                'localidad' => 'sometimes|required|string|max:255',
+                'anio' => 'sometimes|required|integer|min:1900|max:' . (date('Y') + 1),
+                'uso' => 'sometimes|required|string|max:255',
+                'tipo_energia' => 'sometimes|required|string|in:electrica,combustion',
+                'estado' => 'sometimes|required|string|in:disponible,inactiva',
+                'foto_url' => 'sometimes|required|image|mimes:jpg,jpeg,png|max:5120',
+                'id_politica' => 'sometimes|required|exists:politicas,id_politica',
+                'descripcion' => 'sometimes|required|string|max:1000',
+            ], [
+                'nro_inventario.required' => 'El número de inventario es obligatorio.',
+                'nro_inventario.unique' => 'Ya existe una maquinaria con ese número de inventario.',
+                'nro_inventario.max' => 'El número de inventario no debe exceder los 255 caracteres.',
+                'precio_dia.required' => 'El precio por día es obligatorio.',
+                'precio_dia.numeric' => 'El precio por día debe ser un número.',
+                'precio_dia.min' => 'El precio por día debe ser al menos 1.',
+                'marca.required' => 'La marca es obligatoria.',
+                'modelo.required' => 'El modelo es obligatorio.',
+                'localidad.required' => 'La localidad es obligatoria.',
+                'anio.required' => 'El año es obligatorio.',
+                'anio.integer' => 'El año debe ser un número entero.',
+                'anio.min' => 'El año no puede ser menor a 1900.',
+                'anio.max' => 'El año no puede ser mayor a ' . (date('Y') + 1) . '.',
+                'uso.required' => 'El uso es obligatorio.',
+                'tipo_energia.required' => 'El tipo de energía es obligatorio.',
+                'tipo_energia.in' => 'El tipo de energía debe ser "eléctrica" o "combustión".',
+                'estado.required' => 'El estado es obligatorio.',
+                'estado.in' => 'El estado debe ser "disponible" o "inactiva".',
+                'foto_url.required' => 'La imagen es obligatoria.',
+                'foto_url.image' => 'El archivo debe ser una imagen válida.',
+                'foto_url.mimes' => 'La imagen debe ser de tipo JPG, JPEG o PNG.',
+                'foto_url.max' => 'La imagen no debe superar los 5MB.',
+                'id_politica.required' => 'Debe seleccionar una política de cancelación.',
+                'id_politica.exists' => 'La política seleccionada no existe.',
+                'descripcion.required' => 'La descripción es obligatoria.',
+                'descripcion.max' => 'La descripción no debe superar los 1000 caracteres.',
+            ]);
 
 
-        // 5. Redirigir a la vista de índice con los datos necesarios
-        //    Es más común y mejor práctica REDIRIGIR a la ruta del índice
-        //    en lugar de devolver directamente la vista después de una acción POST/DELETE.
-        //    Esto evita problemas como reenviar el formulario al recargar la página.
-        return redirect()->route('catalogo.index')->with('success', 'Maquinaria dada de baja exitosamente.');
+        // Manejo de la subida de la nueva foto
+        $data = $request->except('foto_url'); // Obtiene todos los datos EXCEPTO la foto
 
+        if ($request->hasFile('foto_url')) {
+            // Si hay una foto existente, la eliminamos primero
+            if ($maquinaria->foto_url) {
+                Storage::delete($maquinaria->foto_url);
+            }
+            // Almacena la nueva foto
+            $path = $request->file('foto_url')->store('maquinarias', 'public');
+            $data['foto_url'] = $path; // Guarda la nueva ruta en los datos
+        }
+
+        // Actualiza la maquinaria con los datos validados
+        $maquinaria->update($data);
+
+        return redirect()->route('catalogo.index')->with('success', 'Maquinaria actualizada exitosamente.');
     }
 }

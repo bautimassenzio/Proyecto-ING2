@@ -1,25 +1,11 @@
 {{-- resources/views/pago/seleccionar.blade.php (o la ruta a tu archivo) --}}
 
-@extends('layouts.base') {{-- Asegúrate de que 'layouts.base' sea el nombre correcto de tu layout --}}
+@extends($layout) {{-- Asegúrate de que 'layouts.base' sea el nombre correcto de tu layout --}}
 
 @section('title', 'Seleccionar Método de Pago') {{-- Título específico para esta página --}}
 
 {{-- Si necesitas navegación específica para usuarios logueados que están en el proceso de pago, puedes definirla aquí --}}
-@section('navigation')
-    {{-- Ejemplo de navegación si el usuario ya está autenticado --}}
-    @auth('users')
-        <li class="nav-item">
-            <a class="nav-link" href="{{ route('catalogo.index') }}">Catálogo</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" href="{{ route('reservas.index') }}">Mis Reservas</a>
-        </li>
-        {{-- Podrías tener un enlace de "Volver" si aplica --}}
-        <li class="nav-item">
-            <a class="nav-link" href="javascript:history.back()">Volver</a>
-        </li>
-    @endauth
-@endsection
+
 
 @section('content')
 <div class="row justify-content-center">

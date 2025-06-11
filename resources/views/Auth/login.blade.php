@@ -1,6 +1,6 @@
 {{-- resources/views/auth/login.blade.php --}}
 
-@extends('layouts.base') {{-- ¡Asegúrate de que 'layouts.base' sea el nombre correcto de tu archivo de layout! --}}
+@extends($layout) {{-- ¡Asegúrate de que 'layouts.base' sea el nombre correcto de tu archivo de layout! --}}
 
 @section('title', 'Iniciar Sesión') {{-- Esto cambia el título de la pestaña del navegador --}}
 
@@ -90,6 +90,3 @@
     </div>
 </div>
 @endsection
-
-{{-- No necesitas 'additional-styles' aquí, ya que el layout maneja todos los estilos principales --}}
-{{-- No necesitas 'additional-scripts' a menos que el login requiera JS muy específico --}}

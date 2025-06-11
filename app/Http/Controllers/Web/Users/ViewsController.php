@@ -22,7 +22,8 @@ class ViewsController extends Controller
     }
 
     public function vistaRegistro() {
-        return view('registrarCliente');
+        $layout= session('layout', 'layouts.visitante');
+        return view('registrarCliente', compact('layout'));
     }
 
     public function vistaRegistroPorEmpleado() {
@@ -30,7 +31,8 @@ class ViewsController extends Controller
     }
 
     public function vistaCambioContraseña() {
-        return view('cambioContraseña');
+        $layout= session('layout', 'layouts.base');
+        return view('cambioContraseña', compact('layout'));
     }
 
     public function vistaConfirmarAdmin() {

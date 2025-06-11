@@ -302,6 +302,51 @@
 
     @yield('additional-styles')
 </head>
+
+@section('navigation')
+<li class="nav-item">
+    <a class="nav-link {{ request()->routeIs('/') ? 'active' : '' }}" href="{{ route('/') }}">
+        <i class="fas fa-home me-1"></i> Mi Panel
+    </a>
+</li>
+<li class="nav-item">
+    <a class="nav-link {{ request()->is('catalogo') ? 'active' : '' }}" href="{{ url('catalogo') }}">
+        <i class="fas fa-shopping-cart me-1"></i> Catálogo
+    </a>
+</li>
+<li class="nav-item">
+    <a class="nav-link {{ request()->is('mis-reservas') ? 'active' : '' }}" href="{{ url('mis-reservas') }}">
+        <i class="fas fa-clipboard-list me-1"></i> Mis Reservas
+    </a>
+</li>
+ <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+            <i class="fas fa-user-circle me-1"></i> Mi Cuenta
+        </a>
+        <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="#">
+                <i class="fas fa-user-edit me-2"></i> Editar Perfil
+            </a></li>
+            <li><a class="dropdown-item" href="{{ route('passwordReset') }}">
+                <i class="fas fa-key me-2"></i> Cambiar Contraseña
+            </a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item text-warning" href="{{ route('eliminarCuenta') }}">
+                <i class="fas fa-user-times me-2"></i> Eliminar Cuenta
+            </a></li>
+            <li>
+                <form action="{{ route('logout') }}" method="POST" class="d-inline">
+                    @csrf
+                    <button class="dropdown-item text-danger" type="submit">
+                        <i class="fas fa-sign-out-alt me-2"></i> Cerrar Sesión
+                    </button>
+                </form>
+            </li>
+        </ul>
+    </li>
+@endsection
+
+
 <body>
     <header class="main-header">
         <nav class="navbar navbar-expand-lg">
@@ -485,7 +530,7 @@
                     // Asegúrate de que la fecha de fin no pueda ser anterior a la fecha de inicio
                     // Suma un día para que el mínimo de fin sea el día siguiente al inicio
                     const minDateFin = new Date(startDate);
-                    minDateFin.setDate(startDate.getDate() + 1);
+                    minDateFin.setDate(startDate.getDate() + 2);
                     finPicker.set('minDate', minDateFin);
 
                     // También deshabilita los rangos ocupados en el segundo picker

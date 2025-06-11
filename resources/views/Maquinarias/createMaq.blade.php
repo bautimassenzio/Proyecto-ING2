@@ -4,15 +4,7 @@
 <div class="container">
     <h1>Alta de Maquinaria</h1>
 
-    @if ($errors->any())
-        <div class="alert alert-danger">
-            <ul>
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
-    @endif
+ 
 
     <form action="{{ route('maquinarias.store') }}" method="POST" enctype="multipart/form-data">
         @csrf
@@ -111,6 +103,14 @@
                 <option value="disponible" {{ old('estado') == 'disponible' ? 'selected' : '' }}>Disponible</option>
                 <option value="inactiva" {{ old('estado') == 'inactiva' ? 'selected' : '' }}>Inactiva</option>
             </select>
+        </div>
+
+         <div class="mb-3">
+            <label for="descripcion" class="form-label">Descripcion:</label>
+            <input type="text" class="form-control" id="descripcion" name="descripcion" value="{{ old('descripcion') }}" required>
+            @error('descripcion')
+                <div class="text-danger">{{ $message }}</div>
+            @enderror
         </div>
 
         {{-- Si usas 'features' como JSON y necesitas un input, podría ser un textarea para JSON o varios inputs dinámicos --}}

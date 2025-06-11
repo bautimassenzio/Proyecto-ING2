@@ -2,7 +2,7 @@
 
 @section('navigation')
 <li class="nav-item">
-    <a class="nav-link {{ request()->routeIs('/') ? 'active' : '' }}" href="{{ route('/') }}">
+    <a class="nav-link {{ request()->is('/') ? 'active' : '' }}" href="{{ url('/') }}">
         <i class="fas fa-home me-1"></i> Dashboard
     </a>
 </li>
@@ -31,6 +31,7 @@
         <i class="fas fa-users-cog me-1"></i> Clientes
     </a>
 </li>
+
 
     <li class="nav-item dropdown">
         <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">

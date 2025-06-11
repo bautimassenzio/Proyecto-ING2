@@ -6,13 +6,14 @@
      Para centrarlos, necesitaremos CSS adicional en 'additional-styles'. --}}
 @section('navigation')
     <li class="nav-item">
-        <a href="/" class="nav-link {{ request()->routeIs('/') ? 'active' : '' }}">
+        <a href="/" class="nav-link {{ request()->is('/') ? 'active' : '' }}">
             <i class="fas fa-home me-1"></i> Inicio
         </a>
     </li>
     <li class="nav-item">
-        <a href="/catalogo" class="nav-link {{ request()->routeIs('catalogo') ? 'active' : '' }}">
+        <a href="/catalogo" class="nav-link {{ request()->is('catalogo') ? 'active' : '' }}"> 
         <i class="fas fa-shopping-cart me-1"></i> Catálogo
+        </a>
     </li>
 @endsection
 
@@ -49,6 +50,48 @@
             box-shadow: var(--shadow);
             width: max-content;
         }
+
+        .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.75rem 1.75rem; /* Ajuste un poco el padding si es necesario */
+        border-radius: 9999px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        text-decoration: none;
+        border: none;
+        font-size: 1rem; /* Ajusta el tamaño de la fuente de los botones si es necesario */
+    }
+
+    .btn-primary {
+        background-color: var(--primary-yellow);
+        color: var(--text-dark);
+        border: 2px solid var(--primary-yellow);
+    }
+
+    .btn-primary:hover {
+        background-color: var(--secondary-yellow);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .btn-secondary {
+        background-color: transparent;
+        color: white;
+        border: 2px solid white;
+    }
+
+    .btn-secondary:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .btn i {
+        margin-right: 0.5rem;
+    }
 
     /* Personalizaciones para la navbar del visitante, sin tocar el base */
 
