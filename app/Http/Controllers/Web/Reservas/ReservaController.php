@@ -124,7 +124,7 @@ class ReservaController extends Controller
                 'fecha_inicio' => $request->fecha_inicio,
                 'fecha_fin' => $request->fecha_fin,
                 'fecha_reserva' => Carbon::now(),
-                'estado' => 'pendiente',
+                'estado' => 'cancelada',
                 'total' => $pagoTotal,
                 'id_empleado' => null,
             ]);
@@ -177,7 +177,7 @@ class ReservaController extends Controller
       
 
         if ($ahora->gt($limiteCancelacion)) {
-            return back()->withErrors(['cancelacion' => 'La reserva sólo puede cancelarse con al menos 24 horas de anticipación.']);
+            return back()->withErrors(['cancelacion' => 'La reserva sólo puede cancelarse con minimo 24 horas de anticipación.']);
         }
 
         $reserva->estado = 'cancelada';

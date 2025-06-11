@@ -1,16 +1,11 @@
 {{-- resources/views/pago/estado.blade.php --}}
 
-@extends('layouts.base') {{-- Asegúrate de que 'layouts.base' sea el nombre correcto de tu layout --}}
+@extends($layout) {{-- Asegúrate de que 'layouts.base' sea el nombre correcto de tu layout --}}
 
 @section('title', 'Estado de Pago') {{-- Título específico para esta página --}}
 
 {{-- Opcional: Define la navegación para esta vista si la necesitas --}}
-@section('navigation')
-    {{-- Por ejemplo, un enlace para volver al catálogo --}}
-    <li class="nav-item">
-        <a class="nav-link" href="{{ route('catalogo.index') }}">Catálogo</a>
-    </li>
-@endsection
+
 
 @section('content')
 <div class="row justify-content-center text-center"> {{-- Centra el contenido en el medio de la página --}}

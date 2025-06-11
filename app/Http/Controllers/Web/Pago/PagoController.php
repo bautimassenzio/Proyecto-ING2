@@ -140,7 +140,8 @@ $preference->back_urls = [
             }
 
             $mensaje = '✅ Pago exitoso. Confirmamos tu reserva.';
-            return view('pago.botonhome', compact('mensaje'));
+            $layout=session('layout','layouts.base');
+            return view('pago.botonhome', compact('mensaje','layout'));
 
         } catch (\Exception $e) {
             Log::error('Error en PagoController@exito: ' . $e->getMessage(), ['trace' => $e->getTraceAsString(), 'reserva_id' => $idreserva]);
