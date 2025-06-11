@@ -21,11 +21,11 @@ class Kernel extends ConsoleKernel
 
      protected $commands = [
        
-        CleanUpPendingReservations::class, // aquí agregas los comandos que quieres que estén disponibles
+        // aquí agregas los comandos que quieres que estén disponibles
     ];
     protected function schedule(Schedule $schedule)
 {
-     $schedule->command('reservas:cleanup-pending')->everyMinute(); // o daily(), hourly(), etc.
+    
 }
 
 
