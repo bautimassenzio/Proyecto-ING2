@@ -19,7 +19,7 @@
             <div class="faq-item mb-4 pb-3 border-bottom"> {{-- Clases de Bootstrap para margen y borde --}}
                 <h2 class="question text-primary mb-2" style="cursor: pointer;">¿Cuáles son los requisitos para alquilar maquinaria?</h2> {{-- Mantengo tu estilo y cursor --}}
                 <div class="answer" style="display: none;"> {{-- Oculto por defecto, se maneja con JS --}}
-                    <p class="text-secondary">Para alquilar nuestras máquinas, generalmente solicitamos:</p>
+                    <p class="text-secondary">Para alquilar nuestras máquinas, el requisito principal es ser mayor de edad. Luego, si alguna maquinaria requiere algun permiso especial, se especifica en la descripcion de la misma.</p>
                 </div>
             </div>
 
@@ -33,7 +33,7 @@
             <div class="faq-item mb-0 pb-0"> {{-- Último ítem sin borde inferior ni margen --}}
                 <h2 class="question text-primary mb-2" style="cursor: pointer;">¿Existe un tiempo mínimo y máximo de alquiler? ¿Se pueden extender los plazos?</h2>
                 <div class="answer" style="display: none;">
-                    <p class="text-secondary">Sí, contamos con diferentes modalidades de alquiler para adaptarnos a tus necesidades.</p>
+                    <p class="text-secondary">Si, el tiempo minimo de alquiler son 2 dias; el maximo 30. Los plazos son pactados al reservar, no pueden modificarse.</p>
                 </div>
             </div>
         </div>

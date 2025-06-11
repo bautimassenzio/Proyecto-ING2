@@ -30,7 +30,7 @@
                         <th>Total (ARS)</th>
                         <th>Estado</th>
                         <th>Acciones</th>
-                        <th>Pagar</th> <!-- Nueva columna -->
+                      
                     </tr>
                 </thead>
                 <tbody>
@@ -62,9 +62,7 @@
                                     <button type="submit" class="btn btn-danger btn-sm">Cancelar</button>
                                 </form>
                             </td>
-                            <td>
-                                <a href="{{ route('reservas.pagarDesdeHistorial', $reserva->id_reserva) }}" class="btn btn-success btn-sm">Pagar</a>
-                            </td>
+                            
                         </tr>
                     @endforeach
                 </tbody>

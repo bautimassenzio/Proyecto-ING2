@@ -51,7 +51,7 @@ class PagoController extends Controller
 $failureUrl = route('pago.fallo');
 $pendingUrl = route('pago.pendiente');
 
-$ngrokBase = 'https://3984-2800-340-52-144-50b3-7086-7165-1501.ngrok-free.app'; // tu URL actual de ngrok
+$ngrokBase = 'https://0e90-181-23-159-133.ngrok-free.app'; // tu URL actual de ngrok
 
 $preference->back_urls = [
     "success" => $ngrokBase . '/pago/exito',
@@ -150,10 +150,22 @@ $preference->back_urls = [
     }
 
 
-    public function fallo() {
-        $mensaje = '❌ Ocurrió un error durante el pago.';
-        return view('pago.botonhome', compact('mensaje'));
-    }
+    public function fallo(Request $request)
+        {
+            // Mercado Pago te devuelve el ID de la reserva en 'external_reference'
+            $idReserva = $request->query('external_reference');
+
+            if ($idReserva) {
+                Reserva::where('id_reserva', $idReserva)->delete();
+                Log::info('Reserva eliminada tras fallo en el pago. ID: ' . $idReserva);
+            } else {
+                Log::warning('Fallo de pago: No se encontró external_reference en la redirección.');
+            }
+
+            $mensaje = '❌ Ocurrió un error durante el pago.';
+            return view('pago.botonhome', compact('mensaje'));
+        }
+
 
     public function pendiente() {
         $mensaje = '⏳ Tu pago está pendiente.';
@@ -178,14 +190,31 @@ $preference->back_urls = [
     public function procesarPagoTarjeta(Request $request)
     {
         // 1. Validar los datos del formulario
-        $request->validate([
-            'card_number' => 'required|string', // Considera 'digits:19' si esperas el formato con espacios o ajusta el patrón
+       $request->validate([
+            'card_number' => 'required|string',
             'expiry_month' => 'required|digits:2|min:1|max:12',
             'expiry_year' => 'required|digits:2',
             'cvv' => 'required|digits_between:3,4',
-            // ¡NUEVO! Validamos que el id_reserva venga y exista
-            'reserva_id' => 'required|exists:reservas,id_reserva', // Asumo 'id_reserva' es la PK en tu tabla reservas
+            'reserva_id' => 'required|exists:reservas,id_reserva',
+        ], [
+            'card_number.required' => 'El número de tarjeta es obligatorio.',
+            'card_number.string' => 'El número de tarjeta debe ser una cadena de texto.',
+            
+            'expiry_month.required' => 'El mes de expiración es obligatorio.',
+            'expiry_month.digits' => 'El mes de expiración debe tener exactamente 2 dígitos.',
+            'expiry_month.min' => 'El mes de expiración no puede ser menor que 1.',
+            'expiry_month.max' => 'El mes de expiración no puede ser mayor que 12.',
+            
+            'expiry_year.required' => 'El año de expiración es obligatorio.',
+            'expiry_year.digits' => 'El año de expiración debe tener exactamente 2 dígitos.',
+            
+            'cvv.required' => 'El código CVV es obligatorio.',
+            'cvv.digits_between' => 'El código CVV debe tener entre 3 y 4 dígitos.',
+            
+            'reserva_id.required' => 'El campo de reserva es obligatorio.',
+            'reserva_id.exists' => 'La reserva seleccionada no existe.',
         ]);
+
 
         // 2. Obtener el ID de la reserva enviado desde el campo oculto del formulario
         $idreserva = $request->input('reserva_id');
@@ -210,7 +239,23 @@ $preference->back_urls = [
 
         // 5. Procesar el pago si la tarjeta es válida
         if ($tarjetaValida) {
-            // Simulación de pago exitoso
+            // --- NUEVA LÓGICA: Verificar conexión y saldo ---
+
+            // Si la conexión no es válida
+            if (!$tarjetaValida->conexion) {
+                Log::warning('Intento de pago con tarjeta sin conexión válida: ' . $request->input('card_number'));
+                return redirect()->route('pago.procesar.tarjeta')->withErrors(['tarjeta' => 'No pudimos establecer conexión con la tarjeta. Intenta de nuevo.'])->withInput($request->only('card_number', 'expiry_month', 'expiry_year'));
+            }
+
+            // Si hay conexión pero el saldo es insuficiente
+            if (!$tarjetaValida->saldo) {
+                Log::warning('Intento de pago con tarjeta con saldo insuficiente: ' . $request->input('card_number'));
+                return redirect()->route('pago.procesar.tarjeta')->withErrors(['tarjeta' => 'Saldo insuficiente en la tarjeta. Por favor, verifica tus fondos o usa otra tarjeta.'])->withInput($request->only('card_number', 'expiry_month', 'expiry_year'));
+            }
+
+            // --- FIN NUEVA LÓGICA ---
+
+            // Simulación de pago exitoso (si la tarjeta es válida, tiene conexión y saldo)
             $monto = $reserva->total;
             $estado_pago = 'completo';
             $metodo = 'tarjeta'; // Indicamos que el método de pago es tarjeta
@@ -251,10 +296,8 @@ $preference->back_urls = [
                 return view('pago.botonhome', compact('mensaje'));
             }
         } else {
-            // Si la tarjeta no es válida (no se encontró en ValidCard)
-            $mensaje = '❌ Datos de tarjeta incorrectos o no válidos. Intente de nuevo.';
-            // Puedes redirigir de vuelta al formulario con un mensaje de error si lo prefieres
-            return view('pago.botonhome', compact('mensaje'));
+            // Si la tarjeta no se encontró por datos incorrectos
+            return redirect()->route('pago.procesar.tarjeta')->withErrors(['tarjeta' => 'Los datos de la tarjeta son incorrectos o la tarjeta no es válida.'])->withInput($request->only('card_number', 'expiry_month', 'expiry_year'));
         }
     }
     
