@@ -1,4 +1,4 @@
-@extends('layouts.base')
+@extends($layout)
 
 @section('content')
     <div class="flex justify-between items-center mb-6">

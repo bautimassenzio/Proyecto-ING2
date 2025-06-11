@@ -132,8 +132,8 @@ public function destroy(Maquinaria $maquinaria)
         // El Route Model Binding (Maquinaria $maquinaria) ya busca la maquinaria
         // por su ID y la inyecta directamente. Si no la encuentra, Laravel arroja un 404.
         $politicas = Politica::all(); // Si necesitas políticas para un select en el form
-
-        return view('Maquinarias.edit', compact('maquinaria', 'politicas'));
+        $layout=session('layout','layouts.base');
+        return view('Maquinarias.edit', compact('maquinaria', 'politicas','layout'));
     }
 
     /**

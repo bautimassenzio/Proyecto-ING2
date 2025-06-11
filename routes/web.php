@@ -65,7 +65,8 @@ Route::get('/mis-reservas', [ReservaController::class, 'index'])
 
 //MERCADOPAGO
 Route::get('/pagar', function() {
-    return view('pago.seleccionarpago');
+    $layout=session('layout','layouts.base');
+    return view('pago.seleccionarpago', compact('layout'));
 })->name('pago.seleccionar');
 
 
