@@ -51,7 +51,7 @@ class PagoController extends Controller
 $failureUrl = route('pago.fallo');
 $pendingUrl = route('pago.pendiente');
 
-$ngrokBase = 'https://3984-2800-340-52-144-50b3-7086-7165-1501.ngrok-free.app'; // tu URL actual de ngrok
+$ngrokBase = 'https://0e90-181-23-159-133.ngrok-free.app'; // tu URL actual de ngrok
 
 $preference->back_urls = [
     "success" => $ngrokBase . '/pago/exito',
@@ -150,10 +150,22 @@ $preference->back_urls = [
     }
 
 
-    public function fallo() {
-        $mensaje = '❌ Ocurrió un error durante el pago.';
-        return view('pago.botonhome', compact('mensaje'));
-    }
+    public function fallo(Request $request)
+        {
+            // Mercado Pago te devuelve el ID de la reserva en 'external_reference'
+            $idReserva = $request->query('external_reference');
+
+            if ($idReserva) {
+                Reserva::where('id_reserva', $idReserva)->delete();
+                Log::info('Reserva eliminada tras fallo en el pago. ID: ' . $idReserva);
+            } else {
+                Log::warning('Fallo de pago: No se encontró external_reference en la redirección.');
+            }
+
+            $mensaje = '❌ Ocurrió un error durante el pago.';
+            return view('pago.botonhome', compact('mensaje'));
+        }
+
 
     public function pendiente() {
         $mensaje = '⏳ Tu pago está pendiente.';
