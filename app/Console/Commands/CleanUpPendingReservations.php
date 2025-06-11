@@ -15,10 +15,10 @@ class CleanUpPendingReservations extends Command
 
     public function handle()
 {
-    $minutesThreshold = 1440; // Umbral de tiempo en minutos
+    $minutesThreshold = 1; // Umbral de tiempo en minutos
 
     $reservasAEliminar = Reserva::where('estado', 'pendiente')
-        ->where('created_at', '<=', Carbon::now()->subMinutes($minutesThreshold))
+        ->where('fecha_reserva', '<=', Carbon::now()->subMinutes($minutesThreshold))
         ->with(['cliente', 'maquinaria'])
         ->get();
 
