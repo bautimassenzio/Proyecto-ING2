@@ -8,11 +8,13 @@ class VisualizarController extends Controller
 {
     public function mostrarPreguntasFrecuentes()
     {
-        return view('Visualizar.preguntasfrecuentes'); 
+        $layout=session('layout','layouts.visitante');
+        return view('Visualizar.preguntasfrecuentes',compact('layout')); 
     }
 
     public function mostrarInformacionContacto()
     {
-        return view('Visualizar.infocontacto'); 
+        $layout=session('layout','layouts.visitante');
+        return view('Visualizar.infocontacto',compact('layout')); 
     }
 }

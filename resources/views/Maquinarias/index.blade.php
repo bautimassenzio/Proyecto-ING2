@@ -7,7 +7,7 @@
     <div class="row">
         @foreach($maquinarias as $maquinaria)
             <div class="col-md-4 mb-4">
-                <div class="card h-100">
+                <div class="card h-100 maquinaria-card">
                     @if($maquinaria->foto_url)
                         <img src="{{ asset('storage/' . $maquinaria->foto_url) }}" class="card-img-top" alt="Imagen de la maquinaria">
                     @endif
@@ -56,4 +56,50 @@
         @endforeach
     </div>
 </div>
+@endsection
+
+@section('additional-styles')
+<style>
+    .maquinaria-card {
+        border-radius: 1rem;
+        box-shadow: var(--shadow);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        background-color: white;
+    }
+
+    .maquinaria-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .maquinaria-card img {
+    border-top-left-radius: 1rem;
+    border-top-right-radius: 1rem;
+    width: 100%;
+    height: auto;
+    max-height: 300px; /* Más alargada que antes */
+    object-fit: contain;
+    background-color: #f9f9f9; /* Opcional para relleno neutro */
+}
+
+
+    .maquinaria-card .card-body {
+        padding: 1rem;
+    }
+
+    .maquinaria-card .card-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
+    .maquinaria-card .card-footer {
+        background: none;
+        border-top: 1px solid #eee;
+        border-bottom-left-radius: 1rem;
+        border-bottom-right-radius: 1rem;
+        padding: 1rem;
+    }
+</style>
 @endsection

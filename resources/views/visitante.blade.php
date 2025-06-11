@@ -9,7 +9,7 @@
         <p>Alquiler, venta y mantenimiento de equipos industriales de alta calidad</p>
         <div class="hero-buttons">
         <a class="nav-link {{ request()->is('catalogo') ? 'active' : '' }}" href="{{ url('catalogo') }}">
-                <i class="fas fa-shopping-cart me-1"></i> Ver Catálogo
+                <i class="fas fa-shopping-cart"></i> Ver Catálogo
             </a>
             <a href="/register" class="btn btn-primary btn-lg">
                 <i class="fas fa-user-plus"></i> Crear Cuenta

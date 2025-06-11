@@ -1,32 +1,10 @@
 {{-- resources/views/faqs/index.blade.php --}}
 
-@extends('layouts.base') {{-- ¡Asegúrate de que 'layouts.base' sea el nombre correcto de tu layout! --}}
+@extends($layout) {{-- ¡Asegúrate de que 'layouts.base' sea el nombre correcto de tu layout! --}}
 
 @section('title', 'Preguntas Frecuentes') {{-- Título específico para esta página --}}
 
-{{-- Opcional: Define la navegación si la necesitas para esta vista --}}
-@section('navigation')
-    @auth('users')
-        <li class="nav-item">
-            <a class="nav-link" href="{{ route('catalogo.index') }}">Catálogo</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" href="{{ route('reservas.index') }}">Mis Reservas</a>
-        </li>
-    @else
-        <li class="nav-item">
-            <a class="nav-link" href="{{ route('login') }}">Login</a>
-        </li>
-        @if (Route::has('register'))
-            <li class="nav-item">
-                <a class="nav-link" href="{{ route('register') }}">Registrarse</a>
-            </li>
-        @endif
-    @endauth
-    <li class="nav-item">
-        <a class="nav-link active" aria-current="page" href= >Preguntas Frecuentes</a>
-    </li>
-@endsection
+
 
 @section('content')
 <div class="row justify-content-center">
