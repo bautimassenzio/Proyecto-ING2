@@ -27,9 +27,7 @@
             <input type="number" name="precio_dia" id="precio_dia" step="0.01"
                    value="{{ old('precio_dia', $maquinaria->precio_dia) }}"
                    class="form-control">
-            @error('precio_dia')
-                <p class="text-danger">{{ $message }}</p>
-            @enderror
+          
         </div>
 
         <!-- Estado -->
@@ -39,9 +37,7 @@
                 <option value="disponible" {{ old('estado', $maquinaria->estado) == 'disponible' ? 'selected' : '' }}>Disponible</option>
                 <option value="inactiva" {{ old('estado', $maquinaria->estado) == 'inactiva' ? 'selected' : '' }}>Inactiva</option>
             </select>
-            @error('estado')
-                <p class="text-danger">{{ $message }}</p>
-            @enderror
+          
         </div>
 
         <!-- Localidad -->
@@ -50,9 +46,7 @@
             <input type="text" name="localidad" id="localidad"
                    value="{{ old('localidad', $maquinaria->localidad) }}"
                    class="form-control">
-            @error('localidad')
-                <p class="text-danger">{{ $message }}</p>
-            @enderror
+            
         </div>
 
         <!-- Política de Cancelación -->
@@ -66,18 +60,14 @@
                     </option>
                 @endforeach
             </select>
-            @error('id_politica')
-                <p class="text-danger">{{ $message }}</p>
-            @enderror
+            
         </div>
 
         <!-- Foto -->
         <div>
             <label for="foto_url" class="form-label">Foto</label>
             <input type="file" name="foto_url" id="foto_url" class="form-control">
-            @error('foto_url')
-                <p class="text-danger">{{ $message }}</p>
-            @enderror
+            
 
             @if ($maquinaria->foto_url)
                 <div class="mt-2">
@@ -93,9 +83,7 @@
             <input type="text" name="descripcion" id="descripcion"
                    value="{{ old('descripcion', $maquinaria->descripcion) }}"
                    class="form-control">
-            @error('descripcion')
-                <p class="text-danger">{{ $message }}</p>
-            @enderror
+            
         </div>
 
         <!-- Botones -->

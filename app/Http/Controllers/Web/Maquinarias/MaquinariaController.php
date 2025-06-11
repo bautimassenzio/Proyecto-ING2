@@ -59,7 +59,7 @@ class MaquinariaController extends Controller
     {
         $validatedData = $request->validate([
             'nro_inventario' => 'required|string|max:255|unique:maquinarias',
-            'precio_dia' => 'required|numeric|min:0',
+            'precio_dia' => 'required|numeric|min:1',
             'foto_url' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'marca' => 'required|string|max:255',
             'modelo' => 'required|string|max:255',
@@ -70,7 +70,30 @@ class MaquinariaController extends Controller
             'localidad' => 'required|string|max:100',
             'id_politica' => 'required|integer|exists:politicas,id_politica',
             'descripcion' => 'required|string|max:1000',
+        ], [
+            'nro_inventario.required' => 'El número de inventario es obligatorio.',
+            'nro_inventario.unique' => 'Ya existe una maquinaria con ese número de inventario.',
+            'precio_dia.required' => 'El precio por día es obligatorio.',
+            'foto_url.required' => 'Debe subir una imagen de la maquinaria.',
+            'foto_url.image' => 'El archivo debe ser una imagen.',
+            'foto_url.mimes' => 'La imagen debe ser de tipo jpeg, png, jpg, gif o svg.',
+            'marca.required' => 'La marca es obligatoria.',
+            'modelo.required' => 'El modelo es obligatorio.',
+            'anio.required' => 'El año es obligatorio.',
+            'anio.integer' => 'El año debe ser un número.',
+            'anio.min' => 'El año no puede ser menor a 1900.',
+            'anio.max' => 'El año no puede ser mayor al actual.',
+            'uso.required' => 'El uso es obligatorio.',
+            'tipo_energia.required' => 'Debe especificar el tipo de energía.',
+            'tipo_energia.in' => 'El tipo de energía debe ser eléctrica o combustión.',
+            'estado.required' => 'Debe especificar el estado de la maquinaria.',
+            'estado.in' => 'El estado debe ser disponible o inactiva.',
+            'localidad.required' => 'La localidad es obligatoria.',
+            'id_politica.required' => 'Debe seleccionar una política.',
+            'id_politica.exists' => 'La política seleccionada no existe.',
+            'descripcion.required' => 'La descripción es obligatoria.',
         ]);
+
 
         if ($request->hasFile('foto_url')) {
             $imagePath = $request->file('foto_url')->store('maquinarias', 'public');
@@ -118,31 +141,55 @@ public function destroy(Maquinaria $maquinaria)
      */
     public function update(Request $request, Maquinaria $maquinaria)
     {
+
         $request->validate([
-            // Validaciones para los campos de la maquinaria
-            'nro_inventario' => [
-                'sometimes',
-                'required',
-                'string',
-                'max:255',
-                // La regla 'unique' debe ignorar la maquinaria que estamos actualizando.
-                // Usamos el id_maquinaria de la maquinaria actual.
-                Rule::unique('maquinarias', 'nro_inventario')->ignore($maquinaria->id_maquinaria, 'id_maquinaria'),
-            ],
-            'precio_dia' => 'sometimes|required|numeric|min:1',
-            'marca' => 'sometimes|required|string|max:255',
-            'modelo' => 'sometimes|required|string|max:255',
-            'localidad' => 'sometimes|required|string|max:255',
-            'anio' => 'sometimes|required|integer|min:1900|max:' . (date('Y') + 1),
-            'uso' => 'sometimes|required|string|max:255',
-            'tipo_energia' => 'sometimes|required|string|in:electrica,combustion', // Ajusta si es un ENUM como 'electrica,combustion'
-            'estado' => 'sometimes|required|string|in:disponible,inactiva',       // Ajusta si es un ENUM como 'disponible,inactiva'
-            // Validación para la foto:
-            // 'nullable' porque la foto no es obligatoria al actualizar (puede que no cambie)
-            'foto_url' => 'sometimes|required|image|mimes:jpg,jpeg,png|max:5120', // Solo JPG, JPEG, PNG y máximo 5MB
-            'id_politica' => 'sometimes|required|exists:politicas,id_politica', // Asegúrate que sea 'nullable' si no es obligatoria
-            'descripcion' => 'sometimes|required|string|max:1000',
-        ]);
+                'nro_inventario' => [
+                    'sometimes',
+                    'required',
+                    'string',
+                    'max:255',
+                    Rule::unique('maquinarias', 'nro_inventario')->ignore($maquinaria->id_maquinaria, 'id_maquinaria'),
+                ],
+                'precio_dia' => 'sometimes|required|numeric|min:1',
+                'marca' => 'sometimes|required|string|max:255',
+                'modelo' => 'sometimes|required|string|max:255',
+                'localidad' => 'sometimes|required|string|max:255',
+                'anio' => 'sometimes|required|integer|min:1900|max:' . (date('Y') + 1),
+                'uso' => 'sometimes|required|string|max:255',
+                'tipo_energia' => 'sometimes|required|string|in:electrica,combustion',
+                'estado' => 'sometimes|required|string|in:disponible,inactiva',
+                'foto_url' => 'sometimes|required|image|mimes:jpg,jpeg,png|max:5120',
+                'id_politica' => 'sometimes|required|exists:politicas,id_politica',
+                'descripcion' => 'sometimes|required|string|max:1000',
+            ], [
+                'nro_inventario.required' => 'El número de inventario es obligatorio.',
+                'nro_inventario.unique' => 'Ya existe una maquinaria con ese número de inventario.',
+                'nro_inventario.max' => 'El número de inventario no debe exceder los 255 caracteres.',
+                'precio_dia.required' => 'El precio por día es obligatorio.',
+                'precio_dia.numeric' => 'El precio por día debe ser un número.',
+                'precio_dia.min' => 'El precio por día debe ser al menos 1.',
+                'marca.required' => 'La marca es obligatoria.',
+                'modelo.required' => 'El modelo es obligatorio.',
+                'localidad.required' => 'La localidad es obligatoria.',
+                'anio.required' => 'El año es obligatorio.',
+                'anio.integer' => 'El año debe ser un número entero.',
+                'anio.min' => 'El año no puede ser menor a 1900.',
+                'anio.max' => 'El año no puede ser mayor a ' . (date('Y') + 1) . '.',
+                'uso.required' => 'El uso es obligatorio.',
+                'tipo_energia.required' => 'El tipo de energía es obligatorio.',
+                'tipo_energia.in' => 'El tipo de energía debe ser "eléctrica" o "combustión".',
+                'estado.required' => 'El estado es obligatorio.',
+                'estado.in' => 'El estado debe ser "disponible" o "inactiva".',
+                'foto_url.required' => 'La imagen es obligatoria.',
+                'foto_url.image' => 'El archivo debe ser una imagen válida.',
+                'foto_url.mimes' => 'La imagen debe ser de tipo JPG, JPEG o PNG.',
+                'foto_url.max' => 'La imagen no debe superar los 5MB.',
+                'id_politica.required' => 'Debe seleccionar una política de cancelación.',
+                'id_politica.exists' => 'La política seleccionada no existe.',
+                'descripcion.required' => 'La descripción es obligatoria.',
+                'descripcion.max' => 'La descripción no debe superar los 1000 caracteres.',
+            ]);
+
 
         // Manejo de la subida de la nueva foto
         $data = $request->except('foto_url'); // Obtiene todos los datos EXCEPTO la foto

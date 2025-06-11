@@ -30,7 +30,7 @@ class ReservaEliminada extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Tu reserva ha sido eliminada por falta de pago',
+            subject: 'Tu reserva ha sido cancelada por falta de pago',
         );
     }
 
