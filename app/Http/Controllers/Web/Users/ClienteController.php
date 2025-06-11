@@ -15,7 +15,7 @@ class ClienteController extends Controller
 {
     public function storeClient(Request $request)
     {
-        // Validación básica (opcional pero recomendable)
+
         $request->validate([
             'nombre' => 'required|string',
             'email' => 'required|email|unique:usuarios,email',
@@ -23,6 +23,27 @@ class ClienteController extends Controller
             'dni' => 'required|string|unique:usuarios,dni',
             'telefono' => 'required|string',
             'fecha_nacimiento' => 'required|date'
+        ],[
+        
+            'nombre.required' => 'El nombre es obligatorio.',
+
+            'email.required' => 'El correo electrónico es obligatorio.',
+            'email.email' => 'El correo electrónico debe ser una dirección válida.',
+            'email.unique' => 'El correo electrónico ya está registrado.',
+
+            'contraseña.required' => 'La contraseña es obligatoria.',
+            'contraseña.string' => 'La contraseña debe ser una cadena de texto.',
+            'contraseña.min' => 'La contraseña debe tener al menos 6 caracteres.',
+
+            'dni.required' => 'El DNI es obligatorio.',
+            'dni.string' => 'El DNI debe ser una cadena de texto.',
+            'dni.unique' => 'Este DNI ya está registrado.',
+
+            'telefono.required' => 'El teléfono es obligatorio.',
+            'telefono.string' => 'El teléfono debe ser una cadena de texto.',
+
+            'fecha_nacimiento.required' => 'La fecha de nacimiento es obligatoria.',
+
         ]);
     
         // Crear usuario

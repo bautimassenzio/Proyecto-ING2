@@ -1,114 +1,271 @@
-@extends('layouts.base')
+@extends('layouts.visitante')
 
-@section('title', 'MannyMaquinarias')
+@section('title', 'MannyMaquinarias - Soluciones en Maquinaria')
+
+
 
 @section('content')
-<div class="visitor-simple">
-    <div class="auth-container">
-        <div class="brand">
-            <i class="fas fa-cogs"></i>
-            <h1>MannyMaquinarias</h1>
+<div class="hero-section relative bg-cover bg-center text-white" 
+     style="background-image: url('{{ asset('images/inicio.jpg') }}');">
+
+    <div class="absolute inset-0 bg-black bg-opacity-50"></div>
+
+    {{-- Ajustado pt-24 para mover más abajo --}}
+    <div class="relative z-10 h-full flex items-start justify-start px-6 pt-24"> 
+        <div class="max-w-xl space-y-4 text-left hero-text"> 
+            {{-- Eliminadas las clases de Tailwind de font-size, line-height y font-weight para controlarlo en CSS --}}
+            <h1>
+                MannyMaquinarias:<br>
+                {{-- Clase para el color amarillo --}}
+                <span class="text-yellow-400">Impulsando tus proyectos</span><br>
+                con la maquinaria ideal.
+            </h1>
+            {{-- Eliminadas las clases de Tailwind de font-size para controlarlo en CSS --}}
+            <p>
+                Alquiler de equipos industriales de alta calidad
+            </p>
+            <div class="flex gap-4 flex-wrap justify-start"> 
+                <a href="{{ url('catalogo') }}" class="btn btn-primary">
+                    <i class="fas fa-search me-1"></i> Explorar Catálogo
+                </a>
+                <a href="/register" class="btn btn-secondary">
+                    <i class="fas fa-user-plus"></i> Regístrate
+                </a>
+            </div>
         </div>
-        
-        <div class="auth-buttons">
-            <a href="{{ route('login') }}" class="btn btn-login">
-                <i class="fas fa-sign-in-alt"></i>
-                Iniciar Sesión
-            </a>
-            
-            <a href="{{ route('register') }}" class="btn btn-register">
-                <i class="fas fa-user-plus"></i>
-                Registrarse
-            </a>
+    </div>
+</div>
+
+<div class="features-section">
+    <h2 class="section-title">¿Por qué elegirnos?</h2>
+
+    <div class="features-grid">
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-truck-monster"></i>
+            </div>
+            <h3>Maquinaria de Calidad</h3>
+            <p>Equipos de última generación</p>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-tools"></i>
+            </div>
+            <h3>Soporte especializado</h3>
+            <p>Empleados capacitados para brindarte la ayuda necesaria </p>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-handshake"></i>
+            </div>
+            <h3>Precios Competitivos</h3>
+            <p>Las mejores tarifas del mercado con politicas de reembolso claras</p>
         </div>
     </div>
 </div>
 @endsection
 
-@section('styles')
+@section('additional-styles')
+@parent
 <style>
-.visitor-simple {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: linear-gradient(135deg, #f8f9fa 0%, #fff8e1 100%);
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-
-.auth-container {
-    text-align: center;
-    background: white;
-    padding: 3rem;
-    border-radius: 16px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-    max-width: 400px;
-    width: 100%;
-}
-
-.brand {
-    margin-bottom: 2rem;
-}
-
-.brand i {
-    font-size: 3rem;
-    color: #FFB800;
-    margin-bottom: 1rem;
-}
-
-.brand h1 {
-    font-size: 2rem;
-    font-weight: 700;
-    color: #333;
-    margin: 0;
-}
-
-.auth-buttons {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-}
-
-.btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    padding: 1rem;
-    border-radius: 8px;
-    font-weight: 600;
-    text-decoration: none;
-    transition: all 0.3s ease;
-}
-
-.btn-login {
-    background-color: #FFB800;
-    color: white;
-}
-
-.btn-login:hover {
-    background-color: #CC9200;
-    transform: translateY(-2px);
-    color: white;
-}
-
-.btn-register {
-    background-color: transparent;
-    color: #FFB800;
-    border: 2px solid #FFB800;
-}
-
-.btn-register:hover {
-    background-color: #FFB800;
-    color: white;
-    transform: translateY(-2px);
-}
-
-@media (max-width: 480px) {
-    .auth-container {
-        margin: 1rem;
-        padding: 2rem;
+    :root {
+        --primary-yellow: #FACC15;
+        --secondary-yellow: #EAB308;
+        --light-yellow: #FEF3C7;
+        --text-dark: #333333;
     }
-}
+
+    .hero-section {
+        position: relative;
+        background-size: cover;
+        background-position: center;
+        min-height: 600px;
+        border-radius: 20px;
+        overflow: hidden;
+        margin-bottom: 4rem;
+    }
+
+    .hero-section .relative.z-10 {
+        width: 100%;
+        display: flex;
+        justify-content: flex-start; 
+        /* Aumentamos el padding-top para mover más abajo */
+        padding-top: 15rem; /* Ajusta este valor para controlar la altura */
+        padding-left: 2rem;
+        padding-right: 2rem;
+        height: 100%;
+        align-items: flex-start; 
+    }
+
+    .hero-section .max-w-xl {
+        width: 100%;
+        max-width: 700px; 
+        padding: 0;
+        text-align: left;
+    }
+
+    /* Estilo del título principal */
+    .hero-text h1 {
+        /* Usamos 'Helvetica Neue', 'Arial Black' o 'Impact' para una fuente gruesa */
+        font-family: 'Helvetica Neue', 'Arial Black', Arial, sans-serif; 
+        font-weight: 800; /* Puedes probar 900 (Black) si la fuente lo soporta */
+        /* Reducimos el tamaño de la fuente para el título */
+        font-size: 2.8rem; /* Puedes ajustar este valor */
+        line-height: 1.2;
+        margin-bottom: 1.5rem;
+        color: white; /* Asegúrate de que el color sea blanco para que contraste con el overlay */
+        text-shadow: 4px 4px 6px rgba(0, 0, 0, 0.96); /* Sombra para mejor lectura */
+    }
+
+    .hero-text h1 span {
+        color: var(--primary-yellow);
+        position: relative;
+    }
+
+    /* Estilo del párrafo */
+    .hero-text p {
+        /* Reducimos el tamaño de la fuente para el párrafo */
+        font-size: 1.1rem; /* Puedes ajustar este valor */
+        color: white;
+        margin-bottom: 2rem;
+        text-shadow: 2px 2px 3px rgba(0, 0, 0, 0.97); /* Sombra para mejor lectura */
+    }
+
+    /* Estilo de los botones */
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.75rem 1.75rem; /* Ajuste un poco el padding si es necesario */
+        border-radius: 9999px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        text-decoration: none;
+        border: none;
+        font-size: 1rem; /* Ajusta el tamaño de la fuente de los botones si es necesario */
+    }
+
+    .btn-primary {
+        background-color: var(--primary-yellow);
+        color: var(--text-dark);
+        border: 2px solid var(--primary-yellow);
+    }
+
+    .btn-primary:hover {
+        background-color: var(--secondary-yellow);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .btn-secondary {
+        background-color: transparent;
+        color: white;
+        border: 2px solid white;
+    }
+
+    .btn-secondary:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .btn i {
+        margin-right: 0.5rem;
+    }
+
+    .section-title {
+        text-align: center;
+        font-size: 2.2rem;
+        font-weight: 700;
+        margin-bottom: 3rem;
+        color: var(--text-dark);
+    }
+
+    .features-section {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 2rem;
+    }
+
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+    }
+
+    .feature-card {
+        background: white;
+        padding: 2rem;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+        border: 1px solid #f0f0f0;
+        text-align: center;
+        transition: 0.3s ease;
+    }
+
+    .feature-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 15px 40px rgba(255, 184, 0, 0.15);
+    }
+
+    .feature-icon {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, var(--primary-yellow), var(--secondary-yellow));
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.5rem;
+    }
+
+    .feature-icon i {
+        font-size: 2rem;
+        color: white;
+    }
+
+    .feature-card h3 {
+        font-size: 1.3rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        color: var(--text-dark);
+    }
+
+    .feature-card p {
+        color: #666;
+        line-height: 1.6;
+    }
+
+    @media (max-width: 768px) {
+        .hero-section {
+            min-height: 500px;
+        }
+
+        .hero-section .relative.z-10 {
+            padding-top: 10rem; /* Ajuste para móviles, puedes cambiarlo */
+            padding-left: 1.5rem;
+            padding-right: 1.5rem;
+        }
+
+        .hero-text h1 {
+            font-size: 2.2rem; /* Tamaño de fuente más pequeño en móviles */
+        }
+
+        .hero-text p {
+            font-size: 0.9rem; /* Tamaño de fuente más pequeño en móviles */
+        }
+
+        .btn {
+            font-size: 0.9rem; /* Tamaño de fuente más pequeño en móviles para botones */
+            padding: 0.6rem 1.2rem;
+        }
+
+        .features-section {
+            padding: 0 1rem;
+        }
+    }
 </style>
 @endsection

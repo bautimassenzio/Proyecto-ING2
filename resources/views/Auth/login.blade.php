@@ -4,19 +4,7 @@
 
 @section('title', 'Iniciar Sesión') {{-- Esto cambia el título de la pestaña del navegador --}}
 
-{{-- Si quieres elementos de navegación específicos para cuando no hay sesión, puedes definirlos aquí --}}
-@section('guest-navigation')
-    <ul class="navbar-nav ms-auto">
-        <li class="nav-item">
-            <a class="nav-link active" aria-current="page" href="{{ route('login') }}">Login</a>
-        </li>
-        @if (Route::has('register'))
-            <li class="nav-item">
-                <a class="nav-link" href="{{ route('register') }}">Registrarse</a>
-            </li>
-        @endif
-    </ul>
-@endsection
+
 
 @section('content')
 <div class="row justify-content-center">
@@ -102,6 +90,3 @@
     </div>
 </div>
 @endsection
-
-{{-- No necesitas 'additional-styles' aquí, ya que el layout maneja todos los estilos principales --}}
-{{-- No necesitas 'additional-scripts' a menos que el login requiera JS muy específico --}}

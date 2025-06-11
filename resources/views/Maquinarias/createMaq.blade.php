@@ -1,4 +1,4 @@
-@extends('layouts.base') {{-- ESTA LÍNEA ES CORRECTA --}}
+@extends($layout) {{-- ESTA LÍNEA ES CORRECTA --}}
 
 @section('content') {{-- Y ESTO DEBE CONTENER SOLAMENTE EL CONTENIDO --}}
 <div class="container">
@@ -111,6 +111,14 @@
                 <option value="disponible" {{ old('estado') == 'disponible' ? 'selected' : '' }}>Disponible</option>
                 <option value="inactiva" {{ old('estado') == 'inactiva' ? 'selected' : '' }}>Inactiva</option>
             </select>
+        </div>
+
+         <div class="mb-3">
+            <label for="descripcion" class="form-label">Descripcion:</label>
+            <input type="text" class="form-control" id="descripcion" name="descripcion" value="{{ old('descripcion') }}" required>
+            @error('descripcion')
+                <div class="text-danger">{{ $message }}</div>
+            @enderror
         </div>
 
         {{-- Si usas 'features' como JSON y necesitas un input, podría ser un textarea para JSON o varios inputs dinámicos --}}

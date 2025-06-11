@@ -34,8 +34,8 @@ class LoginController extends Controller
         $credentials = $request->only('email', 'password');
         $user= \App\Domain\User\Models\Usuario::where('email', $credentials['email'])->first();
 
-        if(!$user) return back()->withErrors(['email' => 'El mail ingresado no esta registrado en el sistema']);
-        if (!Hash::check($credentials['password'], $user->contraseña))return back()->withErrors(['password' => 'La contraseña ingresada es incorrecta']);
+        if(!$user) return back()->withErrors(['error' => 'Las credenciales ingresadas no son validas']);
+        if (!Hash::check($credentials['password'], $user->contraseña))return back()->withErrors(['error' => 'Las credenciales ingresadas no son validas']);
 
             if ($user->rol == Roles::ADMINISTRADOR->value){
                 return AdminController::isAdmin($user);

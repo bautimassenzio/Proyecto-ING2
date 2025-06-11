@@ -34,12 +34,43 @@ class UsuarioController extends Controller
         $request->validate([
             'nombre' => 'required|string',
             'email' => 'required|email|unique:usuarios,email',
-            'contraseña' => 'required|string|min:4',
+            'contraseña' => 'required|string|min:6',
             'rol' => 'required|string',
             'dni' => 'required|string|unique:usuarios,dni',
             'telefono' => 'required|string',
             'estado' => 'required|string',
+            'fecha_nacimiento' => 'required','before_or_equal:' . now()->subYears(18)->format('Y-m-d'), 
             'fecha_alta' => 'required|date',
+        ],[
+        
+            'nombre.required' => 'El nombre es obligatorio.',
+
+            'email.required' => 'El correo electrónico es obligatorio.',
+            'email.email' => 'El correo electrónico debe ser una dirección válida.',
+            'email.unique' => 'El correo electrónico ya está registrado.',
+
+            'contraseña.required' => 'La contraseña es obligatoria.',
+            'contraseña.string' => 'La contraseña debe ser una cadena de texto.',
+            'contraseña.min' => 'La contraseña debe tener al menos 6 caracteres.',
+
+            'rol.required' => 'El rol es obligatorio.',
+            'rol.string' => 'El rol debe ser una cadena de texto.',
+
+            'dni.required' => 'El DNI es obligatorio.',
+            'dni.string' => 'El DNI debe ser una cadena de texto.',
+            'dni.unique' => 'Este DNI ya está registrado.',
+
+            'telefono.required' => 'El teléfono es obligatorio.',
+            'telefono.string' => 'El teléfono debe ser una cadena de texto.',
+
+            'estado.required' => 'El estado es obligatorio.',
+            'estado.string' => 'El estado debe ser una cadena de texto.',
+
+            'fecha_nacimiento.required' => 'La fecha de nacimiento es obligatoria.',
+            'fecha_nacimiento.before_or_equal' => '',
+
+            'fecha_alta.required' => 'La fecha de alta es obligatoria.',
+            'fecha_alta.date' => 'La fecha de alta debe ser una fecha válida.',
         ]);
 
         $usuario = Usuario::create([
@@ -114,40 +145,35 @@ class UsuarioController extends Controller
         return response()->json(['mensaje' => 'Usuario eliminado con éxito']);
     }
 
-    public function updatePassword(Request $request){
-        $request->validate([
-    'password_actual' => 'required',
-    'nueva_contraseña' => 'required|min:5',
-    'nueva_contraseña_confirmation' => 'required|min:5|same:nueva_contraseña',
-], [
-    'nueva_contraseña.min' => 'La nueva contraseña debe tener al menos 5 caracteres.',
-    'nueva_contraseña_confirmation.min' => 'La confirmación no coincide con la nueva contraseña.',
-]);
+   public function updatePassword(Request $request)
+{
+    $request->validate([
+        'password_actual' => ['required'],
+        'nueva_contraseña' => ['required', 'min:6', 'different:password_actual'],
+        'nueva_contraseña_confirmation' => ['required', 'same:nueva_contraseña'],
+    ], [
+        'nueva_contraseña.min' => 'La nueva contraseña debe tener al menos 6 caracteres.',
+        'nueva_contraseña.different' => 'La nueva contraseña debe ser distinta a la actual.',
+        'nueva_contraseña_confirmation.same' => 'La confirmación no coincide con la nueva contraseña.',
+    ]);
 
-if ($request->nueva_contraseña == $request->password_actual) {
-    return back()->withErrors(['nueva_contraseña_confirmation' => 'La nueva contraseña es igual a la anterior']);
-}
+    $usuarioSession = Auth::guard('users')->user();
+    $usuario = Usuario::where('dni', $usuarioSession->dni)->first();
 
-if ($request->nueva_contraseña !== $request->nueva_contraseña_confirmation) {
-    return back()->withErrors(['nueva_contraseña_confirmation' => 'La contraseña a confirmar es distinta de la nueva']);
-}
-    
-        $usuarioSession = Auth::guard('users')->user();
-        $usuario = Usuario::where('dni', $usuarioSession->dni)->first();
-    
-        if (!$usuario) {
-            return back()->withErrors(['mensaje' => 'Usuario no encontrado']);
-        }
-    
-        if (!Hash::check($request->password_actual, $usuario->contraseña)) {
-            return back()->withErrors(['password_actual' => 'La contraseña actual no es correcta']);
-        }
-    
-        $usuario->contraseña = bcrypt($request->nueva_contraseña);
-        $usuario->save();
-    
-        return back()->with('success', 'Contraseña actualizada correctamente');
+    if (!$usuario) {
+        return back()->with('error', 'Usuario no encontrado.');
     }
+
+    if (!Hash::check($request->password_actual, $usuario->contraseña)) {
+        return back()->withErrors(['password_actual' => 'La contraseña actual no es correcta.']);
+    }
+
+    $usuario->contraseña = bcrypt($request->nueva_contraseña);
+    $usuario->save();
+
+    return back()->with('success', 'Contraseña actualizada correctamente.');
+}
+
 
     public function eliminarCuentaPropia()
 {

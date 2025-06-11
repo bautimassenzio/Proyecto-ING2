@@ -85,6 +85,10 @@ Route::prefix('admin')->group(function () {
     Route::post('/maquinarias', [MaquinariaController::class, 'store'])->name('maquinarias.store');
 
 });
+
+Route::get('admin/maquinarias/{maquinaria}/edit', [MaquinariaController::class, 'edit'])->name('maquinarias.edit');
+Route::put('admin/maquinarias/{maquinaria}', [MaquinariaController::class, 'update'])->name('maquinarias.update');
+
      Route::delete('admin/maquinarias/{maquinaria}', [MaquinariaController::class, 'destroy'])->name('maquinarias.destroy');
     //Route::get('admin/maquinarias', [MaquinariaController::class, 'index'])->name('maquinarias.index');
      Route::get('/catalogo', [MaquinariaController::class, 'index'])->name('catalogo.index'); // Catálogo Adaptativo

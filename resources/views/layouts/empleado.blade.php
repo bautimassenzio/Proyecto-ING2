@@ -1,36 +1,37 @@
 @extends('layouts.base')
 
 @section('navigation')
-    <li class="nav-item">
-        <a class="nav-link {{ request()->routeIs('/') ? 'active' : '' }}" href="{{ route('/') }}">
-            <i class="fas fa-home me-1"></i> Dashboard
-        </a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link {{ request()->is('users*') ? 'active' : '' }}" href="/users">
-            <i class="fas fa-users me-1"></i> Gestionar Usuarios
-        </a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link" href="/registerByEmployee">
-            <i class="fas fa-user-plus me-1"></i> Registrar Cliente
-        </a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link" href="#">
-            <i class="fas fa-clipboard-check me-1"></i> Pedidos Pendientes
-        </a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link" href="#">
-            <i class="fas fa-cogs me-1"></i> Maquinarias
-        </a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link" href="#">
-            <i class="fas fa-users-cog me-1"></i> Clientes
-        </a>
-    </li>
+<li class="nav-item">
+    <a class="nav-link {{ request()->routeIs('/') ? 'active' : '' }}" href="{{ route('/') }}">
+        <i class="fas fa-home me-1"></i> Dashboard
+    </a>
+</li>
+<li class="nav-item">
+    <a class="nav-link {{ request()->is('users*') ? 'active' : '' }}" href="{{ url('/users') }}">
+        <i class="fas fa-users me-1"></i> Gestionar Usuarios
+    </a>
+</li>
+<li class="nav-item">
+    <a class="nav-link {{ request()->is('registerByEmployee') ? 'active' : '' }}" href="{{ url('/registerByEmployee') }}">
+        <i class="fas fa-user-plus me-1"></i> Registrar Cliente
+    </a>
+</li>
+<li class="nav-item">
+    <a class="nav-link {{ request()->is('pedidos-pendientes') ? 'active' : '' }}" href="{{ url('pedidos-pendientes') }}">
+        <i class="fas fa-clipboard-check me-1"></i> Pedidos Pendientes
+    </a>
+</li>
+<li class="nav-item">
+    <a class="nav-link {{ request()->is('maquinarias') ? 'active' : '' }}" href="{{ url('maquinarias') }}">
+        <i class="fas fa-cogs me-1"></i> Maquinarias
+    </a>
+</li>
+<li class="nav-item">
+    <a class="nav-link {{ request()->is('clientes') ? 'active' : '' }}" href="{{ url('clientes') }}">
+        <i class="fas fa-users-cog me-1"></i> Clientes
+    </a>
+</li>
+
     <li class="nav-item dropdown">
         <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
             <i class="fas fa-user-circle me-1"></i> Mi Cuenta

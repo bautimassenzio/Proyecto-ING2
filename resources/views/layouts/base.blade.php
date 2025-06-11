@@ -176,24 +176,6 @@
             box-shadow: var(--shadow-lg);
         }
 
-          .btn-danger2 {
-            background: linear-gradient(135deg,rgb(113, 10, 20) 0%,rgb(93, 0, 9) 100%);
-            border: none;
-            color: white;
-            font-weight: 600;
-            padding: 0.75rem 1.5rem;
-            border-radius: 10px;
-            transition: all 0.3s ease;
-            box-shadow: var(--shadow);
-        }
-
-        /* Hover */
-        .btn-danger2:hover {
-            background: linear-gradient(135deg, rgb(113, 10, 20) 0%,rgb(93, 0, 9) 100%);
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-lg);
-        }
-
         .btn-outline-primary {
             border: 2px solid var(--primary-yellow);
             color: var(--primary-yellow);
@@ -208,8 +190,6 @@
             color: var(--dark-bg);
             transform: translateY(-2px);
         }
-
-        
 
         /* Footer */
         .main-footer {
@@ -308,8 +288,7 @@
                 <!-- Brand -->
                 <a class="navbar-brand" href="{{ route('/') }}">
                     <img src="{{ asset('images/Manny_Maquinarias_Logov2.png') }}" alt="MannyMaquinarias Logo" class="logo-img">
-                    
-                    <!-- <span>MannyMaquinarias</span> -->
+
                 </a>
 
                 <!-- Mobile Toggle -->
@@ -336,7 +315,7 @@
                                         <i class="fas fa-crown"></i> Administrador
                                     @elseif(Auth::guard('users')->user()->rol === 'empleado')
                                         <i class="fas fa-user-tie"></i> Empleado
-                                    @else
+                                    @else 
                                         <i class="fas fa-user"></i> Cliente
                                     @endif
                                 </div>
@@ -395,7 +374,7 @@
         <div class="container">
             <div class="footer-content">
                 <div>
-                    <p class="mb-0">© {{ date('Y') }} MannyMaquinarias - Sistema de Gestión de Maquinarias</p>
+                    <p class="-mb0">© {{ date('Y') }} MannyMaquinarias - Sistema de Gestión de Maquinarias</p>
                 </div>
                 <div class="footer-links">
                     <a href="/info-contactos"><i class="fas fa-phone"></i> Contacto</a>

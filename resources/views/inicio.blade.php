@@ -57,10 +57,7 @@
         -->
 
         <div class="admin-actions">
-            <a href="/users" class="action-btn">
-                <i class="fas fa-users-cog"></i>
-                <div>Gestionar Usuarios</div>
-            </a>
+            
             <a href="/admin/maquinarias/create" class="action-btn">
                 <i class="fas fa-plus-circle"></i>
                 <div>Nueva Maquinaria</div>
@@ -73,7 +70,8 @@
                 <i class="fas fa-cog"></i>
                 <div>Configuración</div>
             </a>
-        </div>  -->
+          -->
+        </div>
 
     @elseif(Auth::guard('users')->user()->rol === 'empleado')
         <!-- Employee Dashboard -->

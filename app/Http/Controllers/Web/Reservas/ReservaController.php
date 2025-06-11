@@ -35,8 +35,8 @@ class ReservaController extends Controller
             'fecha_fin' => \Carbon\Carbon::parse($reserva->fecha_fin)->toDateString(),
         ];
     })->values();
-        
-        return view('reservas.create', compact('clienteAutenticado', 'maquinaria', 'fechasOcupadas'));
+        $layout = session('layout', 'layouts.cliente');
+        return view('reservas.create', compact('clienteAutenticado', 'maquinaria', 'fechasOcupadas', 'layout'));
     }
 
     public function store(Request $request)
@@ -51,7 +51,19 @@ class ReservaController extends Controller
             'fecha_inicio' => 'required|date|after_or_equal:today',
             'fecha_fin' => 'required|date|after:fecha_inicio',
             'id_maquinaria' => 'required|exists:maquinarias,id_maquinaria',
+        ], [
+            'fecha_inicio.required' => 'La fecha de inicio es obligatoria.',
+            'fecha_inicio.date' => 'La fecha de inicio no es válida.',
+            'fecha_inicio.after_or_equal' => 'La fecha de inicio debe ser hoy o una fecha posterior.',
+            
+            'fecha_fin.required' => 'La fecha de fin es obligatoria.',
+            'fecha_fin.date' => 'La fecha de fin no es válida.',
+            'fecha_fin.after' => 'La fecha de fin debe ser posterior a la fecha de inicio.',
+
+            'id_maquinaria.required' => 'Debe seleccionar una maquinaria.',
+            'id_maquinaria.exists' => 'La maquinaria seleccionada no es válida.',
         ]);
+
 
         $fechaInicio = Carbon::parse($request->fecha_inicio);
         $fechaFin = Carbon::parse($request->fecha_fin);
