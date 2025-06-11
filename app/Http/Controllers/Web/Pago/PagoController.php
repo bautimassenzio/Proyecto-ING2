@@ -51,7 +51,7 @@ class PagoController extends Controller
 $failureUrl = route('pago.fallo');
 $pendingUrl = route('pago.pendiente');
 
-$ngrokBase = 'https://0e90-181-23-159-133.ngrok-free.app'; // tu URL actual de ngrok
+$ngrokBase = 'https://b7d1-181-23-156-142.ngrok-free.app'; // tu URL actual de ngrok
 
 $preference->back_urls = [
     "success" => $ngrokBase . '/pago/exito',

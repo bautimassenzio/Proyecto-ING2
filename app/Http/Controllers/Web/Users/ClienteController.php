@@ -20,7 +20,7 @@ class ClienteController extends Controller
             'nombre' => 'required|string',
             'email' => 'required|email|unique:usuarios,email',
             'contraseña' => 'required|string|min:4',
-            'dni' => 'required|string|unique:usuarios,dni',
+            'dni' => 'required|string|unique:usuarios,dni|regex:/^\d{7,8}$/',
             'telefono' => 'required|string',
             'fecha_nacimiento' => 'required|date'
         ],[
@@ -38,6 +38,7 @@ class ClienteController extends Controller
             'dni.required' => 'El DNI es obligatorio.',
             'dni.string' => 'El DNI debe ser una cadena de texto.',
             'dni.unique' => 'Este DNI ya está registrado.',
+            'dni.regex' => 'El DNI debe tener 7 u 8 dígitos, sin letras ni caracteres especiales.',
 
             'telefono.required' => 'El teléfono es obligatorio.',
             'telefono.string' => 'El teléfono debe ser una cadena de texto.',

@@ -7,11 +7,7 @@
         <i class="fas fa-home me-1"></i> Inicio
     </a>
 </li>
-<li class="nav-item">
-    <a class="nav-link {{ request()->is('users*') ? 'active' : '' }}" href="{{ url('/users') }}">
-        <i class="fas fa-users me-1"></i> Gestión de Usuarios
-    </a>
-</li>
+
 <li class="nav-item">
     <a class="nav-link {{ request()->is('admin/maquinarias/create') ? 'active' : '' }}" href="{{ url('admin/maquinarias/create') }}">
         <i class="fas fa-cogs me-1"></i> Agregar maquinarias

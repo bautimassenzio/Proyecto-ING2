@@ -24,7 +24,7 @@
 
         {{-- Formulario para volver al inicio --}}
         {{-- CAMBIO AQUÍ: URL absoluta forzada a localhost --}}
-        <form action="http://localhost:8000/" method="get">
+        <form action="http://127.0.0.1:8000" method="get">
             <button type="submit" class="btn btn-primary btn-lg">Volver al inicio</button> {{-- Clases de Bootstrap para el botón --}}
         </form>
     </div>
