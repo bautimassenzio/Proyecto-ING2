@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Web\Users;
 
 use App\Domain\Reserva\Models\Reserva;
 use App\Domain\User\Models\Usuario;
+use App\Enums\Estados;
 use App\Enums\Roles;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
@@ -28,64 +29,6 @@ class UsuarioController extends Controller
         return response()->json($usuario);
     }
 
-  // Crear usuario (POST)
-    public function store(Request $request)
-    {
-        $request->validate([
-            'nombre' => 'required|string',
-            'email' => 'required|email|unique:usuarios,email',
-            'contraseña' => 'required|string|min:6',
-            'rol' => 'required|string',
-            'dni' => 'required|string|unique:usuarios,dni',
-            'telefono' => 'required|string',
-            'estado' => 'required|string',
-            'fecha_nacimiento' => 'required','before_or_equal:' . now()->subYears(18)->format('Y-m-d'), 
-            'fecha_alta' => 'required|date',
-        ],[
-        
-            'nombre.required' => 'El nombre es obligatorio.',
-
-            'email.required' => 'El correo electrónico es obligatorio.',
-            'email.email' => 'El correo electrónico debe ser una dirección válida.',
-            'email.unique' => 'El correo electrónico ya está registrado.',
-
-            'contraseña.required' => 'La contraseña es obligatoria.',
-            'contraseña.string' => 'La contraseña debe ser una cadena de texto.',
-            'contraseña.min' => 'La contraseña debe tener al menos 6 caracteres.',
-
-            'rol.required' => 'El rol es obligatorio.',
-            'rol.string' => 'El rol debe ser una cadena de texto.',
-
-            'dni.required' => 'El DNI es obligatorio.',
-            'dni.string' => 'El DNI debe ser una cadena de texto.',
-            'dni.unique' => 'Este DNI ya está registrado.',
-
-            'telefono.required' => 'El teléfono es obligatorio.',
-            'telefono.string' => 'El teléfono debe ser una cadena de texto.',
-
-            'estado.required' => 'El estado es obligatorio.',
-            'estado.string' => 'El estado debe ser una cadena de texto.',
-
-            'fecha_nacimiento.required' => 'La fecha de nacimiento es obligatoria.',
-            'fecha_nacimiento.before_or_equal' => '',
-
-            'fecha_alta.required' => 'La fecha de alta es obligatoria.',
-            'fecha_alta.date' => 'La fecha de alta debe ser una fecha válida.',
-        ]);
-
-        $usuario = Usuario::create([
-            'nombre' => $request->nombre,
-            'email' => $request->email,
-            'contraseña' => bcrypt($request->contraseña),
-            'rol' => $request->rol,
-            'dni' => $request->dni,
-            'telefono' => $request->telefono,
-            'estado' => $request->estado,
-            'fecha_alta' => $request->fecha_alta,
-        ]);
-
-        return response()->json(['mensaje' => 'Usuario creado con éxito', 'usuario' => $usuario], 201);
-    }
 
     // Obtener usuario por DNI (GET)
     public function show($dni)
@@ -174,23 +117,27 @@ class UsuarioController extends Controller
     return back()->with('success', 'Contraseña actualizada correctamente.');
 }
 
+    public function logicDelete($dni){
+        $usuario = Usuario::where('dni', $dni)->first();
+        $usuario->update([
+            'estado' => Estados::INACTIVO,
+        ]);
+    }
+
 
     public function eliminarCuentaPropia()
 {
     $usuario = Auth::guard('users')->user();
     $rol=$usuario->rol;
     if ($rol=='cliente' && Reserva::where('id_cliente', $usuario->id_usuario)
-            ->whereIn('estado', ['pendiente', 'activa'])
+            ->whereIn('estado', ['aprobada', 'activa'])
             ->exists()){
-        return back()->with('error', 'No se puede eliminar una cuenta con reservas confirmadas o pendientes');
+        return back()->with('error', 'No se puede eliminar una cuenta con reservas activas');
     }
     Auth::guard('users')->logout(); // cierra sesión
-    Usuario::where('dni', $usuario->dni)->delete();
+    $this->logicDelete($usuario->dni); //Borrado logico
     session()->forget('layout');
     return redirect('/')->with('success', 'Tu cuenta fue eliminada correctamente.');
 }
-
-
-
 
 }

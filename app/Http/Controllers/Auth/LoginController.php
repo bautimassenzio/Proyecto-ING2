@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Enums\Estados;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use App\Enums\Roles;
 use App\Http\Controllers\Web\Users\AdminController;
+use App\Domain\User\Models\Usuario;
 
 
 
@@ -33,8 +35,9 @@ class LoginController extends Controller
 
     public function login (Request $request){
         $credentials = $request->only('email', 'password');
-        $user= \App\Domain\User\Models\Usuario::where('email', $credentials['email'])->first();
-
+        $user= Usuario::where('email', $credentials['email'])
+                        ->where('estado', Estados::ACTIVO)
+                        ->first();
         if(!$user) return back()->withErrors(['error' => 'Las credenciales ingresadas no son validas']);
         if (!Hash::check($credentials['password'], $user->contraseña))return back()->withErrors(['error' => 'Las credenciales ingresadas no son validas']);
 

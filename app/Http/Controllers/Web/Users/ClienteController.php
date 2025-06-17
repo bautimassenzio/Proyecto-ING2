@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Web\Users;
 use Illuminate\Http\Request;
 use App\Domain\User\Models\Usuario;
 use App\Enums\Roles;
+use App\Enums\Estados;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Str;
 use App\Mail\EnviarContraseña;
@@ -62,7 +63,7 @@ class ClienteController extends Controller
 
     public function crearUsuario($request){
         $rol=Roles::CLIENTE;
-        $estado='activo';
+        $estado=Estados::ACTIVO;
         return Usuario::create([
             'nombre' => $request->nombre,
             'email' => $request->email,
