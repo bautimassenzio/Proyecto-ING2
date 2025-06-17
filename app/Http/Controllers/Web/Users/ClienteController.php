@@ -9,8 +9,8 @@ use App\Enums\Estados;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Str;
 use App\Mail\EnviarContraseña;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Carbon;
 
 class ClienteController extends Controller
 {
@@ -23,7 +23,7 @@ class ClienteController extends Controller
             'contraseña' => 'required|string|min:4',
             'dni' => 'required|string|unique:usuarios,dni|regex:/^\d{7,8}$/',
             'telefono' => 'required|string',
-            'fecha_nacimiento' => 'required|date'
+            'fecha_nacimiento' => ['required', 'date', 'before:' . now()->subYears(18)->format('Y-m-d')],
         ],[
         
             'nombre.required' => 'El nombre es obligatorio.',
@@ -45,21 +45,19 @@ class ClienteController extends Controller
             'telefono.string' => 'El teléfono debe ser una cadena de texto.',
 
             'fecha_nacimiento.required' => 'La fecha de nacimiento es obligatoria.',
+            'fecha_nacimiento.before' => 'No se pueden registrar usuarios menores a 18 años'
 
         ]);
     
         // Crear usuario
-        if (! $this->mayor18($request->fecha_nacimiento)) return back()->withErrors(['mensaje' => 'No se pueden registrar usuarios menores a 18 años']);
-
         $this->crearUsuario($request);
-    
-        return redirect('/exitoRegister');
+        
+        if (Auth::guard('users')->check() && Auth::guard('users')->user()->rol == Roles::EMPLEADO->value) {
+            return back()->with('success', 'Operación realizada correctamente.');
+        }
+            return redirect('/exitoRegister');
     }
 
-    public function mayor18($fecha_nacimiento){
-        $fechaNacimiento=Carbon::parse($fecha_nacimiento);
-        return $fechaNacimiento->age >= 18;
-    }
 
     public function crearUsuario($request){
         $rol=Roles::CLIENTE;
@@ -82,7 +80,8 @@ class ClienteController extends Controller
         $request->merge([
             'contraseña' => $contraseñaGenerada
         ]);
-        $this->storeClient($request);
+        $response = $this->storeClient($request);
         Mail::to($request->email)->send(new EnviarContraseña($request->nombre, $contraseñaGenerada));
+        return $response;
     }
 }

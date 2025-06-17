@@ -27,7 +27,8 @@ class ViewsController extends Controller
     }
 
     public function vistaRegistroPorEmpleado() {
-        return view('registrarClientePorEmpleado');
+        $layout = session('layout', 'layouts.visitante');
+        return view('registrarClientePorEmpleado', compact('layout'));
     }
 
     public function vistaCambioContraseña() {
