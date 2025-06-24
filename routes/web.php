@@ -8,38 +8,37 @@ use App\Http\Controllers\Web\Maquinarias\MaquinariaController;
 use App\Http\Controllers\Web\Users\AdminController;
 use App\Http\Controllers\Web\Users\ClienteController;
 use App\Http\Controllers\Web\Users\UsuarioController;
-use App\Http\Controllers\Web\Users\ViewsController;
-use App\Http\Controllers\Web\Visualizar\VisualizarController;
+use App\Http\Controllers\Web\Users\ViewsController; //Controller donde se redirecciona a las vistas
 
-Route::get('/register', [ViewsController::class, 'vistaRegistro']);
-Route::post('/register', [ClienteController::class, 'storeClient'])->name('register');
-
+// Vista Inicio
 Route::get('/', [ViewsController::class, 'vistaInicio'])->name('/');
 
-
+// Operaciones de registro
 Route::get('/register', [ViewsController::class, 'vistaRegistro']);
 Route::post('/register', [ClienteController::class, 'storeClient'])->name('register');
 Route::get('/registerByEmployee', [ViewsController::class, 'vistaRegistroPorEmpleado']);
 Route::post('/registerByEmployee', [ClienteController::class, 'crearContraseña'])->name('registerByEmployee');
 
-Route::get('/passwordReset', [ViewsController::class, 'vistaCambioContraseña'])->name('passwordReset');
-Route::post('/passwordReset', [UsuarioController::class, 'updatePassword'])->name('passwordReset');
+Route::get('/passwordReset', [ViewsController::class, 'vistaCambioContraseña'])->name('passwordReset')->middleware('auth:users');
+Route::post('/passwordReset', [UsuarioController::class, 'updatePassword'])->name('passwordReset')->middleware('auth:users');
 
-Route::post('/reenviarCodigo', [AdminController::class, 'reenviarCodigo'])->name('reenviarCodigo');
-
-Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
+// Login y Logout
+Route::get('/login', [ViewsController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [LoginController::class, 'login']);
-Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->middleware('auth:users');;
 
+// Confirmacion de admin via Mail
 Route::get('/confirmarAdmin', [ViewsController::class, 'vistaConfirmarAdmin']);
 Route::post('/confirmarAdmin', [AdminController::class, 'CodigoVerificacionMail'])->name('confirmarAdmin');
-
+Route::post('/reenviarCodigo', [AdminController::class, 'reenviarCodigo'])->name('reenviarCodigo');
 
 Route::get('/exitoRegister', [ViewsController::class, 'exitoRegister']);
 
+// Eliminacion de cuenta
 Route::get('/eliminarCuenta', [ViewsController::class, 'vistaEliminarCuenta'])->middleware('checkUserType:cliente')->name('eliminarCuenta');
-Route::delete('/eliminarCuenta', [UsuarioController::class, 'eliminarCuentaPropia'])->middleware('checkUserType:cliente')->name('eliminarCuentaPost');
+Route::delete('/eliminarCuenta', [ClienteController::class, 'eliminarCuentaPropia'])->middleware('checkUserType:cliente')->name('eliminarCuentaPost');
 
+// Operaciones que solo pueden realizar empleado y admin
 Route::middleware(['checkUserType:empleado,admin'])->group(function () {
     Route::get('/users', [UsuarioController::class, 'getUsuarios']);
     Route::get('/users/{id}',[UsuarioController::class, 'getUsuario']);
@@ -63,41 +62,46 @@ Route::get('/mis-reservas', [ReservaController::class, 'index'])
     ->middleware('auth:users');
 
 
-//MERCADOPAGO
+// MercadoPago
 Route::get('/pagar', function() {
     $layout=session('layout','layouts.base');
     return view('pago.seleccionarpago', compact('layout'));
-})->name('pago.seleccionar');
-
+})->middleware('auth:users')->name('pago.seleccionar');
 
 Route::prefix('pago')->group(function () {
-  
-    Route::get('/exito', [PagoController::class, 'exito'])->name('pago.exito');
-    Route::get('/fallo', [PagoController::class, 'fallo'])->name('pago.fallo');
-    Route::get('/pendiente', [PagoController::class, 'pendiente'])->name('pago.pendiente');
+    Route::get('/exito', [PagoController::class, 'exito'])->name('pago.exito')->middleware('auth:users');
+    Route::get('/fallo', [PagoController::class, 'fallo'])->name('pago.fallo')->middleware('auth:users');;
+    Route::get('/pendiente', [PagoController::class, 'pendiente'])->name('pago.pendiente')->middleware('auth:users');
 });
 
-Route::post('/pagar', [PagoController::class, 'pagar'])->name('pago.procesar');
+Route::post('/pagar', [PagoController::class, 'pagar'])->name('pago.procesar')->middleware('auth:users');
 
 
+// Rutas para la creación y guardado de maquinarias (solo para administradores)
 Route::prefix('admin')->group(function () {
-    // Rutas para la creación y guardado de maquinarias (solo para administradores)
     Route::get('/maquinarias/create', [MaquinariaController::class, 'create'])->name('maquinarias.create');
     Route::post('/maquinarias', [MaquinariaController::class, 'store'])->name('maquinarias.store');
 
 });
 
+// Edicion de maquinarias
 Route::get('admin/maquinarias/{maquinaria}/edit', [MaquinariaController::class, 'edit'])->name('maquinarias.edit');
 Route::put('admin/maquinarias/{maquinaria}', [MaquinariaController::class, 'update'])->name('maquinarias.update');
 
-     Route::delete('admin/maquinarias/{maquinaria}', [MaquinariaController::class, 'destroy'])->name('maquinarias.destroy');
-    //Route::get('admin/maquinarias', [MaquinariaController::class, 'index'])->name('maquinarias.index');
-     Route::get('/catalogo', [MaquinariaController::class, 'index'])->name('catalogo.index'); // Catálogo Adaptativo
-    Route::get('/catalogo/{maquinaria}', [MaquinariaController::class, 'show'])->name('catalogo.show'); // Detalle Adaptativo
-// ...
+// Eliminar Maquinaria
+Route::delete('admin/maquinarias/{maquinaria}', [MaquinariaController::class, 'destroy'])->name('maquinarias.destroy');
+//Route::get('admin/maquinarias', [MaquinariaController::class, 'index'])->name('maquinarias.index');
 
-Route::get('/info-contactos', [VisualizarController::class, 'mostrarInformacionContacto'])->name('info.contactos');
-Route::get('/preguntas-frecuentes', [VisualizarController::class, 'mostrarPreguntasFrecuentes'])->name('preguntas.frecuentes');
+// Visualizar catalogo y maquinaria especifica
+Route::get('/catalogo', [MaquinariaController::class, 'index'])->name('catalogo.index'); // Catálogo Adaptativo
+Route::get('/catalogo/{maquinaria}', [MaquinariaController::class, 'show'])->name('catalogo.show'); // Detalle Adaptativo
 
+
+// Visualizar informacion
+Route::get('/info-contactos', [ViewsController::class, 'mostrarInformacionContacto'])->name('info.contactos');
+Route::get('/preguntas-frecuentes', [ViewsController::class, 'mostrarPreguntasFrecuentes'])->name('preguntas.frecuentes');
+
+
+// Pagos con tarjeta
 Route::get('/procesar-pago/tarjeta', [PagoController::class, 'mostrarFormularioTarjeta'])->name('pago.procesar.tarjeta');
 Route::post('/procesar-pago/tarjeta', [PagoController::class, 'procesarPagoTarjeta'])->name('procesar.pago.tarjeta');

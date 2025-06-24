@@ -16,12 +16,7 @@ use App\Domain\User\Models\Usuario;
 class LoginController extends Controller
 {
 
-
-    public function showLoginForm(){
-        $layout=session('layout', 'layouts.visitante');
-        return view('/auth/login', compact('layout'));
-    }
-
+    // Define el nav a usar segun el rol
     public static  function definirLayout ($user) {
         $layout = match ($user->rol) {
             'cliente' => 'layouts.cliente',
@@ -33,24 +28,26 @@ class LoginController extends Controller
         return redirect()->route('/'); // Redirigís a la ruta GET
         }
 
+    // Lofin de un usuario
     public function login (Request $request){
         $credentials = $request->only('email', 'password');
         $user= Usuario::where('email', $credentials['email'])
-                        ->where('estado', Estados::ACTIVO)
+                        ->where('estado', Estados::ACTIVO) // Solo usuarios activos pueden ingresar
                         ->first();
         if(!$user) return back()->withErrors(['error' => 'Las credenciales ingresadas no son validas']);
         if (!Hash::check($credentials['password'], $user->contraseña))return back()->withErrors(['error' => 'Las credenciales ingresadas no son validas']);
 
             if ($user->rol == Roles::ADMINISTRADOR->value){
-                return AdminController::isAdmin($user);
+                return AdminController::isAdmin($user); // Si es admin va a la autenticacion de 2 pasos
             }
             else{ 
-                Auth::guard('users')->login($user);
+                Auth::guard('users')->login($user); // Si es cliente o empleado se inicia sesion
                 $request->session()->regenerate();
                 return $this->definirLayout($user);
             }    
     }
 
+    // Cerrar sesion
     public function logout(Request $request){
         Auth::guard('users')->logout();
         session()->forget('layout');

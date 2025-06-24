@@ -11,9 +11,12 @@ use Illuminate\Support\Str;
 use App\Mail\EnviarContraseña;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
+use App\Domain\Reserva\Models\Reserva;
 
 class ClienteController extends Controller
 {
+    
+    // Funcion para verificar la validez de los datos al registrar un cliente, si son correctos se almacena el cliente
     public function storeClient(Request $request)
     {
 
@@ -49,17 +52,18 @@ class ClienteController extends Controller
 
         ]);
     
-        // Crear usuario
-        $this->crearUsuario($request);
+        // Crear usuario de tipo cliente
+        $this->crearCliente($request);
         
         if (Auth::guard('users')->check() && Auth::guard('users')->user()->rol == Roles::EMPLEADO->value) {
-            return back()->with('success', 'Operación realizada correctamente.');
+            // Si el cliente fue registrado por un empleado solo se informa que la operacion finalizo, no redirige el empleado al login
+            return back()->with('success', 'Operación realizada correctamente.');  
         }
             return redirect('/exitoRegister');
     }
 
-
-    public function crearUsuario($request){
+    // Almacena un usuario con rol cliente
+    public function crearCliente($request){
         $rol=Roles::CLIENTE;
         $estado=Estados::ACTIVO;
         return Usuario::create([
@@ -75,13 +79,32 @@ class ClienteController extends Controller
         ]);
     }
 
+    // genera una contraseña aleatoria de 8 caracteres y se la asigna al nuevo usuario creado
     public function crearContraseña(Request $request){
-        $contraseñaGenerada = Str::random(8); // genera una contraseña aleatoria de 8 caracteres
+        $contraseñaGenerada = Str::random(8); 
         $request->merge([
             'contraseña' => $contraseñaGenerada
         ]);
         $response = $this->storeClient($request);
-        Mail::to($request->email)->send(new EnviarContraseña($request->nombre, $contraseñaGenerada));
+        Mail::to($request->email)->send(new EnviarContraseña($request->nombre, $contraseñaGenerada)); //Envia un mail al nuevo usuario con su contraseña
         return $response;
     }
+
+    // Eliminacion de cuenta de un cliente sin reservas activas
+    public function eliminarCuentaPropia()
+{
+    $usuario = Auth::guard('users')->user();
+    $rol=$usuario->rol;
+    if ($rol=='cliente' && Reserva::where('id_cliente', $usuario->id_usuario)
+            ->whereIn('estado', ['aprobada', 'activa'])
+            ->exists()){ // Verifico que no tenga reservas activas
+        return back()->with('error', 'No se puede eliminar una cuenta con reservas activas');
+    }
+    Auth::guard('users')->logout(); // cierra sesión
+    UsuarioController::logicDelete($usuario->email); //Borrado logico, se implementa en usuario ya que tambien se pueden borrar empleados
+    session()->forget('layout');
+    return redirect('/')->with('success', 'Tu cuenta fue eliminada correctamente.');
+}
+
+
 }

@@ -19,23 +19,24 @@ class MaquinariaController extends Controller
         $this->middleware('checkUserType:admin')->only(['create', 'store', 'edit', 'update', 'destroy']);
     }
 
+    
+    // Mostrar maquinarias
     public function index()
     {
-        // También usamos 'admin' aquí para consistencia
-        if (Auth::check() && Auth::user()->rol === 'admin') { // <-- Cambiado de 'administrador' a 'admin'
-            $maquinarias = Maquinaria::all();
+        if (Auth::check() && Auth::user()->rol === 'admin') { 
+            $maquinarias = Maquinaria::all(); // El admin visualiza todas las maquinarias
         } else {
-            $maquinarias = Maquinaria::where('estado', 'disponible')->get();
+            $maquinarias = Maquinaria::where('estado', 'disponible')->get(); // Clientes y empleadois solo las disponibles
         }
         $usuario = Auth::check() ? Auth::user() : null;
         $layout = session('layout', 'layouts.visitante');
         return view('maquinarias.index', compact('maquinarias', 'usuario', 'layout'));
     }
 
+    // Mostrar una maquinaria
     public function show($id_maquinaria)
     {
-        // También usamos 'admin' aquí para consistencia
-        if (Auth::check() && Auth::user()->rol === 'admin') { // <-- Cambiado de 'administrador' a 'admin'
+        if (Auth::check() && Auth::user()->rol === 'admin') { 
             $maquinaria = Maquinaria::findOrFail($id_maquinaria);
         } else {
             $maquinaria = Maquinaria::where('id_maquinaria', $id_maquinaria)
@@ -126,9 +127,7 @@ public function destroy(Maquinaria $maquinaria)
 }
 
 
-    /**
-     * Muestra el formulario para editar una maquinaria existente.
-     */
+    // Muestra el formulario para editar una maquinaria existente.
     public function edit(Maquinaria $maquinaria)
     {
         // El Route Model Binding (Maquinaria $maquinaria) ya busca la maquinaria
@@ -138,9 +137,7 @@ public function destroy(Maquinaria $maquinaria)
         return view('Maquinarias.edit', compact('maquinaria', 'politicas','layout'));
     }
 
-    /**
-     * Actualiza una maquinaria existente en la base de datos.
-     */
+    // Actualiza una maquinaria existente en la base de datos.
     public function update(Request $request, Maquinaria $maquinaria)
     {
 

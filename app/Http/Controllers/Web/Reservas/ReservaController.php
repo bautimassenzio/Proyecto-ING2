@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Mail;
 
 class ReservaController extends Controller
 {
+
     public function create(Request $request)
     {
        
@@ -38,6 +39,7 @@ class ReservaController extends Controller
         $layout = session('layout', 'layouts.cliente');
         return view('reservas.create', compact('clienteAutenticado', 'maquinaria', 'fechasOcupadas', 'layout'));
     }
+
 
     public function store(Request $request)
     {
@@ -69,7 +71,7 @@ class ReservaController extends Controller
         $fechaFin = Carbon::parse($request->fecha_fin);
         $duracion = $fechaInicio->diffInDays($fechaFin);
 
-        if ($duracion < 2 || $duracion > 30) {
+        if ($duracion < 2 || $duracion > 30) { // Se valida que la duracion de la reserva sea correcta
             return back()->withErrors(['duracion' => 'La reserva debe ser entre 2 y 30 días.'])->withInput();
         }
 
@@ -137,6 +139,8 @@ class ReservaController extends Controller
         }
     }
 
+
+    // Mostrar historial de reservas
     public function index()
     {
         $cliente = Auth::user();
@@ -154,6 +158,7 @@ class ReservaController extends Controller
         return view('reservas.historial', compact('reservas', 'layout'));
     }
 
+    // Cancelar Reserva
     public function cancelar(Request $request, $id_reserva)
     {
         $cliente = Auth::user();
@@ -189,6 +194,8 @@ class ReservaController extends Controller
         return back()->with('success', 'Reserva cancelada con éxito. Se ha enviado un correo con la política de cancelación.');
     }
 
+
+    // Posibilidad de que el usuario pague una reserva pendiente desde el historial
     public function pagarDesdeHistorial($id_reserva)
     {
         $reserva = Reserva::find($id_reserva);

@@ -2,13 +2,11 @@
 
 namespace App\Http\Controllers\Web\Users;
 
-use App\Domain\Reserva\Models\Reserva;
+
 use App\Domain\User\Models\Usuario;
 use App\Enums\Estados;
-use App\Enums\Roles;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Enums\RolUsuario;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
@@ -16,29 +14,17 @@ use Illuminate\Support\Facades\Hash;
 class UsuarioController extends Controller
 {
 
-
-    public function getUsuarios(){
+    //Obtener todos los usuarios
+    public function getUsuarios(){ 
         return Usuario::all();
     }
 
-    public function getUsuario($dni){
+    // Obtener usuario por DNI (GET)
+    public function getUsuario($dni){ 
         $usuario = Usuario::where('dni', $dni)->first(); //Busqueda por DNI
         if (!$usuario) {
             return response()->json(['mensaje' => 'Usuario no encontrado'], 404);
         }
-        return response()->json($usuario);
-    }
-
-
-    // Obtener usuario por DNI (GET)
-    public function show($dni)
-    {
-        $usuario = Usuario::where('dni', $dni)->first();
-
-        if (!$usuario) {
-            return response()->json(['mensaje' => 'Usuario no encontrado'], 404);
-        }
-
         return response()->json($usuario);
     }
 
@@ -74,7 +60,7 @@ class UsuarioController extends Controller
         return response()->json(['mensaje' => 'Usuario actualizado con éxito', 'usuario' => $usuario]);
     }
 
-    // Eliminar usuario por DNI (DELETE)
+    // Eliminar fisica de usuario por DNI (DELETE)
     public function delete($dni)
     {
         $usuario = Usuario::where('dni', $dni)->first();
@@ -88,56 +74,42 @@ class UsuarioController extends Controller
         return response()->json(['mensaje' => 'Usuario eliminado con éxito']);
     }
 
-   public function updatePassword(Request $request)
-{
-    $request->validate([
-        'password_actual' => ['required'],
-        'nueva_contraseña' => ['required', 'min:6', 'different:password_actual'],
-        'nueva_contraseña_confirmation' => ['required', 'same:nueva_contraseña'],
-    ], [
-        'nueva_contraseña.min' => 'La nueva contraseña debe tener al menos 6 caracteres.',
-        'nueva_contraseña.different' => 'La nueva contraseña debe ser distinta a la actual.',
-        'nueva_contraseña_confirmation.same' => 'La confirmación no coincide con la nueva contraseña.',
-    ]);
+   // Actualizar contraseña de un usuario 
+   public function updatePassword(Request $request) { 
+        $request->validate([
+            'password_actual' => ['required'],
+            'nueva_contraseña' => ['required', 'min:6', 'different:password_actual'],
+            'nueva_contraseña_confirmation' => ['required', 'same:nueva_contraseña'],
+        ], [
+            'nueva_contraseña.min' => 'La nueva contraseña debe tener al menos 6 caracteres.',
+            'nueva_contraseña.different' => 'La nueva contraseña debe ser distinta a la actual.',
+            'nueva_contraseña_confirmation.same' => 'La confirmación no coincide con la nueva contraseña.',
+        ]);
 
-    $usuarioSession = Auth::guard('users')->user();
-    $usuario = Usuario::where('dni', $usuarioSession->dni)->first();
+        $usuarioSession = Auth::guard('users')->user();
+        $usuario = Usuario::where('dni', $usuarioSession->dni)->first();
 
-    if (!$usuario) {
-        return back()->with('error', 'Usuario no encontrado.');
-    }
+        if (!$usuario) {
+            return back()->with('error', 'Usuario no encontrado.');
+        }
 
-    if (!Hash::check($request->password_actual, $usuario->contraseña)) {
-        return back()->withErrors(['password_actual' => 'La contraseña actual no es correcta.']);
-    }
+        if (!Hash::check($request->password_actual, $usuario->contraseña)) {
+            return back()->withErrors(['password_actual' => 'La contraseña actual no es correcta.']);
+        }
 
-    $usuario->contraseña = bcrypt($request->nueva_contraseña);
-    $usuario->save();
+        $usuario->contraseña = bcrypt($request->nueva_contraseña); // Se encripta la contraseña
+        $usuario->save();
 
-    return back()->with('success', 'Contraseña actualizada correctamente.');
-}
+        return back()->with('success', 'Contraseña actualizada correctamente.');
+    }   
 
-    public function logicDelete($dni){
-        $usuario = Usuario::where('dni', $dni)->first();
+    //Eliminacion logica de un usuario o empleado en la DB
+    public static function logicDelete($email) { 
+        $usuario = Usuario::where('email', $email)->first();
         $usuario->update([
-            'estado' => Estados::INACTIVO,
+            'estado' => Estados::INACTIVO, //Paso el estado del usuario a inactivo
         ]);
     }
 
-
-    public function eliminarCuentaPropia()
-{
-    $usuario = Auth::guard('users')->user();
-    $rol=$usuario->rol;
-    if ($rol=='cliente' && Reserva::where('id_cliente', $usuario->id_usuario)
-            ->whereIn('estado', ['aprobada', 'activa'])
-            ->exists()){
-        return back()->with('error', 'No se puede eliminar una cuenta con reservas activas');
-    }
-    Auth::guard('users')->logout(); // cierra sesión
-    $this->logicDelete($usuario->dni); //Borrado logico
-    session()->forget('layout');
-    return redirect('/')->with('success', 'Tu cuenta fue eliminada correctamente.');
-}
 
 }

@@ -11,8 +11,14 @@ class ViewsController extends Controller
         return view('welcome');
     }
 
+    public function showLoginForm(){
+        $layout=session('layout', 'layouts.visitante');
+        return view('/auth/login', compact('layout'));
+    }
+
+
     public function vistaInicio() {
-        $layout = session('layout', 'layouts.base'); // recupera o pone default
+        $layout = session('layout', 'layouts.base'); // recupera el nav para el rol actual o pone el default
         if ($layout == 'layouts.base') return view('visitante');
         else return view('inicio', compact('layout'));
     }
@@ -50,6 +56,18 @@ class ViewsController extends Controller
 
     public function vistaEliminarCuenta() {
         return view('eliminarCuenta');
+    }
+
+    public function mostrarPreguntasFrecuentes()
+    {
+        $layout=session('layout','layouts.visitante');
+        return view('Visualizar.preguntasfrecuentes',compact('layout')); 
+    }
+
+    public function mostrarInformacionContacto()
+    {
+        $layout=session('layout','layouts.visitante');
+        return view('Visualizar.infocontacto',compact('layout')); 
     }
 
 }
