@@ -19,6 +19,15 @@
     </a>
 </li>
 
+{{-- ** NUEVO ENLACE PARA ESTADÍSTICAS ** --}}
+<li class="nav-item">
+    {{-- La ruta 'admin.estadisticas' ya está protegida por middleware en web.php --}}
+    <a class="nav-link {{ request()->is('admin/estadisticas') ? 'active' : '' }}" href="{{ route('admin.estadisticas') }}">
+        <i class="fas fa-chart-line me-1"></i> Estadísticas
+    </a>
+</li>
+{{-- FIN DEL NUEVO ENLACE --}}
+
    <!-- <li class="nav-item">
         <a class="nav-link" href="#">
             <i class="fas fa-clipboard-list me-1"></i> Pedidos

@@ -9,7 +9,7 @@ use App\Http\Controllers\Web\Users\AdminController;
 use App\Http\Controllers\Web\Users\ClienteController;
 use App\Http\Controllers\Web\Users\UsuarioController;
 use App\Http\Controllers\Web\Users\ViewsController; //Controller donde se redirecciona a las vistas
-
+use App\Http\Controllers\Web\Estadisticas\EstadisticaController;
 // Vista Inicio
 Route::get('/', [ViewsController::class, 'vistaInicio'])->name('/');
 
@@ -105,3 +105,7 @@ Route::get('/preguntas-frecuentes', [ViewsController::class, 'mostrarPreguntasFr
 // Pagos con tarjeta
 Route::get('/procesar-pago/tarjeta', [PagoController::class, 'mostrarFormularioTarjeta'])->name('pago.procesar.tarjeta');
 Route::post('/procesar-pago/tarjeta', [PagoController::class, 'procesarPagoTarjeta'])->name('procesar.pago.tarjeta');
+
+
+// Estadisticas
+Route::get('/estadisticas', [EstadisticaController::class, 'showStatistics'])->name('admin.estadisticas')->middleware('checkUserType:admin');
