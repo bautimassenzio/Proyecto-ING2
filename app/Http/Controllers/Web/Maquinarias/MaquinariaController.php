@@ -21,17 +21,47 @@ class MaquinariaController extends Controller
 
     
     // Mostrar maquinarias
-    public function index()
-    {
-        if (Auth::check() && Auth::user()->rol === 'admin') { 
-            $maquinarias = Maquinaria::all(); // El admin visualiza todas las maquinarias
-        } else {
-            $maquinarias = Maquinaria::where('estado', 'disponible')->get(); // Clientes y empleadois solo las disponibles
-        }
-        $usuario = Auth::check() ? Auth::user() : null;
-        $layout = session('layout', 'layouts.visitante');
-        return view('maquinarias.index', compact('maquinarias', 'usuario', 'layout'));
+   public function index(Request $request)
+{
+    $query = Maquinaria::query();
+
+    // Si no es admin, solo mostrar disponibles
+    if (!(Auth::check() && Auth::user()->rol === 'admin')) {
+        $query->where('estado', 'disponible');
     }
+
+    // Filtros
+    if ($request->filled('precio_min')) {
+        $query->where('precio_dia', '>=', $request->input('precio_min'));
+    }
+
+    if ($request->filled('precio_max')) {
+        $query->where('precio_dia', '<=', $request->input('precio_max'));
+    }
+
+    if ($request->filled('uso')) {
+        $query->where('uso', $request->input('uso'));
+    }
+
+    if ($request->filled('localidad')) {
+        $query->where('localidad', $request->input('localidad'));
+    }
+
+    if ($request->filled('tipo_energia')) {
+        $query->where('tipo_energia', $request->input('tipo_energia'));
+    }
+
+    if ($request->filled('id_politica')) {
+        $query->where('id_politica', $request->input('id_politica'));
+    }
+
+    $maquinarias = $query->get();
+
+    $usuario = Auth::check() ? Auth::user() : null;
+    $layout = session('layout', 'layouts.visitante');
+
+    return view('maquinarias.index', compact('maquinarias', 'usuario', 'layout'));
+}
 
     // Mostrar una maquinaria
     public function show($id_maquinaria)
@@ -208,4 +238,6 @@ public function destroy(Maquinaria $maquinaria)
 
         return redirect()->route('catalogo.index')->with('success', 'Maquinaria actualizada exitosamente.');
     }
+
+    
 }
