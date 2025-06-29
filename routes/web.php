@@ -82,6 +82,15 @@ Route::prefix('admin')->group(function () {
     Route::get('/maquinarias/create', [MaquinariaController::class, 'create'])->name('maquinarias.create');
     Route::post('/maquinarias', [MaquinariaController::class, 'store'])->name('maquinarias.store');
 
+    Route::prefix('estadisticas')->group(function () {
+        // Esta es la ruta para "Nuevos Clientes Registrados"
+        Route::get('/nuevos-clientes', [EstadisticaController::class, 'showNewClientsStatistics'])->name('admin.estadisticas.nuevos-clientes')->middleware('checkUserType:admin');
+        
+        // Rutas placeholder para las otras estadísticas, se implementarán más adelante
+        Route::get('/maquinas-mas-alquiladas', [EstadisticaController::class, 'showMostRentedMachineryStatistics'])->name('admin.estadisticas.maquinas-mas-alquiladas')->middleware('checkUserType:admin');
+        Route::get('/ingresos', [EstadisticaController::class, 'showIncomeStatistics'])->name('admin.estadisticas.ingresos')->middleware('checkUserType:admin');
+    });
+
 });
 
 // Edicion de maquinarias
@@ -107,5 +116,3 @@ Route::get('/procesar-pago/tarjeta', [PagoController::class, 'mostrarFormularioT
 Route::post('/procesar-pago/tarjeta', [PagoController::class, 'procesarPagoTarjeta'])->name('procesar.pago.tarjeta');
 
 
-// Estadisticas
-Route::get('/estadisticas', [EstadisticaController::class, 'showStatistics'])->name('admin.estadisticas')->middleware('checkUserType:admin');
