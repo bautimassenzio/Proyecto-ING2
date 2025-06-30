@@ -28,7 +28,7 @@ class LoginController extends Controller
         return redirect()->route('/'); // Redirigís a la ruta GET
         }
 
-    // Lofin de un usuario
+    // Login de un usuario
     public function login (Request $request){
         $credentials = $request->only('email', 'password');
         $user= Usuario::where('email', $credentials['email'])

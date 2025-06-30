@@ -18,7 +18,16 @@
         <i class="fas fa-cogs me-1"></i> Maquinarias
     </a>
 </li>
+<div class="dropdown">
+<a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+            <i class="fas fa-user-times"></i>   Dar de baja
+        </a>
 
+  <ul class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+    <li><a class="dropdown-item" href="{{ url('listaClientes') }}">Cliente</a></li>
+    <li><a class="dropdown-item" href="{{ url('listaEmpleados') }}">Empleado</a></li>
+  </ul>
+</div>
    <!-- <li class="nav-item">
         <a class="nav-link" href="#">
             <i class="fas fa-clipboard-list me-1"></i> Pedidos

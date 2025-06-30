@@ -26,6 +26,7 @@
         <i class="fas fa-cogs me-1"></i> Maquinarias
     </a>
 </li>
+
 <li class="nav-item">
     <a class="nav-link {{ request()->is('clientes') ? 'active' : '' }}" href="{{ url('clientes') }}">
         <i class="fas fa-users-cog me-1"></i> Clientes

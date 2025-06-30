@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use App\Domain\Reserva\Models\Reserva;
 
-class ClienteController extends Controller
+class ClienteController extends Controller // Logica para crear clientes, desde empleado o cuenta propia
 {
     
     // Funcion para verificar la validez de los datos al registrar un cliente, si son correctos se almacena el cliente
@@ -101,7 +101,7 @@ class ClienteController extends Controller
         return back()->with('error', 'No se puede eliminar una cuenta con reservas activas');
     }
     Auth::guard('users')->logout(); // cierra sesión
-    UsuarioController::logicDelete($usuario->email); //Borrado logico, se implementa en usuario ya que tambien se pueden borrar empleados
+    UsuarioController::logicDelete($usuario->dni); //Borrado logico, se implementa en usuario ya que tambien se pueden borrar empleados
     session()->forget('layout');
     return redirect('/')->with('success', 'Tu cuenta fue eliminada correctamente.');
 }

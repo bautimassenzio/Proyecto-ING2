@@ -38,13 +38,17 @@ Route::get('/exitoRegister', [ViewsController::class, 'exitoRegister']);
 Route::get('/eliminarCuenta', [ViewsController::class, 'vistaEliminarCuenta'])->middleware('checkUserType:cliente')->name('eliminarCuenta');
 Route::delete('/eliminarCuenta', [ClienteController::class, 'eliminarCuentaPropia'])->middleware('checkUserType:cliente')->name('eliminarCuentaPost');
 
+//Listas paginadas para que admin vea
+Route::get('listaClientes', [UsuarioController::class, 'getClientes'])->middleware('checkUserType:admin')->name('getClientes');
+Route::get('listaEmpleados', [UsuarioController::class, 'getEmpleados'])->middleware('checkUserType:admin')->name('getEmpleados');
+
 // Operaciones que solo pueden realizar empleado y admin
 Route::middleware(['checkUserType:empleado,admin'])->group(function () {
     Route::get('/users', [UsuarioController::class, 'getUsuarios']);
     Route::get('/users/{id}',[UsuarioController::class, 'getUsuario']);
     Route::post('/users',[UsuarioController::class, 'store'] );
     Route::put('/users/{id}',[UsuarioController::class, 'update']);
-    Route::delete('/users/{id}',[UsuarioController::class, 'delete']);
+    Route::delete('/users/{dni}',[UsuarioController::class, 'delete']);
 });
 
 

@@ -5,10 +5,13 @@ namespace App\Http\Controllers\Web\Users;
 
 use App\Domain\User\Models\Usuario;
 use App\Enums\Estados;
+use App\Enums\Roles;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use App\Http\Controllers\Web\Users\ViewsController;
+use App\Domain\Reserva\Models\Reserva;
 
 
 class UsuarioController extends Controller
@@ -19,13 +22,25 @@ class UsuarioController extends Controller
         return Usuario::all();
     }
 
+    //Obtener todos los empleados con paginacion
+    public function getEmpleados(){
+        $usuarios = Usuario::where('rol', Roles::EMPLEADO)->paginate(10); // 10 por página
+        return view('eliminarUsuario', compact('usuarios'));
+    }
+
+    //Obtener todos los clientes con paginacion
+    public function getClientes() {
+        $usuarios = Usuario::where('rol', Roles::CLIENTE)->paginate(10); // 10 por página
+        return view('eliminarUsuario', compact('usuarios'));
+    }   
+
     // Obtener usuario por DNI (GET)
     public function getUsuario($dni){ 
         $usuario = Usuario::where('dni', $dni)->first(); //Busqueda por DNI
         if (!$usuario) {
             return response()->json(['mensaje' => 'Usuario no encontrado'], 404);
         }
-        return response()->json($usuario);
+        return ($usuario);
     }
 
     // Actualizar usuario por DNI (PUT)
@@ -60,18 +75,19 @@ class UsuarioController extends Controller
         return response()->json(['mensaje' => 'Usuario actualizado con éxito', 'usuario' => $usuario]);
     }
 
-    // Eliminar fisica de usuario por DNI (DELETE)
+    // Eliminar Logica de usuario por DNI (DELETE)
     public function delete($dni)
     {
-        $usuario = Usuario::where('dni', $dni)->first();
-
-        if (!$usuario) {
-            return response()->json(['mensaje' => 'Usuario no encontrado'], 404);
-        }
-
-        $usuario->delete();
-
-        return response()->json(['mensaje' => 'Usuario eliminado con éxito']);
+            $usuario= $this->getUsuario($dni);
+            $rol=$usuario->rol;
+            if ($rol=='cliente' && Reserva::where('id_cliente', $usuario->id_usuario) 
+                    ->whereIn('estado', ['aprobada', 'activa'])
+                    ->exists()){ // Verifico que no tenga reservas activas
+                return back()->with('error', 'No se puede eliminar una cuenta con reservas activas');
+            }
+            UsuarioController::logicDelete($usuario->dni); //Borrado logico, se implementa en usuario ya que tambien se pueden borrar empleados
+            session()->forget('layout');
+            return redirect()->back()->with('success', 'Usuario eliminado correctamente.');   
     }
 
    // Actualizar contraseña de un usuario 
@@ -104,8 +120,8 @@ class UsuarioController extends Controller
     }   
 
     //Eliminacion logica de un usuario o empleado en la DB
-    public static function logicDelete($email) { 
-        $usuario = Usuario::where('email', $email)->first();
+    public static function logicDelete($dni) { 
+        $usuario = Usuario::where('dni', $dni)->first();
         $usuario->update([
             'estado' => Estados::INACTIVO, //Paso el estado del usuario a inactivo
         ]);
