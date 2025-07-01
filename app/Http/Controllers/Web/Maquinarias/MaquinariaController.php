@@ -7,6 +7,7 @@ use App\Domain\Maquinaria\Models\Politica;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Log;
 
 class MaquinariaController extends Controller
 {
@@ -84,23 +85,30 @@ class MaquinariaController extends Controller
     // Dar de baja maquinaria (solo admin)
     public function destroy(Maquinaria $maquinaria)
     {
-        $maquinaria->estado = 'inactiva';
-        $maquinaria->save();
-        $maquinarias = Maquinaria::all(); // O Maquinaria::where('estado', 'disponible')->get(); etc.
+        // --- INICIO: REGISTRO DE DEPURACIÓN EN EL CONTROLADOR ---
+        Log::info('Destroy method called for maquinaria ID: ' . $maquinaria->id_maquinaria);
+        // --- FIN: REGISTRO DE DEPURACIÓN ---
 
-        // 3. Obtener el usuario autenticado (si lo necesitas para la vista)
-        $usuario = Auth::guard('users')->user(); // Asumiendo que tu guard es 'users'
+        try {
+            $deleted = $maquinaria->delete(); // Esta llamada debería disparar el evento 'deleting'
 
-        // 4. Obtener el layout de la sesión (si lo usas para la vista)
-        $layout = session('layout');
-
-
-        // 5. Redirigir a la vista de índice con los datos necesarios
-        //    Es más común y mejor práctica REDIRIGIR a la ruta del índice
-        //    en lugar de devolver directamente la vista después de una acción POST/DELETE.
-        //    Esto evita problemas como reenviar el formulario al recargar la página.
-        return redirect()->route('catalogo.index')->with('success', 'Maquinaria dada de baja exitosamente.');
-
+            if ($deleted) {
+                Log::info('Maquinaria ID ' . $maquinaria->id_maquinaria . ' successfully soft-deleted.');
+                return redirect()->route('catalogo.index')->with('success', 'Maquinaria dada de baja exitosamente.');
+            } else {
+                Log::warning('Maquinaria ID ' . $maquinaria->id_maquinaria . ' deletion returned false (likely due to active reservations).');
+                return redirect()->route('catalogo.index')->with('error', 'No se puede dar de baja la maquinaria porque tiene reservas activas.');
+            }
+        } catch (QueryException $e) {
+            Log::error('QueryException caught during Maquinaria deletion for ID ' . $maquinaria->id_maquinaria . ': ' . $e->getMessage());
+            if ($e->getCode() === '23000' && str_contains($e->getMessage(), '1451')) {
+                return redirect()->route('catalogo.index')->with('error', 'ERROR: La maquinaria no pudo ser dada de baja. Aún tiene reservas activas o relacionadas en la base de datos.');
+            }
+            throw $e; // Vuelve a lanzar la excepción si no es una violación de FK específica.
+        } catch (\Exception $e) {
+            Log::error('Unexpected exception caught during Maquinaria deletion for ID ' . $maquinaria->id_maquinaria . ': ' . $e->getMessage());
+            return redirect()->route('catalogo.index')->with('error', 'Ocurrió un error inesperado al intentar dar de baja la maquinaria: ' . $e->getMessage());
+        }
     }
 
     /**

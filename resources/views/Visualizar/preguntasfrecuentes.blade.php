@@ -1,87 +1,99 @@
-{{-- resources/views/faqs/index.blade.php --}}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Preguntas Frecuentes</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f6f8;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
 
-@extends('layouts.base') {{-- ¡Asegúrate de que 'layouts.base' sea el nombre correcto de tu layout! --}}
+        .faq-container {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            width: 80%;
+            max-width: 960px;
+        }
 
-@section('title', 'Preguntas Frecuentes') {{-- Título específico para esta página --}}
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
 
-{{-- Opcional: Define la navegación si la necesitas para esta vista --}}
-@section('navigation')
-    @auth('users')
-        <li class="nav-item">
-            <a class="nav-link" href="{{ route('catalogo.index') }}">Catálogo</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" href="{{ route('reservas.index') }}">Mis Reservas</a>
-        </li>
-    @else
-        <li class="nav-item">
-            <a class="nav-link" href="{{ route('login') }}">Login</a>
-        </li>
-        @if (Route::has('register'))
-            <li class="nav-item">
-                <a class="nav-link" href="{{ route('register') }}">Registrarse</a>
-            </li>
-        @endif
-    @endauth
-    <li class="nav-item">
-        <a class="nav-link active" aria-current="page" href= >Preguntas Frecuentes</a>
-    </li>
-@endsection
+        .faq-item {
+            margin-bottom: 25px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 20px;
+        }
 
-@section('content')
-<div class="row justify-content-center">
-    <div class="col-md-10 col-lg-8"> {{-- Un poco más ancha para las FAQs --}}
-        <h1 class="text-center mb-4">Preguntas Frecuentes</h1>
+        .faq-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
 
-        {{-- Puedes usar la estructura de acordeón de Bootstrap para una mejor UX
-             en lugar del JavaScript manual, pero adaptamos tu estructura actual
-             para la compatibilidad. --}}
+        .question {
+            color: #007bff;
+            font-weight: bold;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
 
-        <div class="faq-list"> {{-- Contenedor opcional para los ítems de FAQ --}}
-            <div class="faq-item mb-4 pb-3 border-bottom"> {{-- Clases de Bootstrap para margen y borde --}}
-                <h2 class="question text-primary mb-2" style="cursor: pointer;">¿Cuáles son los requisitos para alquilar maquinaria?</h2> {{-- Mantengo tu estilo y cursor --}}
-                <div class="answer" style="display: none;"> {{-- Oculto por defecto, se maneja con JS --}}
-                    <p class="text-secondary">Para alquilar nuestras máquinas, generalmente solicitamos:</p>
-                </div>
-            </div>
+        .answer {
+            color: #555;
+            line-height: 1.6;
+            display: none; /* Inicialmente oculto */
+        }
 
-            <div class="faq-item mb-4 pb-3 border-bottom">
-                <h2 class="question text-primary mb-2" style="cursor: pointer;">¿Qué sucede si la maquinaria se daña o sufre una avería durante el período de alquiler?</h2>
-                <div class="answer" style="display: none;">
-                    <p class="text-secondary">Es importante notificar cualquier daño o avería de inmediato. Nuestro contrato de alquiler especifica las responsabilidades.</p>
-                </div>
-            </div>
-
-            <div class="faq-item mb-0 pb-0"> {{-- Último ítem sin borde inferior ni margen --}}
-                <h2 class="question text-primary mb-2" style="cursor: pointer;">¿Existe un tiempo mínimo y máximo de alquiler? ¿Se pueden extender los plazos?</h2>
-                <div class="answer" style="display: none;">
-                    <p class="text-secondary">Sí, contamos con diferentes modalidades de alquiler para adaptarnos a tus necesidades.</p>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-@endsection
-
-@section('additional-scripts')
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const faqItems = document.querySelectorAll('.faq-item');
-        faqItems.forEach(item => {
-            const question = item.querySelector('.question');
-            question.addEventListener('click', function() {
-                // Alternar la clase 'active' para mostrar/ocultar la respuesta
-                item.classList.toggle('active');
-
-                // También puedes alternar la visibilidad directa del answer div si prefieres
-                const answer = item.querySelector('.answer');
-                if (answer.style.display === 'none') {
-                    answer.style.display = 'block';
-                } else {
-                    answer.style.display = 'none';
-                }
+        .faq-item.active .answer {
+            display: block;
+        }
+    </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const faqItems = document.querySelectorAll('.faq-item');
+            faqItems.forEach(item => {
+                const question = item.querySelector('.question');
+                question.addEventListener('click', function() {
+                    item.classList.toggle('active');
+                });
             });
         });
-    });
-</script>
-@endsection
+    </script>
+</head>
+<body>
+    <div class="faq-container">
+        <h1>Preguntas Frecuentes</h1>
+
+        <div class="faq-item">
+            <h2 class="question">¿Cuál es su política de cancelación?</h2>
+            <div class="answer">
+                <p>Nuestra política de cancelación permite cancelaciones hasta 24 horas antes de la fecha de llegada para recibir un reembolso completo. Las cancelaciones posteriores no son reembolsables.</p>
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <h2 class="question">¿A qué hora es el check-in y el check-out?</h2>
+            <div class="answer">
+                <p>El check-in es a partir de las 3:00 PM y el check-out es a las 12:00 PM.</p>
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <h2 class="question">¿Se admiten mascotas?</h2>
+            <div class="answer">
+                <p>Lo sentimos, no se admiten mascotas en nuestras instalaciones.</p>
+            </div>
+        </div>
+
+        </div>
+</body>
+</html>
+>>>>>>> origin/bautimerge

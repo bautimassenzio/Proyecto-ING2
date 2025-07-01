@@ -47,4 +47,12 @@ class Reserva extends Model
     {
         return $this->belongsTo(Usuario::class, 'id_empleado', 'id_usuario');
     }
+
+     // Método para verificar si la reserva está activa
+    public function scopeActivas($query)
+    {
+        // Define aquí qué significa "activa" para una reserva
+        // Por ejemplo, que el estado_reserva sea 'activa' o 'pendiente'
+        return $query->whereIn('estado_reserva', ['aprobada', 'pendiente']);
+    }
 }

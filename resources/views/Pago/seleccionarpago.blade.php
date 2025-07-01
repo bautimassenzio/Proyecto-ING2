@@ -1,52 +1,77 @@
-{{-- resources/views/pago/seleccionar.blade.php (o la ruta a tu archivo) --}}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Seleccionar método de pago</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f6f8;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
 
-@extends('layouts.base') {{-- Asegúrate de que 'layouts.base' sea el nombre correcto de tu layout --}}
+        .payment-container {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            width: 400px;
+            max-width: 95%;
+            text-align: center;
+        }
 
-@section('title', 'Seleccionar Método de Pago') {{-- Título específico para esta página --}}
+        h1 {
+            color: #333;
+            font-size: 24px;
+            margin-bottom: 30px;
+        }
 
-{{-- Si necesitas navegación específica para usuarios logueados que están en el proceso de pago, puedes definirla aquí --}}
-@section('navigation')
-    {{-- Ejemplo de navegación si el usuario ya está autenticado --}}
-    @auth('users')
-        <li class="nav-item">
-            <a class="nav-link" href="{{ route('catalogo.index') }}">Catálogo</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" href="{{ route('reservas.index') }}">Mis Reservas</a>
-        </li>
-        {{-- Podrías tener un enlace de "Volver" si aplica --}}
-        <li class="nav-item">
-            <a class="nav-link" href="javascript:history.back()">Volver</a>
-        </li>
-    @endauth
-@endsection
+        .payment-option {
+            margin-bottom: 20px;
+        }
 
-@section('content')
-<div class="row justify-content-center">
-    <div class="col-md-6 col-lg-5">
-        <h1 class="text-center mb-4">Seleccione Método de Pago</h1>
+        .payment-option button[type="submit"] {
+            background-color: #007bff;
+            color: white;
+            padding: 14px 18px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            box-sizing: border-box;
+            transition: background-color 0.2s ease-in-out;
+        }
 
-        <div class="d-grid gap-3"> {{-- Usamos d-grid y gap-3 de Bootstrap para espaciar botones --}}
+        .payment-option button[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+
+        .payment-option:last-child {
+            margin-bottom: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="payment-container">
+        <h1>Seleccione método de pago</h1>
+
+        <div class="payment-option">
             <form action="{{ route('pago.procesar') }}" method="POST">
                 @csrf
-                {{-- Aplicamos las clases de botón de tu layout y Bootstrap --}}
-                <button type="submit" class="btn btn-primary w-100 py-3">Pagar con Mercado Pago</button>
+                <button type="submit">Pagar con Mercado Pago</button>
             </form>
+        </div>
 
-            <div class="d-grid gap-3"> {{-- Usamos d-grid y gap-3 de Bootstrap para espaciar botones --}}
+        <div class="payment-option">
             <form action="{{ route('pago.procesar.tarjeta') }}" method="GET">
-                @csrf
-                {{-- Aplicamos las clases de botón de tu layout y Bootstrap --}}
-                <button type="submit" class="btn btn-primary w-100 py-3">Pagar con Tarjeta</button>
+                <button type="submit">Pagar con Tarjeta</button>
             </form>
         </div>
     </div>
-</div>
-@endsection
-
-{{-- Si necesitas scripts JS adicionales solo para esta vista, los pondrías aquí --}}
-@section('additional-scripts')
-<script>
-    // Scripts JS específicos para la selección de pago
-</script>
-@endsection
+</body>
+</html>
+>>>>>>> origin/bautimerge

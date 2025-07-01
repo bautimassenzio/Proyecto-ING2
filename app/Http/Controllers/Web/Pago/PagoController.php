@@ -6,12 +6,13 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use MercadoPago\SDK;
 use App\Domain\Pago\Models\Pago;
+use App\Domain\Pago\Models\ValidCard;
 use App\Domain\Reserva\Models\Reserva;
 use App\Domain\User\Models\Usuario;
 use App\Mail\ConfirmacionReserva;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log; // Agrega esta línea para usar el log de Laravel
-use App\Domain\Pago\Models\ValidCard;
+
 
 class PagoController extends Controller
 {
@@ -33,7 +34,7 @@ class PagoController extends Controller
             return redirect()->route('reservas.create')->withErrors(['error' => 'Reserva no encontrada.']);
         }
 
-        // 2. Verificar el valor del total de la reserva
+        // 2. Verificar el valor del total de la reserva //holaaa
         if (!isset($reserva->total) || !is_numeric($reserva->total) || $reserva->total <= 0) {
             Log::error('Mercado Pago: El total de la reserva es inválido o cero. Total: ' . $reserva->total . ' para Reserva ID: ' . $idreserva);
             return redirect()->route('reservas.create')->withErrors(['error' => 'El monto de la reserva es inválido para el pago.']);
@@ -51,7 +52,8 @@ class PagoController extends Controller
 $failureUrl = route('pago.fallo');
 $pendingUrl = route('pago.pendiente');
 
-$ngrokBase = 'https://ce24-181-23-144-16.ngrok-free.app'; // tu URL actual de ngrok
+$ngrokBase = 'https://c8e1-190-18-16-103.ngrok-free.app'; // tu URL actual de ngrok
+
 
 $preference->back_urls = [
     "success" => $ngrokBase . '/pago/exito',
@@ -160,25 +162,17 @@ $preference->back_urls = [
         return view('pago.botonhome', compact('mensaje'));
     }
 
-    public function mostrarFormularioTarjeta()
-    {   
-        // Recuperar el id_reserva de la sesión
-        $reserva_id = session('reserva_id');
+     public function mostrarFormularioTarjeta()
+    {
+        return view('pago.formulario_tarjeta'); // Asegúrate de que esta vista exista
 
-        // Opcional: Si el id_reserva no está en la sesión, puedes redirigir o mostrar un error
-        if (empty($reserva_id)) {
-            Log::warning('Pago Tarjeta: Intento de acceder al formulario sin reserva_id en sesión.');
-            return redirect()->route('reservas.create')->withErrors(['error' => 'No hay una reserva activa para procesar.']);
-        }
-
-        // Pasar el id_reserva a la vista del formulario de la tarjeta
-        return view('pago.formulario_tarjeta', compact('reserva_id'));
     }
 
     public function procesarPagoTarjeta(Request $request)
     {
         // 1. Validar los datos del formulario
         $request->validate([
+
             'card_number' => 'required|string', // Considera 'digits:19' si esperas el formato con espacios o ajusta el patrón
             'expiry_month' => 'required|digits:2|min:1|max:12',
             'expiry_year' => 'required|digits:2',
@@ -202,13 +196,15 @@ $preference->back_urls = [
         }
 
         // 4. Buscar una tarjeta que coincida en la base de datos (simulación)
+
+
         $tarjetaValida = ValidCard::where('card_number', $request->input('card_number'))
             ->where('expiry_month', $request->input('expiry_month'))
             ->where('expiry_year', $request->input('expiry_year'))
             ->where('cvv', $request->input('cvv'))
             ->first();
 
-        // 5. Procesar el pago si la tarjeta es válida
+
         if ($tarjetaValida) {
             // Simulación de pago exitoso
             $mensaje = '✅ Pago exitoso. Confirmamos tu reserva.';
@@ -218,7 +214,4 @@ $preference->back_urls = [
             return view('pago.botonhome', compact('mensaje'));
         }
     }
-    
-
-
 }
