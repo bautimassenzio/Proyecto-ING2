@@ -24,14 +24,29 @@
                 </div>
 
                 <div class="col-md-2">
-                    <label for="uso" class="form-label">Tipo de Uso</label>
-                    <input type="text" name="uso" id="uso" class="form-control" value="{{ request('uso') }}">
+                    <label for="tipo_de_uso_id" class="form-label">Tipo de Uso</label>
+                    <select name="tipo_de_uso_id" id="tipo_de_uso_id" class="form-control">
+                        <option value="">Todos</option>
+                        @foreach($tiposDeUso as $tipo)
+                            <option value="{{ $tipo->id }}" {{ request('tipo_de_uso_id') == $tipo->id ? 'selected' : '' }}>
+                                {{ $tipo->nombre }}
+                            </option>
+                        @endforeach
+                    </select>
                 </div>
 
                 <div class="col-md-2">
-                    <label for="localidad" class="form-label">Localidad</label>
-                    <input type="text" name="localidad" id="localidad" class="form-control" value="{{ request('localidad') }}">
+                    <label for="localidad_id" class="form-label">Localidad</label>
+                    <select name="localidad_id" id="localidad_id" class="form-control">
+                        <option value="">Todas</option>
+                        @foreach($localidades as $localidad)
+                            <option value="{{ $localidad->id }}" {{ request('localidad_id') == $localidad->id ? 'selected' : '' }}>
+                                {{ $localidad->nombre }}
+                            </option>
+                        @endforeach
+                    </select>
                 </div>
+
 
                 <div class="col-md-2">
                     <label for="tipo_energia" class="form-label">Tipo de Energía</label>
@@ -76,7 +91,7 @@
                         <p class="card-text">
                             <strong>Precio por día:</strong> ${{ $maquinaria->precio_dia }}<br>
                             <strong>Estado:</strong> {{ ucfirst($maquinaria->estado) }}<br>
-                            <strong>Localidad:</strong> {{ $maquinaria->localidad }}<br>
+                            <strong>Localidad:</strong> {{ $maquinaria->localidad->nombre ?? 'No especificada' }}<br>
                             <strong>Descripción:</strong> {{ $maquinaria->descripcion }}
                         </p>
                     </div>

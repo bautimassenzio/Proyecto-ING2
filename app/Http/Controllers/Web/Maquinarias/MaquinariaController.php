@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Web\Maquinarias;
 use App\Http\Controllers\Controller;
 use App\Domain\Maquinaria\Models\Maquinaria;
 use App\Domain\Maquinaria\Models\Politica;
+use App\Domain\Maquinaria\Models\Localidad;
+use App\Domain\Maquinaria\Models\TipoDeUso;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
@@ -39,12 +41,12 @@ class MaquinariaController extends Controller
         $query->where('precio_dia', '<=', $request->input('precio_max'));
     }
 
-    if ($request->filled('uso')) {
-        $query->where('uso', $request->input('uso'));
+    if ($request->filled('tipo_de_uso_id')) {
+        $query->where('tipo_de_uso_id', $request->input('tipo_de_uso_id'));
     }
 
-    if ($request->filled('localidad')) {
-        $query->where('localidad', $request->input('localidad'));
+    if ($request->filled('localidad_id')) {
+        $query->where('localidad_id', $request->input('localidad_id'));
     }
 
     if ($request->filled('tipo_energia')) {
@@ -58,10 +60,14 @@ class MaquinariaController extends Controller
     $maquinarias = $query->get();
 
     $usuario = Auth::check() ? Auth::user() : null;
+    $tiposDeUso = TipoDeUso::all();
+    $localidades = Localidad::all();  
+
     $layout = session('layout', 'layouts.visitante');
 
-    return view('maquinarias.index', compact('maquinarias', 'usuario', 'layout'));
+    return view('maquinarias.index', compact('maquinarias', 'usuario', 'layout', 'tiposDeUso', 'localidades'));
 }
+
 
     // Mostrar una maquinaria
     public function show($id_maquinaria)
@@ -81,8 +87,10 @@ class MaquinariaController extends Controller
     public function create()
     {
         $politicas = Politica::all();
+         $localidades = Localidad::all();       // Traigo todas las localidades
+        $tiposDeUso = TipoDeUso::all(); 
         $layout=session('layout');
-        return view('maquinarias.createMaq', compact('politicas','layout'));
+        return view('maquinarias.createMaq', compact('politicas','layout', 'localidades', 'tiposDeUso'));
     }
 
     // Guardar maquinaria (solo admin)
@@ -95,10 +103,10 @@ class MaquinariaController extends Controller
             'marca' => 'required|string|max:255',
             'modelo' => 'required|string|max:255',
             'anio' => 'required|integer|min:1900|max:' . date('Y'),
-            'uso' => 'required|string|max:100',
+            'uso' => 'required|integer|exists:tipos_de_uso,id',
             'tipo_energia' => 'required|string|in:electrica,combustion',
             'estado' => 'required|string|in:disponible,inactiva',
-            'localidad' => 'required|string|max:100',
+            'localidad' => 'required|integer|exists:localidades,id', 
             'id_politica' => 'required|integer|exists:politicas,id_politica',
             'descripcion' => 'required|string|max:1000',
         ], [
@@ -158,14 +166,16 @@ public function destroy(Maquinaria $maquinaria)
 
 
     // Muestra el formulario para editar una maquinaria existente.
-    public function edit(Maquinaria $maquinaria)
-    {
-        // El Route Model Binding (Maquinaria $maquinaria) ya busca la maquinaria
-        // por su ID y la inyecta directamente. Si no la encuentra, Laravel arroja un 404.
-        $politicas = Politica::all(); // Si necesitas políticas para un select en el form
-        $layout=session('layout','layouts.base');
-        return view('Maquinarias.edit', compact('maquinaria', 'politicas','layout'));
-    }
+   public function edit(Maquinaria $maquinaria)
+{
+    $politicas = Politica::all();
+    $localidades = Localidad::all();       // Traigo todas las localidades
+    $tiposDeUso = TipoDeUso::all();        // Traigo todos los tipos de uso
+    $layout = session('layout','layouts.base');
+
+    return view('Maquinarias.edit', compact('maquinaria', 'politicas', 'localidades', 'tiposDeUso', 'layout'));
+}
+
 
     // Actualiza una maquinaria existente en la base de datos.
     public function update(Request $request, Maquinaria $maquinaria)
@@ -182,9 +192,9 @@ public function destroy(Maquinaria $maquinaria)
                 'precio_dia' => 'sometimes|required|numeric|min:1',
                 'marca' => 'sometimes|required|string|max:255',
                 'modelo' => 'sometimes|required|string|max:255',
-                'localidad' => 'sometimes|required|string|max:255',
+                'localidad' => 'sometimes|required|integer|exists:localidades,id', 
                 'anio' => 'sometimes|required|integer|min:1900|max:' . (date('Y') + 1),
-                'uso' => 'sometimes|required|string|max:255',
+                'uso' => 'sometimes|required|integer|exists:tipos_de_uso,id', 
                 'tipo_energia' => 'sometimes|required|string|in:electrica,combustion',
                 'estado' => 'sometimes|required|string|in:disponible,inactiva',
                 'foto_url' => 'sometimes|required|image|mimes:jpg,jpeg,png|max:5120',
@@ -238,6 +248,4 @@ public function destroy(Maquinaria $maquinaria)
 
         return redirect()->route('catalogo.index')->with('success', 'Maquinaria actualizada exitosamente.');
     }
-
-    
 }
