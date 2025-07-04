@@ -8,6 +8,9 @@ use Carbon\Carbon;
 use App\Domain\User\Models\Usuario;
 use App\Enums\Roles;
 use Carbon\CarbonPeriod;
+use App\Domain\Pago\Models\Pago;
+use App\Domain\Reserva\Models\Reserva; // Importa el modelo Reserva
+use App\Domain\Maquinaria\Models\Maquinaria; // Importa el modelo Maquinaria
 
 class EstadisticaController extends Controller
 {
@@ -118,9 +121,59 @@ class EstadisticaController extends Controller
     public function showMostRentedMachineryStatistics(Request $request)
     {
         $layout = session('layout', 'layouts.admin');
-        // Aquí iría la lógica para obtener las máquinas más alquiladas
-        // Por ahora, solo devolveremos una vista simple.
-        return view('estadisticas.most-rented-machinery', compact('layout'));
+        $mostRentedMachinery = []; // Array para almacenar las máquinas más alquiladas
+        $chartLabels = []; // Etiquetas para el gráfico (nombres de maquinaria)
+        $chartData = [];   // Datos para el gráfico (cantidad de alquileres)
+
+        $fechaInicioStr = $request->input('fecha_inicio');
+        $fechaFinStr = $request->input('fecha_fin');
+
+        // Valores por defecto para el rango de fechas si no se proporcionan
+        if (!$fechaInicioStr) {
+            $fechaInicioStr = Carbon::now()->subMonths(12)->startOfMonth()->format('Y-m-d'); // Últimos 12 meses por defecto
+        }
+        if (!$fechaFinStr) {
+            $fechaFinStr = Carbon::now()->endOfMonth()->format('Y-m-d'); // Hasta fin del mes actual
+        }
+
+        try {
+            $fechaInicio = Carbon::parse($fechaInicioStr)->startOfDay();
+            $fechaFin = Carbon::parse($fechaFinStr)->endOfDay();
+
+            // Obtener las reservas en el rango de fechas
+            // Agrupar por id_maquinaria y contar las ocurrencias
+            $rentals = Reserva::selectRaw('id_maquinaria, COUNT(*) as count') // Seleccionar el conteo como 'count'
+                               ->whereBetween('fecha_inicio', [$fechaInicio, $fechaFin])
+                               ->groupBy('id_maquinaria')
+                               ->orderByDesc('count') // Usar orderByDesc con el alias 'count'
+                               ->limit(10) // Limitar a las 10 maquinarias más alquiladas
+                               ->get();
+
+            // Iterar sobre los resultados para obtener los nombres de las maquinarias y preparar los datos del gráfico
+            foreach ($rentals as $rental) {
+                $maquinaria = Maquinaria::find($rental->id_maquinaria);
+                if ($maquinaria) {
+                    // Combinar marca y modelo para el nombre
+                    $nombreMaquinaria = $maquinaria->marca . ' ' . $maquinaria->modelo; 
+                    
+                    $mostRentedMachinery[] = [
+                        'nombre' => $nombreMaquinaria,
+                        'cantidad_alquileres' => $rental->count,
+                    ];
+                    $chartLabels[] = $nombreMaquinaria;
+                    $chartData[] = $rental->count;
+                }
+            }
+
+        } catch (\Exception $e) {
+            \Log::error('Error al obtener estadísticas de maquinarias más alquiladas: ' . $e->getMessage());
+            $mostRentedMachinery = [];
+            $chartLabels = [];
+            $chartData = [];
+            session()->flash('error', 'Hubo un error al procesar los datos de maquinarias más alquiladas. Inténtalo de nuevo.');
+        }
+
+        return view('estadisticas.most-rented-machinery', compact('layout', 'mostRentedMachinery', 'chartLabels', 'chartData', 'fechaInicioStr', 'fechaFinStr'));
     }
 
     /**
@@ -133,8 +186,79 @@ class EstadisticaController extends Controller
     public function showIncomeStatistics(Request $request)
     {
         $layout = session('layout', 'layouts.admin');
-        // Aquí iría la lógica para obtener los ingresos
-        // Por ahora, solo devolveremos una vista simple.
-        return view('estadisticas.income', compact('layout'));
+        $totalIncome = 0;
+        $chartLabels = [];
+        $chartData = [];
+
+        $fechaInicioStr = $request->input('fecha_inicio');
+        $fechaFinStr = $request->input('fecha_fin');
+        $periodType = $request->input('period_type', 'month'); // Por defecto 'month'
+
+        // Valores por defecto para el rango de fechas si no se proporcionan
+        if (!$fechaInicioStr) {
+            $fechaInicioStr = Carbon::now()->subMonths(6)->startOfMonth()->format('Y-m-d');
+        }
+        if (!$fechaFinStr) {
+            $fechaFinStr = Carbon::now()->endOfMonth()->format('Y-m-d');
+        }
+
+        try {
+            $fechaInicio = Carbon::parse($fechaInicioStr)->startOfDay();
+            $fechaFin = Carbon::parse($fechaFinStr)->endOfDay();
+
+            // Obtener pagos completados en el rango de fechas
+            // Asumiendo que 'estado_pago' tiene un valor para pagos exitosos, por ejemplo 'completado' o 'aprobado'
+            $pagos = Pago::whereBetween('fecha_pago', [$fechaInicio, $fechaFin])
+                         ->where('estado_pago', 'completo') // Ajusta 'aprobado' al estado real de tus pagos completados
+                         ->get();
+
+            // Calcular el monto total de ingresos
+            $totalIncome = $pagos->sum('monto');
+
+            // Lógica para el gráfico de barras: Ingresos por mes o por semana
+            $groupedIncome = [];
+
+            if ($periodType === 'week') {
+                $period = CarbonPeriod::create($fechaInicio->startOfWeek(), '1 week', $fechaFin->endOfWeek());
+                foreach ($period as $date) {
+                    $weekLabel = 'Semana ' . $date->weekOfYear . ' (' . $date->year . ')';
+                    $chartLabels[] = $weekLabel;
+                    $groupedIncome[$weekLabel] = 0;
+                }
+
+                foreach ($pagos as $pago) {
+                    $date = Carbon::parse($pago->fecha_pago);
+                    $weekLabel = 'Semana ' . $date->weekOfYear . ' (' . $date->year . ')';
+                    if (isset($groupedIncome[$weekLabel])) {
+                        $groupedIncome[$weekLabel] += $pago->monto;
+                    }
+                }
+            } else { // Default: 'month'
+                $period = CarbonPeriod::create($fechaInicio->startOfMonth(), '1 month', $fechaFin->endOfMonth());
+                foreach ($period as $date) {
+                    $monthYear = $date->format('M Y');
+                    $chartLabels[] = $monthYear;
+                    $groupedIncome[$monthYear] = 0;
+                }
+
+                foreach ($pagos as $pago) {
+                    $monthYear = Carbon::parse($pago->fecha_pago)->format('M Y');
+                    if (isset($groupedIncome[$monthYear])) {
+                        $groupedIncome[$monthYear] += $pago->monto;
+                    }
+                }
+            }
+
+            $chartData = array_values($groupedIncome);
+
+        } catch (\Exception $e) {
+            \Log::error('Error al obtener estadísticas de ingresos: ' . $e->getMessage());
+            $totalIncome = 0;
+            $chartLabels = [];
+            $chartData = [];
+            session()->flash('error', 'Hubo un error al procesar los datos de ingresos. Inténtalo de nuevo.');
+        }
+
+        return view('estadisticas.income', compact('layout', 'totalIncome', 'chartLabels', 'chartData', 'periodType'));
     }
 }
