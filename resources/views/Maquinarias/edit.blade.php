@@ -41,13 +41,18 @@
         </div>
 
         <!-- Localidad -->
-        <div>
-            <label for="localidad" class="form-label">Localidad</label>
-            <input type="text" name="localidad" id="localidad"
-                   value="{{ old('localidad', $maquinaria->localidad) }}"
-                   class="form-control">
-            
-        </div>
+ <div>
+    <label for="localidad_id" class="form-label">Localidad</label>
+    <select name="localidad_id" id="localidad_id" class="form-control" required>
+        <option value="">Seleccione una localidad</option>
+        @foreach($localidades as $localidad)
+            <option value="{{ $localidad->id }}"
+                {{ old('localidad_id', $maquinaria->localidad_id) == $localidad->id ? 'selected' : '' }}>
+                {{ $localidad->nombre }}
+            </option>
+        @endforeach
+    </select>
+</div>
 
         <!-- Política de Cancelación -->
         <div>

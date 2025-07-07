@@ -5,6 +5,9 @@ namespace App\Domain\Maquinaria\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Domain\Reserva\Models\Reserva;
+use App\Domain\Maquinaria\Models\Localidad;
+use App\Domain\Maquinaria\Models\TipoDeUso;
+use App\Domain\Maquinaria\Models\Politica;
 
 
 class Maquinaria extends Model
@@ -20,10 +23,10 @@ class Maquinaria extends Model
         'precio_dia',
         'foto_url',
         'anio',
-        'uso',
+        'tipo_de_uso_id',
         'tipo_energia',
         'estado',
-        'localidad',
+        'localidad_id',
         'id_politica',
         'descripcion',
     ];
@@ -39,5 +42,16 @@ class Maquinaria extends Model
 {
     return $this->hasMany(Reserva::class, 'id_maquinaria');
 }
+
+public function tipoDeUso()
+{
+    return $this->belongsTo(TipoDeUso::class, 'tipo_de_uso_id', 'id');
+}
+
+public function localidad()
+{
+    return $this->belongsTo(Localidad::class, 'localidad_id', 'id');
+}
+
 
 }
