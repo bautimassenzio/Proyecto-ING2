@@ -18,7 +18,7 @@
 </li>
 <li class="nav-item">
     <a class="nav-link {{ request()->is('/') ? 'active' : '' }}" href="{{ url('/empleado/historial-clientes') }}">
-        <i class="fas fa-home me-1"></i> Consultar historial cliente
+        <i class="fas fa-users me-1"></i> Consultar historial cliente
     </a>
 </li>
 

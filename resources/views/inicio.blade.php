@@ -83,7 +83,7 @@
                         <i class="fas fa-tools"></i>
                     </div>
                     <h5 class="task-title">Devoluciones Pendientes</h5>
-                    <span class="task-count">2</span>
+                    
                 </div>
                 <p class="text-muted">Devoluciones esperando confirmacion</p>
                 <a href="{{ route('maquinarias.devoluciones-pendientes') }}" class="btn btn-outline-primary btn-sm">Ver Todos</a>
@@ -95,7 +95,7 @@
                         <i class="fas fa-tools"></i>
                     </div>
                     <h5 class="task-title">Entregas pendientes</h5>
-                    <span class="task-count">2</span>
+                   
                 </div>
                 <p class="text-muted">Entregas esperando confirmacion</p>
                 <a href="{{ route('reservas.listas-para-entregar') }}" class="btn btn-outline-primary btn-sm">Ver Todos</a>
