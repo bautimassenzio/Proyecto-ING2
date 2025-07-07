@@ -11,6 +11,11 @@ class ViewsController extends Controller
         return view('welcome');
     }
 
+    public function vistaRegistroEmpleado (){
+        $layout=session('layout', 'layouts.visitante');
+        return view('registrarEmpleado', compact('layout'));
+    }
+
     public function showLoginForm(){
         $layout=session('layout', 'layouts.visitante');
         return view('/auth/login', compact('layout'));

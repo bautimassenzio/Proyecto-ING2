@@ -1,6 +1,5 @@
 @extends('layouts.admin')
 
-
 @section('content')
 <table class="table table-hover table-borderless text-center align-middle mb-0">
     <thead>
@@ -64,5 +63,23 @@
     .usuario-row:hover {
     background-color: #f8f9fa;
 }
+
+.btn-success {
+            
+            border: none;
+            color: white;
+            font-weight: 600 !important;
+            padding: 0.75rem 1.5rem !important;
+            border-radius: 10px !important;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow);
+        }
+
+        .btn-success:hover {
+           
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
 </style>
 

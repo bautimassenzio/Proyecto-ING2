@@ -10,7 +10,6 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use App\Http\Controllers\Web\Users\ViewsController;
 use App\Domain\Reserva\Models\Reserva;
 
 
@@ -125,6 +124,15 @@ class UsuarioController extends Controller
         $usuario->update([
             'estado' => Estados::INACTIVO, //Paso el estado del usuario a inactivo
         ]);
+    }
+
+    //Reactiva la cuenta de un usuario
+    public static function activateUser($dni) { 
+        $usuario = Usuario::where('dni', $dni)->first();
+        $usuario->update([
+            'estado' => Estados::ACTIVO, 
+        ]);
+        return redirect()->back()->with('success', 'Usuario dado de alta correctamente.');
     }
 
 

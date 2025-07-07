@@ -7,6 +7,7 @@ use App\Http\Controllers\Web\Pago\PagoController;
 use App\Http\Controllers\Web\Maquinarias\MaquinariaController;
 use App\Http\Controllers\Web\Users\AdminController;
 use App\Http\Controllers\Web\Users\ClienteController;
+use App\Http\Controllers\Web\Users\EmpleadoController;
 use App\Http\Controllers\Web\Users\UsuarioController;
 use App\Http\Controllers\Web\Users\ViewsController; //Controller donde se redirecciona a las vistas
 
@@ -16,9 +17,12 @@ Route::get('/', [ViewsController::class, 'vistaInicio'])->name('/');
 // Operaciones de registro
 Route::get('/register', [ViewsController::class, 'vistaRegistro']);
 Route::post('/register', [ClienteController::class, 'storeClient'])->name('register');
-Route::get('/registerByEmployee', [ViewsController::class, 'vistaRegistroPorEmpleado']);
-Route::post('/registerByEmployee', [ClienteController::class, 'crearContraseña'])->name('registerByEmployee');
+Route::get('/registerByEmployee', [ViewsController::class, 'vistaRegistroPorEmpleado'])->middleware('checkUserType:empleado');
+Route::post('/registerByEmployee', [ClienteController::class, 'crearContraseña'])->middleware('checkUserType:empleado')->name('registerByEmployee');
+Route::get('/registerEmployee', [ViewsController::class, 'vistaRegistroEmpleado'])->middleware('checkUserType:admin')->name('registerEmployee');
+Route::post('registerEmployee', [EmpleadoController::class, 'store'])->middleware('checkUserType:admin')->name('registerEmployee');;
 
+// Cambio de contraseña
 Route::get('/passwordReset', [ViewsController::class, 'vistaCambioContraseña'])->name('passwordReset')->middleware('auth:users');
 Route::post('/passwordReset', [UsuarioController::class, 'updatePassword'])->name('passwordReset')->middleware('auth:users');
 
@@ -49,6 +53,7 @@ Route::middleware(['checkUserType:empleado,admin'])->group(function () {
     Route::post('/users',[UsuarioController::class, 'store'] );
     Route::put('/users/{id}',[UsuarioController::class, 'update']);
     Route::delete('/users/{dni}',[UsuarioController::class, 'delete']);
+    Route::post('/users/{dni}/activate', [UsuarioController::class, 'activateUser'] );
 });
 
 

@@ -2,68 +2,75 @@
 
 @section('navigation')
 
-<li class="nav-item">
+<li class="nav-item text-center">
     <a class="nav-link {{ request()->is('/') ? 'active' : '' }}" href="{{ url('/') }}">
-        <i class="fas fa-home me-1"></i> Inicio
+        <i class="fas fa-house me-1"></i> Inicio
     </a>
 </li>
 
-<li class="nav-item">
+<li class="nav-item text-center">
     <a class="nav-link {{ request()->is('admin/maquinarias/create') ? 'active' : '' }}" href="{{ url('admin/maquinarias/create') }}">
-        <i class="fas fa-cogs me-1"></i> Agregar maquinarias
+        <i class="fas fa-wrench me-1"></i> Agregar maquinarias
     </a>
 </li>
-<li class="nav-item">
-    <a class="nav-link {{ request()->is('catalogo') ? 'active' : '' }}" href="{{ url('catalogo') }}">
-        <i class="fas fa-cogs me-1"></i> Maquinarias
-    </a>
-</li>
-<div class="dropdown">
-<a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-            <i class="fas fa-user-times"></i>   Dar de baja
-        </a>
 
-  <ul class="dropdown-menu" aria-labelledby="dropdownMenuLink">
-    <li><a class="dropdown-item" href="{{ url('listaClientes') }}">Cliente</a></li>
-    <li><a class="dropdown-item" href="{{ url('listaEmpleados') }}">Empleado</a></li>
-  </ul>
-</div>
-   <!-- <li class="nav-item">
-        <a class="nav-link" href="#">
-            <i class="fas fa-clipboard-list me-1"></i> Pedidos
-        </a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link" href="#">
-            <i class="fas fa-chart-bar me-1"></i> Reportes
-        </a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link" href="#">
-            <i class="fas fa-cog me-1"></i> Configuración
-        </a>
-    </li>
-    -->
-    <li class="nav-item dropdown">
-        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-            <i class="fas fa-user-circle me-1"></i> Mi Cuenta
-        </a>
-        <ul class="dropdown-menu">
-            <li><a class="dropdown-item" href="{{ route('passwordReset') }}">
+<li class="nav-item text-center">
+    <a class="nav-link {{ request()->is('catalogo') ? 'active' : '' }}" href="{{ url('catalogo') }}">
+        <i class="fas fa-tractor me-1"></i> Maquinarias
+    </a>
+</li>
+
+<li class="nav-item text-center">
+    <a class="nav-link {{ request()->is('registerEmployee') ? 'active' : '' }}" href="{{ url('registerEmployee') }}">
+        <i class="fas fa-user-plus me-1"></i> Registrar empleado
+    </a>
+</li>
+
+<ul class="navbar-nav ms-auto d-flex align-items-center">
+<li class="nav-item dropdown">
+    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+        <i class="fas fa-users-gear me-1"></i> Administrar usuarios
+    </a>
+    <ul class="dropdown-menu">
+        <li>
+            <a class="dropdown-item" href="{{ url('listaClientes') }}">
+                <i class="fas fa-user-tag me-1"></i> Cliente
+            </a>
+        </li>
+        <li>
+            <a class="dropdown-item" href="{{ url('listaEmpleados') }}">
+                <i class="fas fa-user-tie me-1"></i> Empleado
+            </a>
+        </li>
+    </ul>
+</li>
+</ul>
+
+<li class="nav-item dropdown text-center d-flex align-items-center">
+    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+        <i class="fas fa-user-circle me-1"></i> Mi Cuenta
+    </a>
+    <ul class="dropdown-menu text-center">
+        <li>
+            <a class="dropdown-item" href="{{ route('passwordReset') }}">
                 <i class="fas fa-key me-2"></i> Cambiar Contraseña
-            </a></li>
-            <li><hr class="dropdown-divider"></li>
-            <li>
-                <form action="{{ route('logout') }}" method="POST" class="d-inline">
-                    @csrf
-                    <button class="dropdown-item text-danger" type="submit">
-                        <i class="fas fa-sign-out-alt me-2"></i> Cerrar Sesión
-                    </button>
-                </form>
-            </li>
-        </ul>
-    </li>
+            </a>
+        </li>
+        <li><hr class="dropdown-divider"></li>
+        <li>
+            <form action="{{ route('logout') }}" method="POST" class="d-inline">
+                @csrf
+                <button class="dropdown-item text-danger" type="submit">
+                    <i class="fas fa-sign-out-alt me-2"></i> Cerrar Sesión
+                </button>
+            </form>
+        </li>
+    </ul>
+</li>
+
 @endsection
+
+
 
 @section('additional-styles')
 <style>
