@@ -53,6 +53,6 @@ class Reserva extends Model
     {
         // Define aquí qué significa "activa" para una reserva
         // Por ejemplo, que el estado_reserva sea 'activa' o 'pendiente'
-        return $query->whereIn('estado_reserva', ['aprobada', 'pendiente']);
+        return $query->whereIn('estado', ['aprobada']);
     }
 }

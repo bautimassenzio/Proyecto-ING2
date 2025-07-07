@@ -8,6 +8,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Log;
+use App\Domain\Reserva\Models\Reserva;
+use Carbon\Carbon;
 
 class MaquinariaController extends Controller
 {
@@ -16,6 +18,7 @@ class MaquinariaController extends Controller
        // $this->middleware('auth')->only(['create', 'store', 'edit', 'update', 'destroy']);
         // USAMOS 'admin' aquí, como en tu Enum
         $this->middleware('checkUserType:admin')->only(['create', 'store', 'edit', 'update', 'destroy']);
+        $this->middleware('checkUserType:empleado')->only(['devolucionesPendientes']);
     }
 
     public function index()
@@ -129,28 +132,9 @@ class MaquinariaController extends Controller
     public function update(Request $request, Maquinaria $maquinaria)
     {
         $request->validate([
-            // Validaciones para los campos de la maquinaria
-            'nro_inventario' => [
-                'required',
-                'string',
-                'max:255',
-                // La regla 'unique' debe ignorar la maquinaria que estamos actualizando.
-                // Usamos el id_maquinaria de la maquinaria actual.
-                Rule::unique('maquinarias', 'nro_inventario')->ignore($maquinaria->id_maquinaria, 'id_maquinaria'),
-            ],
-            'precio_dia' => 'required|numeric|min:0',
-            'marca' => 'required|string|max:255',
-            'modelo' => 'required|string|max:255',
-            'localidad' => 'required|string|max:255',
-            'anio' => 'required|integer|min:1900|max:' . (date('Y') + 1),
-            'uso' => 'required|string|max:255',
-            'tipo_energia' => 'required|string|in:electrica,combustion', // Ajusta si es un ENUM como 'electrica,combustion'
+            'precio_dia' => 'required|numeric|min:1',
             'estado' => 'required|string|in:disponible,inactiva',       // Ajusta si es un ENUM como 'disponible,inactiva'
-            // Validación para la foto:
-            // 'nullable' porque la foto no es obligatoria al actualizar (puede que no cambie)
-            'foto_url' => 'nullable|image|mimes:jpg,jpeg,png|max:5120', // Solo JPG, JPEG, PNG y máximo 5MB
-            'id_politica' => 'required|exists:politicas,id_politica', // Asegúrate que sea 'nullable' si no es obligatoria
-        ]);
+            ]);
 
         // Manejo de la subida de la nueva foto
         $data = $request->except('foto_url'); // Obtiene todos los datos EXCEPTO la foto
@@ -169,5 +153,37 @@ class MaquinariaController extends Controller
         $maquinaria->update($data);
 
         return redirect()->route('catalogo.index')->with('success', 'Maquinaria actualizada exitosamente.');
+    }
+
+    public function devolucionesPendientes()
+    {
+        $maquinariasConDevolucionPendiente = Maquinaria::whereHas('reservas', function ($query) {
+            $query->where(function ($q) {
+                // Condición 1: Reservas aprobadas y vencidas
+                $q->where('estado', 'aprobada')
+                  ->whereDate('fecha_fin', '<=', Carbon::today());
+            })->orWhere(function ($q) {
+                // Condición 2: Todas las reservas activas (entregadas), sin importar la fecha de fin
+                $q->where('estado', 'aprobada');
+            })->orWhere(function ($q) {
+                // Condición 3: Todas las reservas finalizadas (para registro)
+                $q->where('estado', 'finalizada'); // <-- ¡NUEVA CONDICIÓN AQUÍ!
+            });
+        })
+        ->with(['reservas' => function ($query) {
+            // Cargamos solo las reservas que cumplen el criterio para mostrarlas
+            $query->where(function ($q) {
+                $q->where('estado', 'aprobada')
+                  ->whereDate('fecha_fin', '<=', Carbon::today());
+            })->orWhere(function ($q) {
+                $q->where('estado', 'aprobada');
+            })->orWhere(function ($q) {
+                $q->where('estado', 'finalizada'); // <-- ¡NUEVA CONDICIÓN AQUÍ!
+            })
+            ->orderBy('fecha_fin', 'asc'); // Mantenemos el orden por fecha de fin
+        }, 'reservas.cliente']) // Asegúrate de cargar también la relación 'cliente' en las reservas
+        ->get();
+
+        return view('maquinarias.devoluciones-pendientes', compact('maquinariasConDevolucionPendiente'));
     }
 }

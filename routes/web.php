@@ -99,3 +99,8 @@ Route::get('/preguntas-frecuentes', [VisualizarController::class, 'mostrarPregun
 Route::get('/procesar-pago/tarjeta', [PagoController::class, 'mostrarFormularioTarjeta'])->name('pago.procesar.tarjeta');
 Route::post('/procesar-pago/tarjeta', [PagoController::class, 'procesarPagoTarjeta'])->name('procesar.pago.tarjeta');
 
+Route::get('/maquinarias/devoluciones-pendientes', [MaquinariaController::class, 'devolucionesPendientes'])->name('maquinarias.devoluciones-pendientes');
+Route::put('/reservas/{reserva}/registrar-devolucion', [ReservaController::class, 'registrarDevolucion'])->name('reservas.registrar-devolucion');
+
+Route::get('/reservas/listas-para-entregar', [ReservaController::class, 'listasParaEntregar'])->name('reservas.listas-para-entregar');
+Route::put('/reservas/{reserva}/registrar-entrega', [ReservaController::class, 'registrarEntrega'])->name('reservas.registrar-entrega');
