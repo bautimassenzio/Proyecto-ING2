@@ -9,6 +9,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use App\Enums\Roles;
 
 
 class UsuarioController extends Controller
@@ -110,6 +111,49 @@ class UsuarioController extends Controller
             'estado' => Estados::INACTIVO, //Paso el estado del usuario a inactivo
         ]);
     }
+
+
+public function store(Request $request)
+{
+    $request->validate([
+        'nombre' => 'required|string',
+        'email' => 'required|email|unique:usuarios,email',
+        'contraseña' => 'required|string|min:4',
+        'dni' => 'required|string|unique:usuarios,dni|regex:/^\d{7,8}$/',
+        'telefono' => 'required|string',
+        'fecha_nacimiento' => ['required', 'date', 'before:' . now()->subYears(18)->format('Y-m-d')],
+        'rol' => 'required|in:' . Roles::ADMINISTRADOR->value . ',' . Roles::EMPLEADO->value,
+    ],[
+        'nombre.required' => 'El nombre es obligatorio.',
+        'email.required' => 'El correo electrónico es obligatorio.',
+        'email.email' => 'Debe ser una dirección válida.',
+        'email.unique' => 'Este correo ya está registrado.',
+        'contraseña.required' => 'La contraseña es obligatoria.',
+        'contraseña.min' => 'Debe tener al menos 4 caracteres.',
+        'dni.required' => 'El DNI es obligatorio.',
+        'dni.unique' => 'Este DNI ya está registrado.',
+        'dni.regex' => 'Debe tener 7 u 8 dígitos numéricos.',
+        'telefono.required' => 'El teléfono es obligatorio.',
+        'fecha_nacimiento.required' => 'La fecha de nacimiento es obligatoria.',
+        'fecha_nacimiento.before' => 'Debe ser mayor de 18 años.',
+        'rol.required' => 'El rol es obligatorio.',
+        'rol.in' => 'Rol inválido. Debe ser ADMIN o EMPLEADO.'
+    ]);
+
+    $usuario = Usuario::create([
+        'nombre' => $request->nombre,
+        'email' => $request->email,
+        'contraseña' => bcrypt($request->contraseña),
+        'rol' => $request->rol,
+        'dni' => $request->dni,
+        'telefono' => $request->telefono,
+        'estado' => Estados::ACTIVO,
+        'fecha_nacimiento' => $request->fecha_nacimiento,
+        'fecha_alta' => now(),
+    ]);
+
+    return redirect()->back()->with('success', 'Usuario creado exitosamente.');
+}
 
 
 }

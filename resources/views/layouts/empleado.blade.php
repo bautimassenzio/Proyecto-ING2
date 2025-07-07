@@ -3,7 +3,7 @@
 @section('navigation')
 <li class="nav-item">
     <a class="nav-link {{ request()->is('/') ? 'active' : '' }}" href="{{ url('/') }}">
-        <i class="fas fa-home me-1"></i> Dashboard
+        <i class="fas fa-home me-1"></i> Inicio
     </a>
 </li>
 <li class="nav-item">
@@ -17,20 +17,13 @@
     </a>
 </li>
 <li class="nav-item">
-    <a class="nav-link {{ request()->is('pedidos-pendientes') ? 'active' : '' }}" href="{{ url('pedidos-pendientes') }}">
-        <i class="fas fa-clipboard-check me-1"></i> Pedidos Pendientes
+    <a class="nav-link {{ request()->is('/') ? 'active' : '' }}" href="{{ url('/empleado/historial-clientes') }}">
+        <i class="fas fa-home me-1"></i> Consultar historial cliente
     </a>
 </li>
-<li class="nav-item">
-    <a class="nav-link {{ request()->is('maquinarias') ? 'active' : '' }}" href="{{ url('maquinarias') }}">
-        <i class="fas fa-cogs me-1"></i> Maquinarias
-    </a>
-</li>
-<li class="nav-item">
-    <a class="nav-link {{ request()->is('clientes') ? 'active' : '' }}" href="{{ url('clientes') }}">
-        <i class="fas fa-users-cog me-1"></i> Clientes
-    </a>
-</li>
+
+
+
 
 
     <li class="nav-item dropdown">

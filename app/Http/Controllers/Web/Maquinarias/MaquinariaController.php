@@ -8,8 +8,10 @@ use App\Domain\Maquinaria\Models\Localidad;
 use App\Domain\Maquinaria\Models\TipoDeUso;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Storage;
+
 
 
 class MaquinariaController extends Controller
@@ -247,5 +249,37 @@ public function destroy(Maquinaria $maquinaria)
         $maquinaria->update($data);
 
         return redirect()->route('catalogo.index')->with('success', 'Maquinaria actualizada exitosamente.');
+    }
+
+      public function devolucionesPendientes()
+    {
+        $maquinariasConDevolucionPendiente = Maquinaria::whereHas('reserva', function ($query) {
+            $query->where(function ($q) {
+                // Condición 1: Reservas aprobadas y vencidas
+                $q->where('estado', 'aprobada')
+                  ->whereDate('fecha_fin', '<=', Carbon::today());
+            })->orWhere(function ($q) {
+                // Condición 2: Todas las reservas activas (entregadas), sin importar la fecha de fin
+                $q->where('estado', 'aprobada');
+            })->orWhere(function ($q) {
+                // Condición 3: Todas las reservas finalizadas (para registro)
+                $q->where('estado', 'finalizada'); // <-- ¡NUEVA CONDICIÓN AQUÍ!
+            });
+        })
+        ->with(['reserva' => function ($query) {
+            // Cargamos solo las reservas que cumplen el criterio para mostrarlas
+            $query->where(function ($q) {
+                $q->where('estado', 'aprobada')
+                  ->whereDate('fecha_fin', '<=', Carbon::today());
+            })->orWhere(function ($q) {
+                $q->where('estado', 'aprobada');
+            })->orWhere(function ($q) {
+                $q->where('estado', 'finalizada'); // <-- ¡NUEVA CONDICIÓN AQUÍ!
+            })
+            ->orderBy('fecha_fin', 'asc'); // Mantenemos el orden por fecha de fin
+        }, 'reserva.cliente']) // Asegúrate de cargar también la relación 'cliente' en las reservas
+        ->get();
+
+        return view('maquinarias.devoluciones-pendientes', compact('maquinariasConDevolucionPendiente'));
     }
 }

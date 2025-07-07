@@ -10,8 +10,17 @@ use App\Http\Controllers\Web\Users\ClienteController;
 use App\Http\Controllers\Web\Users\UsuarioController;
 use App\Http\Controllers\Web\Users\ViewsController; //Controller donde se redirecciona a las vistas
 use App\Http\Controllers\Web\Estadisticas\EstadisticaController;
+use App\Http\Controllers\Web\Users\EmpleadoController;
 // Vista Inicio
 Route::get('/', [ViewsController::class, 'vistaInicio'])->name('/');
+
+// Mostrar formulario con listado de clientes
+Route::get('/empleado/historial-clientes', [EmpleadoController::class, 'mostrarFormularioHistorial'])->name('empleado.historial.formulario');
+
+// Mostrar historial del cliente seleccionado
+Route::get('/empleado/historial/{dni}', [EmpleadoController::class, 'historialReservasCliente'])->name('empleado.historial.mostrar');
+
+
 
 // Operaciones de registro
 Route::get('/register', [ViewsController::class, 'vistaRegistro']);
@@ -109,3 +118,9 @@ Route::post('/procesar-pago/tarjeta', [PagoController::class, 'procesarPagoTarje
 
 // Estadisticas
 Route::get('/estadisticas', [EstadisticaController::class, 'showStatistics'])->name('admin.estadisticas')->middleware('checkUserType:admin');
+
+Route::get('/maquinarias/devoluciones-pendientes', [MaquinariaController::class, 'devolucionesPendientes'])->name('maquinarias.devoluciones-pendientes');
+Route::put('/reservas/{reserva}/registrar-devolucion', [ReservaController::class, 'registrarDevolucion'])->name('reservas.registrar-devolucion');
+
+Route::get('/reservas/listas-para-entregar', [ReservaController::class, 'listasParaEntregar'])->name('reservas.listas-para-entregar');
+Route::put('/reservas/{reserva}/registrar-entrega', [ReservaController::class, 'registrarEntrega'])->name('reservas.registrar-entrega');
