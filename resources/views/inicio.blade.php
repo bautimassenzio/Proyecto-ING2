@@ -76,28 +76,17 @@
     @elseif(Auth::guard('users')->user()->rol === 'empleado')
         <!-- Employee Dashboard -->
         <div class="employee-dashboard">
-            <div class="task-card">
+            
+    <div class="task-card">
                 <div class="task-header">
                     <div class="task-icon">
-                        <i class="fas fa-clipboard-check"></i>
+                        <i class="fas fa-tools"></i>
                     </div>
-                    <h5 class="task-title">Pedidos Pendientes</h5>
-                    <span class="task-count">8</span>
+                    <h5 class="task-title">Devoluciones Pendientes</h5>
+                    
                 </div>
-                <p class="text-muted">Pedidos esperando confirmación</p>
-                <a href="#" class="btn btn-outline-primary btn-sm">Ver Todos</a>
-            </div>
-
-            <div class="task-card">
-                <div class="task-header">
-                    <div class="task-icon">
-                        <i class="fas fa-users"></i>
-                    </div>
-                    <h5 class="task-title">Nuevos Clientes</h5>
-                    <span class="task-count">3</span>
-                </div>
-                <p class="text-muted">Registros de esta semana</p>
-                <a href="/users" class="btn btn-outline-primary btn-sm">Gestionar</a>
+                <p class="text-muted">Devoluciones esperando confirmacion</p>
+                <a href="{{ route('maquinarias.devoluciones-pendientes') }}" class="btn btn-outline-primary btn-sm">Ver Todos</a>
             </div>
 
             <div class="task-card">
@@ -105,12 +94,17 @@
                     <div class="task-icon">
                         <i class="fas fa-tools"></i>
                     </div>
-                    <h5 class="task-title">Mantenimientos</h5>
-                    <span class="task-count">2</span>
+                    <h5 class="task-title">Entregas pendientes</h5>
+                   
                 </div>
-                <p class="text-muted">Maquinarias en servicio</p>
-                <a href="#" class="btn btn-outline-primary btn-sm">Ver Estado</a>
+                <p class="text-muted">Entregas esperando confirmacion</p>
+                <a href="{{ route('reservas.listas-para-entregar') }}" class="btn btn-outline-primary btn-sm">Ver Todos</a>
             </div>
+        </div>
+
+            
+
+          
         </div>
 
         <div class="quick-actions">
@@ -118,14 +112,7 @@
                 <i class="fas fa-user-plus"></i>
                 Registrar Cliente
             </a>
-            <a href="#" class="quick-action">
-                <i class="fas fa-clipboard-check"></i>
-                Confirmar Pedidos
-            </a>
-            <a href="#" class="quick-action">
-                <i class="fas fa-file-invoice"></i>
-                Generar Cotización
-            </a>
+         
         </div>
 
     @else

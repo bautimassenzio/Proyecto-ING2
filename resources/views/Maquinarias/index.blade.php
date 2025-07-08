@@ -139,4 +139,8 @@
         margin-left: 5px;
     }
 </style>
+<<<<<<< HEAD
 @endsection
+=======
+@endsection
+>>>>>>> origin/ludmilanuevo

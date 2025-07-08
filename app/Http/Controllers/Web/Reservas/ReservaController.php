@@ -4,12 +4,15 @@ namespace App\Http\Controllers\Web\Reservas;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Database\QueryException;
 use App\Domain\Reserva\Models\Reserva;
 use App\Domain\Maquinaria\Models\Maquinaria;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use App\Mail\ReservaCancelada;
 use Illuminate\Support\Facades\Mail;
+
 
 class ReservaController extends Controller
 {
@@ -214,4 +217,107 @@ class ReservaController extends Controller
 
         return redirect()->route('pago.seleccionar')->with('success', 'Proceda a seleccionar el método de pago.');
     }
+
+     public function registrarDevolucion(Reserva $reserva)
+    {
+        Log::info('Intentando registrar devolución para Reserva ID: ' . $reserva->id_reserva);
+        $today = Carbon::today();
+        $fechaInicioReserva = Carbon::parse($reserva->fecha_inicio);
+
+        try {
+            // 1. Verificar si la reserva ya está finalizada o cancelada
+            if ($reserva->estado === 'finalizada' || $reserva->estado === 'cancelada') {
+                Log::warning('Intento de registrar devolución para reserva ya finalizada/cancelada. ID: ' . $reserva->id_reserva);
+                return redirect()->route('maquinarias.devoluciones-pendientes')->with('error', 'La reserva ya ha sido finalizada o cancelada.');
+            }
+
+            if ($today->lt($fechaInicioReserva)) { // Si hoy es ANTES de la fecha de inicio
+                Log::warning('Intento de devolver reserva cuya fecha de inicio aún no ha llegado. ID: ' . $reserva->id_reserva);
+                return redirect()->route('maquinarias.devoluciones-pendientes')->with('error', 'No se puede registrar la devolución de una maquinaria cuya reserva aún no ha comenzado.');
+            }
+
+            // 2. Actualizar el estado de la reserva a 'finalizada'
+            $reserva->estado = 'finalizada';
+            // Asigna el ID del empleado que registra la devolución
+            // Asegúrate de que 'id_empleado' sea fillable en tu modelo Reserva
+            $reserva->id_empleado = Auth::id();
+            $reserva->save();
+            Log::info('Reserva ID ' . $reserva->id_reserva . ' actualizada a estado "finalizada".');
+
+            // 3. Actualizar el estado de la maquinaria a 'disponible'
+            // Asegúrate de que la relación 'maquinaria' esté definida en el modelo Reserva
+            // y que 'estado' sea fillable en el modelo Maquinaria
+            if ($reserva->maquinaria) {
+                $reserva->maquinaria->estado = 'disponible';
+                $reserva->maquinaria->save();
+                Log::info('Maquinaria ID ' . $reserva->maquinaria->id_maquinaria . ' actualizada a estado "disponible".');
+            } else {
+                Log::error('No se pudo encontrar la maquinaria asociada para la Reserva ID: ' . $reserva->id_reserva);
+                return redirect()->route('maquinarias.devoluciones-pendientes')->with('error', 'No se pudo encontrar la maquinaria asociada a la reserva.');
+            }
+
+            return redirect()->route('maquinarias.devoluciones-pendientes')->with('success', 'Devolución registrada exitosamente. Reserva finalizada y maquinaria disponible.');
+
+        } catch (QueryException $e) {
+            Log::error('Error de base de datos al registrar devolución para Reserva ID ' . $reserva->id_reserva . ': ' . $e->getMessage());
+            return redirect()->route('maquinarias.devoluciones-pendientes')->with('error', 'Error al registrar la devolución en la base de datos: ' . $e->getMessage());
+        } catch (\Exception $e) {
+            Log::error('Error inesperado al registrar devolución para Reserva ID ' . $reserva->id_reserva . ': ' . $e->getMessage());
+            return redirect()->route('maquinarias.devoluciones-pendientes')->with('error', 'Ocurrió un error inesperado al registrar la devolución: ' . $e->getMessage());
+        }
+    }
+
+    public function listasParaEntregar()
+    {
+        Log::info('Accediendo a listasParaEntregar.');
+        $reservasListasParaEntregar = Reserva::with(['maquinaria', 'cliente']) // Carga la maquinaria y el usuario relacionados
+            ->where('estado', 'aprobada') // Solo reservas aprobadas
+            //->whereDate('fecha_inicio', '<=', Carbon::today()) // La fecha de inicio es hoy o ya pasó
+            ->whereNotIn('estado', ['finalizada', 'cancelada']) // Excluir reservas ya finalizadas o canceladas
+            ->orderBy('fecha_inicio', 'asc') // Ordena por la fecha de inicio más antigua primero
+            ->get();
+
+        Log::info('Reservas listas para entregar encontradas: ' . $reservasListasParaEntregar->count());
+
+        return view('reservas.listas-para-entregar', compact('reservasListasParaEntregar'));
+    }
+
+    public function registrarEntrega(Reserva $reserva)
+    {
+        Log::info('Intentando registrar entrega para Reserva ID: ' . $reserva->id_reserva);
+        $today = Carbon::today();
+
+        try {
+            // 1. Validar estado de la reserva
+            if ($reserva->estado !== 'aprobada') {
+                Log::warning('Intento de registrar entrega para reserva en estado incorrecto. ID: ' . $reserva->id_reserva . ', Estado: ' . $reserva->estado);
+                return redirect()->route('reservas.listas-para-entregar')->with('error', 'La reserva no está en estado "aprobada" para ser entregada.');
+            }
+
+            // 2. Validar fechas de entrega
+            $fechaInicio = Carbon::parse($reserva->fecha_inicio);
+            $fechaFin = Carbon::parse($reserva->fecha_fin);
+
+            if ($today->lt($fechaInicio) || $today->gt($fechaFin)) {
+                Log::warning('Intento de registrar entrega fuera del rango de fechas. ID: ' . $reserva->id_reserva . ', Hoy: ' . $today->format('Y-m-d') . ', Inicio: ' . $fechaInicio->format('Y-m-d') . ', Fin: ' . $fechaFin->format('Y-m-d'));
+                return redirect()->route('reservas.listas-para-entregar')->with('error', 'La entrega solo puede registrarse en o después de la fecha de inicio y en o antes de la fecha de fin de la reserva.');
+            }
+
+            // Asigna el ID del empleado que registra la entrega
+            $reserva->id_empleado = Auth::id();
+            $reserva->save(); // Guardamos solo la asignación del empleado
+            Log::info('Reserva ID ' . $reserva->id_reserva . ' registrada con id_empleado: ' . $reserva->id_empleado);
+
+            // Redirigir a la lista de devoluciones pendientes
+            return redirect()->route('maquinarias.devoluciones-pendientes')->with('success', 'Entrega registrada exitosamente.');
+
+        } catch (QueryException $e) {
+            Log::error('Error de base de datos al registrar entrega para Reserva ID ' . $reserva->id_reserva . ': ' . $e->getMessage());
+            return redirect()->route('reservas.listas-para-entregar')->with('error', 'Error al registrar la entrega en la base de datos: ' . $e->getMessage());
+        } catch (\Exception $e) {
+            Log::error('Error inesperado al registrar entrega para Reserva ID ' . $reserva->id_reserva . ': ' . $e->getMessage());
+            return redirect()->route('reservas.listas-para-entregar')->with('error', 'Ocurrió un error inesperado al registrar la entrega: ' . $e->getMessage());
+        }
+    }
+
 }
