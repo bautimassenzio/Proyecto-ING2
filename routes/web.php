@@ -125,8 +125,6 @@ Route::get('/procesar-pago/tarjeta', [PagoController::class, 'mostrarFormularioT
 Route::post('/procesar-pago/tarjeta', [PagoController::class, 'procesarPagoTarjeta'])->name('procesar.pago.tarjeta');
 
 
-<<<<<<< HEAD
-=======
 // Estadisticas
 Route::get('/estadisticas', [EstadisticaController::class, 'showStatistics'])->name('admin.estadisticas')->middleware('checkUserType:admin');
 
@@ -135,4 +133,3 @@ Route::put('/reservas/{reserva}/registrar-devolucion', [ReservaController::class
 
 Route::get('/reservas/listas-para-entregar', [ReservaController::class, 'listasParaEntregar'])->name('reservas.listas-para-entregar');
 Route::put('/reservas/{reserva}/registrar-entrega', [ReservaController::class, 'registrarEntrega'])->name('reservas.registrar-entrega');
->>>>>>> origin/ludmilanuevo
