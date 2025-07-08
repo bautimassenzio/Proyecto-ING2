@@ -43,9 +43,9 @@ class UsuarioController extends Controller
     }
 
     // Actualizar usuario por DNI (PUT)
-    public function update(Request $request, $email)
+    public function update(Request $request, $dni)
     {
-        $usuario = Usuario::where('email', $email)->first();
+        $usuario = Usuario::where('dni', $dni)->first();
 
         if (!$usuario) {
             return response()->json(['mensaje' => 'Usuario no encontrado'], 404);
@@ -53,12 +53,18 @@ class UsuarioController extends Controller
 
         $request->validate([
             'nombre' => 'string',
-            'email' => 'email|unique:usuarios,email,' . $usuario->id,
+            'email' => 'email|unique:usuarios,email,' . $usuario->dni . ',dni',
             'contraseña' => 'string|min:4',
             'rol' => 'string',
             'telefono' => 'string',
             'estado' => 'string',
             'fecha_alta' => 'date',
+        ], [
+            'nombre.string' => 'El nombre debe ser un texto.',
+            'email.email' => 'El correo electrónico no tiene un formato válido.',
+            'email.unique' => 'Este correo ya está en uso por otro usuario.',
+            'contraseña.string' => 'La contraseña debe ser un texto.',
+            'contraseña.min' => 'La contraseña debe tener al menos 6 caracteres.',
         ]);
 
         $usuario->update([
@@ -71,7 +77,7 @@ class UsuarioController extends Controller
             'fecha_alta' => $request->fecha_alta ?? $usuario->fecha_alta,
         ]);
 
-        return response()->json(['mensaje' => 'Usuario actualizado con éxito', 'usuario' => $usuario]);
+        return back()->with('success', 'Operacion realizada correctamente.');
     }
 
     // Eliminar Logica de usuario por DNI (DELETE)
