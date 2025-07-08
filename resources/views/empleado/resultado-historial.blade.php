@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="container">
-    <h2>Historial de reservas de {{ $cliente->nombre }} {{ $cliente->apellido }}</h2>
+    <h2>Historial de reservas de {{ $cliente->nombre }}</h2>
 
     @if($reservas->isEmpty())
         <p>No se encontraron reservas para este cliente.</p>
