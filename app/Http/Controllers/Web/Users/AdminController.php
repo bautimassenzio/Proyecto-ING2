@@ -54,4 +54,5 @@ class AdminController extends Controller
         Mail::to($user->email)->send(new CodigoVerificacionMail($user, $codigo));
     }
 
+
 }

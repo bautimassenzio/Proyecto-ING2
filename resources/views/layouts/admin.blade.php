@@ -2,6 +2,8 @@
 
 @section('navigation')
 
+{{-- El @stack('scripts') normalmente va en el <head> o al final del <body>, no en la navegación.
+    Si está causando problemas, considera moverlo a layouts.base o donde corresponda. --}}
 @stack('scripts')
 
 <li class="nav-item">
@@ -17,11 +19,18 @@
 </li>
 <li class="nav-item">
     <a class="nav-link {{ request()->is('catalogo') ? 'active' : '' }}" href="{{ url('catalogo') }}">
-        <i class="fas fa-cogs me-1"></i> Maquinarias
+        <i class="fas fa-tractor me-1"></i> Maquinarias
     </a>
 </li>
 
-{{-- ** MENÚ DESPLEGABLE PARA ESTADÍSTICAS ** --}}
+{{-- Nuevo elemento de la rama entrante --}}
+<li class="nav-item">
+    <a class="nav-link {{ request()->is('registerEmployee') ? 'active' : '' }}" href="{{ url('registerEmployee') }}">
+        <i class="fas fa-user-plus me-1"></i> Registrar empleado
+    </a>
+</li>
+
+{{-- ** MENÚ DESPLEGABLE PARA ESTADÍSTICAS (de tu rama) ** --}}
 <li class="nav-item dropdown">
     <a class="nav-link dropdown-toggle {{ request()->is('admin/estadisticas*') ? 'active' : '' }}" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
         <i class="fas fa-chart-line me-1"></i> Estadísticas
@@ -44,33 +53,52 @@
         </li>
     </ul>
 </li>
-{{-- FIN DEL MENÚ DESPLEGABLE --}}
+{{-- FIN DEL MENÚ DESPLEGABLE ESTADÍSTICAS --}}
 
-    <li class="nav-item dropdown">
-        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-            <i class="fas fa-user-circle me-1"></i> Mi Cuenta
-        </a>
-        <ul class="dropdown-menu">
-            <li><a class="dropdown-item" href="{{ route('passwordReset') }}">
-                <i class="fas fa-key me-2"></i> Cambiar Contraseña
-            </a></li>
-            <li><hr class="dropdown-divider"></li>
-            <li>
-                <form action="{{ route('logout') }}" method="POST" class="d-inline">
-                    @csrf
-                    <button class="dropdown-item text-danger" type="submit">
-                        <i class="fas fa-sign-out-alt me-2"></i> Cerrar Sesión
-                    </button>
-                </form>
-            </li>
-        </ul>
-    </li>
+{{-- Nuevo menú desplegable de la rama entrante para Administrar usuarios --}}
+<li class="nav-item dropdown">
+    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+        <i class="fas fa-users-gear me-1"></i> Administrar usuarios
+    </a>
+    <ul class="dropdown-menu">
+        <li>
+            <a class="dropdown-item" href="{{ url('listaClientes') }}">
+                <i class="fas fa-user-tag me-1"></i> Cliente
+            </a>
+        </li>
+        <li>
+            <a class="dropdown-item" href="{{ url('listaEmpleados') }}">
+                <i class="fas fa-user-tie me-1"></i> Empleado
+            </a>
+        </li>
+    </ul>
+</li>
+
+<li class="nav-item dropdown">
+    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+        <i class="fas fa-user-circle me-1"></i> Mi Cuenta
+    </a>
+    <ul class="dropdown-menu">
+        <li><a class="dropdown-item" href="{{ route('passwordReset') }}">
+            <i class="fas fa-key me-2"></i> Cambiar Contraseña
+        </a></li>
+        <li><hr class="dropdown-divider"></li>
+        <li>
+            <form action="{{ route('logout') }}" method="POST" class="d-inline">
+                @csrf
+                <button class="dropdown-item text-danger" type="submit">
+                    <i class="fas fa-sign-out-alt me-2"></i> Cerrar Sesión
+                </button>
+            </form>
+        </li>
+    </ul>
+</li>
 @endsection
 
 @section('additional-styles')
 <style>
     /* Definición de variables CSS - asegúrate de que estén definidas en un lugar accesible,
-       si no están ya en layouts.base o un CSS global. Si están aquí, solo son para este layout. */
+        si no están ya en layouts.base o un CSS global. Si están aquí, solo son para este layout. */
     :root {
         --primary-yellow: #FFC107; /* Un amarillo ejemplo, ajusta al que uses */
         --secondary-yellow: #FFD54F; /* Un amarillo más claro, ajusta al que uses */
@@ -155,6 +183,7 @@
         display: block;
     }
 
+    /* Solo si este bloque viene de tu rama y es necesario, se mantiene */
     .btn-primary-small {
         background-color: var(--primary-yellow);
         color: var(--dark-bg);
