@@ -6,6 +6,15 @@
 <div class="container mx-auto p-4">
     <h1 class="text-3xl font-bold text-gray-800 mb-6">Estadísticas: Nuevos Clientes Registrados</h1>
 
+    {{-- ** MENSAJE DE ERROR DE VALIDACIÓN ** --}}
+    @if(session('error'))
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+            <strong class="font-bold">¡Error!</strong>
+            <span class="block sm:inline">{{ session('error') }}</span>
+        </div>
+    @endif
+    {{-- FIN MENSAJE DE ERROR --}}
+
     <div class="grid grid-cols-1 gap-6">
         <!-- Tarjeta: Clientes Registrados por Período -->
         <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-purple-500">
@@ -35,7 +44,7 @@
                     </select>
                 </div>
 
-                <button type="submit" class="btn-primary-small"> {{-- Clase de estilo para el botón --}}
+                <button type="submit" class="btn-primary-small">
                     Consultar
                 </button>
             </form>
@@ -77,37 +86,33 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Datos pasados desde Laravel
         const chartLabels = @json($chartLabels ?? []);
         const chartData = @json($chartData ?? []);
-        const periodType = @json($periodType ?? 'month'); // Obtener el tipo de período seleccionado
+        const periodType = @json($periodType ?? 'month');
 
-        // Texto dinámico para el título del eje X
         const xAxisTitle = periodType === 'month' ? 'Mes y Año' : 'Semana del Año';
 
-        // Solo inicializa el gráfico si hay datos
         if (chartLabels.length > 0 && chartData.length > 0) {
             const ctx = document.getElementById('newClientsChart').getContext('2d');
-            // Asegurarse de destruir cualquier instancia anterior del gráfico para evitar duplicados
             if (window.newClientsChartInstance) {
                 window.newClientsChartInstance.destroy();
             }
 
-            window.newClientsChartInstance = new Chart(ctx, { // Almacenar la instancia en el objeto window
-                type: 'bar', // Tipo de gráfico de barras
+            window.newClientsChartInstance = new Chart(ctx, {
+                type: 'bar',
                 data: {
                     labels: chartLabels,
                     datasets: [{
                         label: 'Nuevos Clientes',
                         data: chartData,
-                        backgroundColor: 'rgba(153, 102, 255, 0.6)', // Color púrpura suave
+                        backgroundColor: 'rgba(153, 102, 255, 0.6)',
                         borderColor: 'rgba(153, 102, 255, 1)',
                         borderWidth: 1
                     }]
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: false, // Permite que el gráfico se ajuste a su contenedor
+                    maintainAspectRatio: false,
                     scales: {
                         y: {
                             beginAtZero: true,
@@ -116,13 +121,13 @@
                                 text: 'Cantidad de Clientes'
                             },
                             ticks: {
-                                precision: 0 // Asegura que los ticks sean números enteros
+                                precision: 0
                             }
                         },
                         x: {
                             title: {
                                 display: true,
-                                text: xAxisTitle // Título del eje X dinámico
+                                text: xAxisTitle
                             }
                         }
                     },
@@ -142,7 +147,6 @@
                 }
             });
         } else if (window.newClientsChartInstance) {
-            // Si no hay datos y ya existía un gráfico, destrúyelo para limpiar la vista
             window.newClientsChartInstance.destroy();
             window.newClientsChartInstance = null;
         }

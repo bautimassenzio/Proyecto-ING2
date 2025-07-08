@@ -42,36 +42,40 @@ class UsuarioController extends Controller
     }
 
     // Actualizar usuario por DNI (PUT) (idéntico en ambas ramas, se actualiza bcrypt a Hash::make)
-    public function update(Request $request, $email)
-    {
-        $usuario = Usuario::where('email', $email)->first();
+    public function update(Request $request, $dni)
+{
+    $usuario = Usuario::where('dni', $dni)->first();
 
-        if (!$usuario) {
-            return response()->json(['mensaje' => 'Usuario no encontrado'], 404);
-        }
-
-        $request->validate([
-            'nombre' => 'string',
-            'email' => 'email|unique:usuarios,email,' . $usuario->id_usuario, // Usar id_usuario si ese es el nombre de la PK
-            'contraseña' => 'string|min:4',
-            'rol' => 'string',
-            'telefono' => 'string',
-            'estado' => 'string',
-            'fecha_alta' => 'date',
-        ]);
-
-        $usuario->update([
-            'nombre' => $request->nombre ?? $usuario->nombre,
-            'email' => $request->email ?? $usuario->email,
-            'contraseña' => $request->contraseña ? Hash::make($request->contraseña) : $usuario->contraseña, // Usar Hash::make
-            'rol' => $request->rol ?? $usuario->rol,
-            'telefono' => $request->telefono ?? $usuario->telefono,
-            'estado' => $request->estado ?? $usuario->estado,
-            'fecha_alta' => $request->fecha_alta ?? $usuario->fecha_alta,
-        ]);
-
-        return response()->json(['mensaje' => 'Usuario actualizado con éxito', 'usuario' => $usuario]);
+    if (!$usuario) {
+        // En caso de no encontrar el usuario, redirigimos con un error
+        // para que se mantenga en la página de edición con un mensaje.
+        return redirect()->back()->with('error', 'Usuario no encontrado para actualizar.');
     }
+
+    $request->validate([
+        'nombre' => 'string',
+        'email' => 'email|unique:usuarios,email,' . $usuario->id_usuario . ',id_usuario',
+        'contraseña' => 'nullable|string|min:4',
+        'rol' => 'string',
+        'telefono' => 'string',
+        'estado' => 'string',
+        // 'fecha_alta' => 'date', // Si este campo no se edita, puedes quitarlo de la validación
+    ]);
+
+    $usuario->update([
+        'nombre' => $request->nombre ?? $usuario->nombre,
+        'email' => $request->email ?? $usuario->email,
+        'contraseña' => $request->contraseña ? Hash::make($request->contraseña) : $usuario->contraseña,
+        'rol' => $request->rol ?? $usuario->rol,
+        'telefono' => $request->telefono ?? $usuario->telefono,
+        'estado' => $request->estado ?? $usuario->estado,
+        'fecha_alta' => $request->fecha_alta ?? $usuario->fecha_alta,
+    ]);
+
+    // Redirige de vuelta a la página anterior (la de edición)
+    // y guarda un mensaje 'success' en la sesión flash.
+    return redirect()->back()->with('success', 'Usuario actualizado con éxito.');
+}
 
     // Eliminar Lógica de usuario por DNI (DELETE) - Priorizamos la lógica de la rama entrante
     public function delete($dni)
