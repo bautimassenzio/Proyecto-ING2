@@ -2,8 +2,9 @@
 
 @section('navigation')
 <li class="nav-item">
+    {{-- Aquí combinamos, priorizando 'Dashboard' si ese es el nuevo término deseado --}}
     <a class="nav-link {{ request()->is('/') ? 'active' : '' }}" href="{{ url('/') }}">
-        <i class="fas fa-home me-1"></i> Inicio
+        <i class="fas fa-home me-1"></i> Dashboard
     </a>
 </li>
 <li class="nav-item">
@@ -16,39 +17,55 @@
         <i class="fas fa-user-plus me-1"></i> Registrar Cliente
     </a>
 </li>
+
+{{-- Elemento agregado de tu rama --}}
 <li class="nav-item">
-    <a class="nav-link {{ request()->is('/') ? 'active' : '' }}" href="{{ url('/empleado/historial-clientes') }}">
+    <a class="nav-link {{ request()->is('/empleado/historial-clientes') ? 'active' : '' }}" href="{{ url('/empleado/historial-clientes') }}">
         <i class="fas fa-users me-1"></i> Consultar historial cliente
     </a>
 </li>
 
+{{-- Nuevos elementos de la rama entrante --}}
+<li class="nav-item">
+    <a class="nav-link {{ request()->is('pedidos-pendientes') ? 'active' : '' }}" href="{{ url('pedidos-pendientes') }}">
+        <i class="fas fa-clipboard-check me-1"></i> Pedidos Pendientes
+    </a>
+</li>
+<li class="nav-item">
+    <a class="nav-link {{ request()->is('maquinarias') ? 'active' : '' }}" href="{{ url('maquinarias') }}">
+        <i class="fas fa-cogs me-1"></i> Maquinarias
+    </a>
+</li>
+<li class="nav-item">
+    <a class="nav-link {{ request()->is('clientes') ? 'active' : '' }}" href="{{ url('clientes') }}">
+        <i class="fas fa-users-cog me-1"></i> Clientes
+    </a>
+</li>
 
-
-
-
-    <li class="nav-item dropdown">
-        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-            <i class="fas fa-user-circle me-1"></i> Mi Cuenta
-        </a>
-        <ul class="dropdown-menu">
-            <li><a class="dropdown-item" href="{{ route('passwordReset') }}">
-                <i class="fas fa-key me-2"></i> Cambiar Contraseña
-            </a></li>
-            <li><hr class="dropdown-divider"></li>
-            <li>
-                <form action="{{ route('logout') }}" method="POST" class="d-inline">
-                    @csrf
-                    <button class="dropdown-item text-danger" type="submit">
-                        <i class="fas fa-sign-out-alt me-2"></i> Cerrar Sesión
-                    </button>
-                </form>
-            </li>
-        </ul>
-    </li>
+<li class="nav-item dropdown">
+    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+        <i class="fas fa-user-circle me-1"></i> Mi Cuenta
+    </a>
+    <ul class="dropdown-menu">
+        <li><a class="dropdown-item" href="{{ route('passwordReset') }}">
+            <i class="fas fa-key me-2"></i> Cambiar Contraseña
+        </a></li>
+        <li><hr class="dropdown-divider"></li>
+        <li>
+            <form action="{{ route('logout') }}" method="POST" class="d-inline">
+                @csrf
+                <button class="dropdown-item text-danger" type="submit">
+                    <i class="fas fa-sign-out-alt me-2"></i> Cerrar Sesión
+                </button>
+            </form>
+        </li>
+    </ul>
+</li>
 @endsection
 
 @section('additional-styles')
 <style>
+    /* Las secciones de estilo son idénticas, así que solo mantenemos una versión */
     .employee-dashboard {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));

@@ -2,8 +2,6 @@
 
 @section('title', 'MannyMaquinarias - Soluciones en Maquinaria')
 
-
-
 @section('content')
 <div class="hero-section relative bg-cover bg-center text-white" 
      style="background-image: url('{{ asset('images/inicio.jpg') }}');">
