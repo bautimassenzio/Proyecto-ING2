@@ -46,6 +46,11 @@ Route::delete('/eliminarCuenta', [ClienteController::class, 'eliminarCuentaPropi
 Route::get('listaClientes', [UsuarioController::class, 'getClientes'])->middleware('checkUserType:admin')->name('getClientes');
 Route::get('listaEmpleados', [UsuarioController::class, 'getEmpleados'])->middleware('checkUserType:admin')->name('getEmpleados');
 
+//Busqeuda de usuarios por rol, filtrando por nombre o email
+Route::get('/usuarios/buscar/{rol}', [UsuarioController::class, 'buscarPorRol'])->name('usuarios.buscar');
+
+
+
 // Operaciones que solo pueden realizar empleado y admin
 Route::middleware(['checkUserType:empleado,admin'])->group(function () {
     Route::get('/users', [UsuarioController::class, 'getUsuarios']);

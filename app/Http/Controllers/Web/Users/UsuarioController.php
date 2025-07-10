@@ -21,16 +21,40 @@ class UsuarioController extends Controller
         return Usuario::all();
     }
 
+    // Maneja la búsqueda por nombre o email de un rol específico
+    public function buscarPorRol(Request $request, $rol)
+    {
+        $query = Usuario::query()->where('rol', $rol);
+
+        if ($request->filled('nombre')) {
+            $query->where('nombre', 'LIKE', '%' . $request->nombre . '%');
+        }
+
+        if ($request->filled('email')) {
+            $query->where('email', $request->email);
+        }
+
+        
+        $usuarios = $query->paginate(10);
+        
+        if ($usuarios->isEmpty()) {
+            return redirect()->back()->withErrors(['No se encontraron ' . ($rol === 'empleado' ? 'empleados' : 'clientes') . ' que coincidan con la búsqueda.']);
+        }
+        return view('eliminarUsuario', compact('usuarios','rol'));
+    }
+
     //Obtener todos los empleados con paginacion
     public function getEmpleados(){
-        $usuarios = Usuario::where('rol', Roles::EMPLEADO)->paginate(10); // 10 por página
-        return view('eliminarUsuario', compact('usuarios'));
+        $rol = Roles::EMPLEADO; 
+        $usuarios = Usuario::where('rol', $rol)->paginate(10); // 10 por página
+        return view('eliminarUsuario', compact('usuarios','rol'));
     }
 
     //Obtener todos los clientes con paginacion
     public function getClientes() {
-        $usuarios = Usuario::where('rol', Roles::CLIENTE)->paginate(10); // 10 por página
-        return view('eliminarUsuario', compact('usuarios'));
+        $rol = Roles::CLIENTE;
+        $usuarios = Usuario::where('rol', $rol)->paginate(10); // 10 por página
+        return view('eliminarUsuario', compact('usuarios', 'rol'));
     }   
 
     // Obtener usuario por DNI (GET)
