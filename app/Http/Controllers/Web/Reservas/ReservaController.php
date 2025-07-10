@@ -5,12 +5,13 @@ namespace App\Http\Controllers\Web\Reservas;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Domain\Reserva\Models\Reserva;
-use App\Domain\Maquinaria\Maquinaria;
+use App\Domain\Maquinaria\Models\Maquinaria;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use App\Mail\ReservaCancelada;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log; 
+use App\Mail\DevolucionConRetrasoNotification;
 
 class ReservaController extends Controller
 {
@@ -168,7 +169,7 @@ class ReservaController extends Controller
         Log::info('Intentando registrar devolución para Reserva ID: ' . $reserva->id_reserva);
         $today = Carbon::today();
         $fechaInicioReserva = Carbon::parse($reserva->fecha_inicio);
-
+        $fechaFinReserva = Carbon::parse($reserva->fecha_fin);
         try {
             // 1. Verificar si la reserva ya está finalizada o cancelada
             if ($reserva->estado === 'finalizada' || $reserva->estado === 'cancelada') {
@@ -179,6 +180,25 @@ class ReservaController extends Controller
             if ($today->lt($fechaInicioReserva)) { // Si hoy es ANTES de la fecha de inicio
                 Log::warning('Intento de devolver reserva cuya fecha de inicio aún no ha llegado. ID: ' . $reserva->id_reserva);
                 return redirect()->route('maquinarias.devoluciones-pendientes')->with('error', 'No se puede registrar la devolución de una maquinaria cuya reserva aún no ha comenzado.');
+            }
+
+            // --- Lógica para calcular retraso y monto ---
+            $daysOfDelay = 0;
+            $penaltyAmount = 0;
+            $message = 'Devolución registrada exitosamente. Reserva finalizada.';
+
+            // Solo calculamos retraso si la fecha de fin de la reserva ya pasó
+            if ($today->gt($fechaFinReserva)) {
+                $daysOfDelay = $today->diffInDays($fechaFinReserva);
+                $costoPorDiaMaquinaria = $reserva->maquinaria->precio_dia ?? 0; // Usar null coalescing para evitar errores si no existe
+
+                // Nuevo cálculo: costo_por_dia * 1.5 * días de retraso
+                $penaltyAmount = $daysOfDelay * ($costoPorDiaMaquinaria * 1.5);
+
+                $message .= " Se detectó un retraso de {$daysOfDelay} día(s). Monto a pagar: $" . number_format($penaltyAmount, 2) . ".";
+            } else {
+                // Si la devolución es a tiempo o anticipada, pero la reserva estaba activa/aprobada
+                $message .= " La devolución se realizó a tiempo.";
             }
 
             // 2. Actualizar el estado de la reserva a 'finalizada'
@@ -201,7 +221,7 @@ class ReservaController extends Controller
                 return redirect()->route('maquinarias.devoluciones-pendientes')->with('error', 'No se pudo encontrar la maquinaria asociada a la reserva.');
             }
 
-            return redirect()->route('maquinarias.devoluciones-pendientes')->with('success', 'Devolución registrada exitosamente. Reserva finalizada y maquinaria disponible.');
+            return redirect()->route('maquinarias.devoluciones-pendientes')->with('success', $message);
 
         } catch (QueryException $e) {
             Log::error('Error de base de datos al registrar devolución para Reserva ID ' . $reserva->id_reserva . ': ' . $e->getMessage());
@@ -218,7 +238,7 @@ class ReservaController extends Controller
         $reservasListasParaEntregar = Reserva::with(['maquinaria', 'cliente']) // Carga la maquinaria y el usuario relacionados
             ->where('estado', 'aprobada') // Solo reservas aprobadas
             //->whereDate('fecha_inicio', '<=', Carbon::today()) // La fecha de inicio es hoy o ya pasó
-            ->whereNotIn('estado', ['finalizada', 'cancelada']) // Excluir reservas ya finalizadas o canceladas
+            ->whereNotIn('estado', ['finalizada', 'cancelada','activa']) // Excluir reservas ya finalizadas o canceladas
             ->orderBy('fecha_inicio', 'asc') // Ordena por la fecha de inicio más antigua primero
             ->get();
 
@@ -248,7 +268,14 @@ class ReservaController extends Controller
                 return redirect()->route('reservas.listas-para-entregar')->with('error', 'La entrega solo puede registrarse en o después de la fecha de inicio y en o antes de la fecha de fin de la reserva.');
             }
 
+            if ($reserva->maquinaria && $reserva->maquinaria->estado === 'inactiva') {
+                Log::warning('Maquinaria inactiva para entrega. Redirigiendo a manejo de inactividad. ID Reserva: ' . $reserva->id_reserva);
+                return redirect()->route('reservas.handle-inactive-machinery', $reserva->id_reserva)
+                                 ->with('error', 'La maquinaria asignada a esta reserva está inactiva. Por favor, seleccione una alternativa o cancele la reserva.');
+            }
+
             // Asigna el ID del empleado que registra la entrega
+            $reserva->estado = 'activa';
             $reserva->id_empleado = Auth::id();
             $reserva->save(); // Guardamos solo la asignación del empleado
             Log::info('Reserva ID ' . $reserva->id_reserva . ' registrada con id_empleado: ' . $reserva->id_empleado);
@@ -262,6 +289,91 @@ class ReservaController extends Controller
         } catch (\Exception $e) {
             Log::error('Error inesperado al registrar entrega para Reserva ID ' . $reserva->id_reserva . ': ' . $e->getMessage());
             return redirect()->route('reservas.listas-para-entregar')->with('error', 'Ocurrió un error inesperado al registrar la entrega: ' . $e->getMessage());
+        }
+    }
+
+
+    public function handleInactiveMachinery(Reserva $reserva)
+    {
+        // Asegúrate de que la reserva está aprobada y su maquinaria inactiva
+        if ($reserva->estado !== 'aprobada' || ($reserva->maquinaria && $reserva->maquinaria->estado !== 'inactiva')) {
+            return redirect()->route('reservas.listas-para-entregar')->with('error', 'Esta reserva no requiere manejo de maquinaria inactiva.');
+        }
+
+        $originalMachinery = $reserva->maquinaria;
+
+        // Buscar maquinarias disponibles similares por tipo_uso y localidad
+        $similarAvailableMachinery = Maquinaria::where('estado', 'disponible')
+                                                ->where('uso', $originalMachinery->uso)
+                                                ->where('localidad', $originalMachinery->localidad)
+                                                ->where('id_maquinaria', '!=', $originalMachinery->id_maquinaria) // Excluir la maquinaria original
+                                                ->get();
+
+        Log::info('Manejando maquinaria inactiva para Reserva ID: ' . $reserva->id_reserva . '. Maquinarias similares disponibles: ' . $similarAvailableMachinery->count());
+
+        return view('reservas.select-replacement-machinery', compact('reserva', 'originalMachinery', 'similarAvailableMachinery'));
+    }
+
+
+    public function swapMachinery(Request $request, Reserva $reserva)
+    {
+        $request->validate([
+            'new_maquinaria_id' => 'required|exists:maquinarias,id_maquinaria',
+        ]);
+
+        $newMachinery = Maquinaria::find($request->new_maquinaria_id);
+
+        if (!$newMachinery || $newMachinery->estado !== 'disponible' ||
+            $newMachinery->uso !== $reserva->maquinaria->uso ||
+            $newMachinery->localidad !== $reserva->maquinaria->localidad) {
+            Log::warning('Intento de intercambio con maquinaria no válida. Reserva ID: ' . $reserva->id_reserva . ', Nueva Maquinaria ID: ' . $request->new_maquinaria_id);
+            return redirect()->route('reservas.handle-inactive-machinery', $reserva->id_reserva)->with('error', 'La maquinaria seleccionada para el intercambio no es válida o no está disponible.');
+        }
+
+        try {
+            // 1. Actualizar la reserva con la nueva maquinaria
+             $reserva->id_maquinaria = $newMachinery->id_maquinaria;
+            $reserva->save();
+            Log::info('Maquinaria intercambiada exitosamente para Reserva ID: ' . $reserva->id_reserva . '. Nueva Maquinaria ID: ' . $newMachinery->id_maquinaria);
+
+            // 2. Recargar la relación 'maquinaria' de la reserva.
+            // Esto es CRUCIAL para que el método registrarEntrega vea la nueva maquinaria
+            // y su estado 'disponible', evitando la redirección a handleInactiveMachinery.
+            $reserva->load('maquinaria'); // <-- ¡Esta es la línea clave a añadir!
+
+            // 3. Llamar al método registrarEntrega para registrar la entrega de la reserva actualizada
+            // Pasamos la misma instancia de Request y Reserva para que registrarEntrega pueda procesarla.
+            return $this->registrarEntrega($reserva);
+            
+        } catch (QueryException $e) {
+            Log::error('Error de base de datos al intercambiar maquinaria para Reserva ID ' . $reserva->id_reserva . ': ' . $e->getMessage());
+            return redirect()->route('reservas.handle-inactive-machinery', $reserva->id_reserva)->with('error', 'Error al intercambiar la maquinaria en la base de datos: ' . $e->getMessage());
+        } catch (\Exception $e) {
+            Log::error('Error inesperado al intercambiar maquinaria para Reserva ID ' . $reserva->id_reserva . ': ' . $e->getMessage());
+            return redirect()->route('reservas.handle-inactive-machinery', $reserva->id_reserva)->with('error', 'Ocurrió un error inesperado al intercambiar la maquinaria: ' . $e->getMessage());
+        }
+    }
+
+
+    public function cancelReservationAndRefund(Reserva $reserva)
+    {
+        try {
+            // Solo cancelar si la reserva está aprobada y su maquinaria inactiva (para este flujo)
+            if ($reserva->estado === 'aprobada' && $reserva->maquinaria && $reserva->maquinaria->estado === 'inactiva') {
+                $reserva->estado = 'cancelada';
+                $reserva->save();
+                Log::info('Reserva ID ' . $reserva->id_reserva . ' cancelada debido a maquinaria inactiva. Reembolso total.');
+                return redirect()->route('reservas.listas-para-entregar')->with('success', 'Reserva ID ' . $reserva->id_reserva . ' cancelada exitosamente. Se debe reembolsar el monto total al cliente.');
+            } else {
+                Log::warning('Intento de cancelar reserva fuera del flujo de maquinaria inactiva. ID: ' . $reserva->id_reserva);
+                return redirect()->route('reservas.listas-para-entregar')->with('error', 'No se puede cancelar esta reserva de esta manera.');
+            }
+        } catch (QueryException $e) {
+            Log::error('Error de base de datos al cancelar reserva para Reserva ID ' . $reserva->id_reserva . ': ' . $e->getMessage());
+            return redirect()->route('reservas.listas-para-entregar')->with('error', 'Error al cancelar la reserva en la base de datos: ' . $e->getMessage());
+        } catch (\Exception $e) {
+            Log::error('Error inesperado al cancelar reserva para Reserva ID ' . $reserva->id_reserva . ': ' . $e->getMessage());
+            return redirect()->route('reservas.listas-para-entregar')->with('error', 'Ocurrió un error inesperado al cancelar la reserva: ' . $e->getMessage());
         }
     }
 }

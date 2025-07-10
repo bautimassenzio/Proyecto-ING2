@@ -74,7 +74,7 @@ dump("Reserva 3 (Aprobada Futura) creada con ID: " . $reservaFuturaAprobada->id_
 
 // Reserva 4: Aprobada, fecha de inicio HOY (debería aparecer en "Reservas Aprobadas para Entregar")
 $reservaHoyAprobada = Reserva::create([
-    'id_maquinaria' => 10,
+    'id_maquinaria' => 11,
     'id_cliente' => $idUsuario,
     'fecha_inicio' => Carbon::today(), // Fecha de inicio hoy
     'fecha_fin' => Carbon::today()->addDays(3),
@@ -85,6 +85,53 @@ $reservaHoyAprobada = Reserva::create([
 ]);
 dump("Reserva 4 (Aprobada Hoy) creada con ID: " . $reservaHoyAprobada->id_reserva);
 
+$reservaFutura = Reserva::create([
+    'id_maquinaria' => 11,
+    'id_cliente' => $idUsuario,
+    'fecha_inicio' => Carbon::tomorrow(),
+    'fecha_fin' => Carbon::tomorrow()->addDays(5),
+    'fecha_reserva' => Carbon::now(),
+    'estado' => 'aprobada',
+    'total' => 500.00,
+    'id_empleado' => null,
+]);
+dump("Reserva Futura creada con ID: " . $reservaFutura->id_reserva);
+
+$reservaHoyAprobada = Reserva::create([
+    'id_maquinaria' => 12,
+    'id_cliente' => $idUsuario,
+    'fecha_inicio' => Carbon::today(), // Fecha de inicio hoy
+    'fecha_fin' => Carbon::today()->addDays(3),
+    'fecha_reserva' => Carbon::now()->subDays(1),
+    'estado' => 'aprobada',
+    'total' => 450.00,
+    'id_empleado' => null,
+]);
+dump("Reserva 4 (Aprobada Hoy) creada con ID: " . $reservaHoyAprobada->id_reserva);
+
+$reservaHoyAprobada = Reserva::create([
+    'id_maquinaria' => 13,
+    'id_cliente' => $idUsuario,
+    'fecha_inicio' => Carbon::today(), // Fecha de inicio hoy
+    'fecha_fin' => Carbon::today()->addDays(3),
+    'fecha_reserva' => Carbon::now()->subDays(1),
+    'estado' => 'aprobada',
+    'total' => 450.00,
+    'id_empleado' => null,
+]);
+dump("Reserva 4 (Aprobada Hoy) creada con ID: " . $reservaHoyAprobada->id_reserva);
+
+$reservaHoyAprobada = Reserva::create([
+    'id_maquinaria' => 13,
+    'id_cliente' => $idUsuario,
+    'fecha_inicio' => Carbon::today(), // Fecha de inicio hoy
+    'fecha_fin' => Carbon::today()->addDays(3),
+    'fecha_reserva' => Carbon::now()->subDays(1),
+    'estado' => 'aprobada',
+    'total' => 450.00,
+    'id_empleado' => null,
+]);
+dump("Reserva 4 (Aprobada Hoy) creada con ID: " . $reservaHoyAprobada->id_reserva);
 
 // --- Consulta para verificar las reservas "listas para entregar" (todas las aprobadas no finalizadas/canceladas) ---
 $reservasListas = Reserva::with(['maquinaria', 'cliente']) // <-- ¡CAMBIADO DE 'usuario' A 'cliente'!

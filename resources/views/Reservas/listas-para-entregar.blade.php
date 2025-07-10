@@ -51,8 +51,8 @@
                                     {{ $reserva->maquinaria->marca }} {{ $reserva->maquinaria->modelo }} ({{ $reserva->maquinaria->nro_inventario }})
                                 </td>
                                 <td class="py-3 px-4 border-b text-sm text-gray-800">
-                                    {{-- Muestra el nombre del usuario, o 'N/A' si no está disponible --}}
-                                    {{ $reserva->usuario->nombre ?? 'N/A' }}
+                                    {{-- Muestra el nombre del cliente, o 'N/A' si no está disponible --}}
+                                    {{ $reserva->cliente->nombre ?? 'N/A' }}
                                 </td>
                                 <td class="py-3 px-4 border-b text-sm text-gray-800 font-bold">{{ \Carbon\Carbon::parse($reserva->fecha_inicio)->format('d/m/Y') }}</td>
                                 <td class="py-3 px-4 border-b text-sm text-gray-800">{{ \Carbon\Carbon::parse($reserva->fecha_fin)->format('d/m/Y') }}</td>

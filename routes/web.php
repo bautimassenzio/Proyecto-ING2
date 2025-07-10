@@ -104,3 +104,9 @@ Route::put('/reservas/{reserva}/registrar-devolucion', [ReservaController::class
 
 Route::get('/reservas/listas-para-entregar', [ReservaController::class, 'listasParaEntregar'])->name('reservas.listas-para-entregar');
 Route::put('/reservas/{reserva}/registrar-entrega', [ReservaController::class, 'registrarEntrega'])->name('reservas.registrar-entrega');
+
+Route::get('/reservas/{reserva}/manejar-maquinaria-inactiva', [ReservaController::class, 'handleInactiveMachinery'])->name('reservas.handle-inactive-machinery');
+    // Procesa el intercambio de maquinaria
+Route::put('/reservas/{reserva}/intercambiar-maquinaria', [ReservaController::class, 'swapMachinery'])->name('reservas.swap-machinery');
+    // Cancela la reserva y notifica reembolso
+Route::put('/reservas/{reserva}/cancelar-y-reembolsar', [ReservaController::class, 'cancelReservationAndRefund'])->name('reservas.cancel-and-refund');
