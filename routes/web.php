@@ -9,20 +9,42 @@ use App\Http\Controllers\Web\Users\AdminController;
 use App\Http\Controllers\Web\Users\ClienteController;
 use App\Http\Controllers\Web\Users\UsuarioController;
 use App\Http\Controllers\Web\Users\ViewsController; //Controller donde se redirecciona a las vistas
-use App\Http\Controllers\Web\Estadisticas\EstadisticaController;
+use App\Http\Controllers\Web\Estadisticas\EstadisticasController; // Corregido a EstadisticasController
 use App\Http\Controllers\Web\Users\EmpleadoController;
+
 // Vista Inicio
 Route::get('/', [ViewsController::class, 'vistaInicio'])->name('/');
 
-// Mostrar formulario con listado de clientes
-Route::get('/empleado/historial-clientes', [EmpleadoController::class, 'mostrarFormularioHistorial'])->name('empleado.historial.formulario');
+// Rutas del panel de empleado para entregas y devoluciones
+Route::prefix('empleado')->middleware('checkUserType:empleado')->group(function () {
+    // Panel principal de entregas y devoluciones
+    Route::get('/panel-entregas-devoluciones', function () {
+        // Redirige a la vista de entregas por defecto o muestra un dashboard general
+        // Puedes elegir qué lista mostrar por defecto o si quieres una vista de resumen
+        return redirect()->route('empleado.entregas-pendientes');
+    })->name('empleado.panel-entregas-devoluciones');
 
-// Mostrar historial del cliente seleccionado
-Route::get('/empleado/historial/{dni}', [EmpleadoController::class, 'historialReservasCliente'])->name('empleado.historial.mostrar');
+    // Listas para el panel
+    Route::get('/entregas-pendientes', [ReservaController::class, 'listasParaEntregar'])->name('empleado.entregas-pendientes');
+    Route::get('/devoluciones-pendientes', [ReservaController::class, 'listasParaDevolver'])->name('empleado.devoluciones-pendientes');
 
+    // Acciones de registro de entrega/devolución (ahora apuntan a ReservaController)
+    Route::put('/reservas/{reserva}/registrar-entrega', [ReservaController::class, 'registrarEntrega'])->name('reservas.registrar-entrega');
+    Route::put('/reservas/{reserva}/registrar-devolucion', [ReservaController::class, 'registrarDevolucion'])->name('reservas.registrar-devolucion');
 
+    // Rutas existentes de empleado
+    Route::get('/historial-clientes', [EmpleadoController::class, 'mostrarFormularioHistorial'])->name('empleado.historial.formulario');
+    Route::get('/historial/{dni}', [EmpleadoController::class, 'historialReservasCliente'])->name('empleado.historial.mostrar');
+    Route::get('/registerByEmployee', [ViewsController::class, 'vistaRegistroPorEmpleado']);
+    Route::post('/registerByEmployee', [ClienteController::class, 'crearContraseña'])->name('registerByEmployee');
 
-// Operaciones de registro
+    Route::get('/reservas/{reserva}/seleccionar-alternativa', [ReservaController::class, 'showAlternativeMachinerySelection'])->name('empleado.seleccionar-maquinaria-alternativa');
+    Route::put('/reservas/{reserva}/procesar-alternativa', [ReservaController::class, 'processAlternativeDelivery'])->name('reservas.procesar-entrega-alternativa');
+    Route::get('/reservas/{reserva}/cancelar-directo', [ReservaController::class, 'cancelarDirecto'])->name('reservas.cancelar-directo');
+    
+});
+
+// Operaciones de registro (general y admin)
 Route::get('/register', [ViewsController::class, 'vistaRegistro']);
 Route::post('/register', [ClienteController::class, 'storeClient'])->name('register');
 Route::get('/registerByEmployee', [ViewsController::class, 'vistaRegistroPorEmpleado'])->middleware('checkUserType:empleado');
@@ -100,14 +122,10 @@ Route::prefix('admin')->group(function () {
     Route::post('/maquinarias', [MaquinariaController::class, 'store'])->name('maquinarias.store');
 
     Route::prefix('estadisticas')->group(function () {
-        // Esta es la ruta para "Nuevos Clientes Registrados"
-        Route::get('/nuevos-clientes', [EstadisticaController::class, 'showNewClientsStatistics'])->name('admin.estadisticas.nuevos-clientes')->middleware('checkUserType:admin');
-        
-        // Rutas placeholder para las otras estadísticas, se implementarán más adelante
-        Route::get('/maquinas-mas-alquiladas', [EstadisticaController::class, 'showMostRentedMachineryStatistics'])->name('admin.estadisticas.maquinas-mas-alquiladas')->middleware('checkUserType:admin');
-        Route::get('/ingresos', [EstadisticaController::class, 'showIncomeStatistics'])->name('admin.estadisticas.ingresos')->middleware('checkUserType:admin');
+        Route::get('/nuevos-clientes', [EstadisticasController::class, 'showNewClientsStatistics'])->name('admin.estadisticas.nuevos-clientes')->middleware('checkUserType:admin');
+        Route::get('/maquinas-mas-alquiladas', [EstadisticasController::class, 'showMostRentedMachineryStatistics'])->name('admin.estadisticas.maquinas-mas-alquiladas')->middleware('checkUserType:admin');
+        Route::get('/ingresos', [EstadisticasController::class, 'showIncomeStatistics'])->name('admin.estadisticas.ingresos')->middleware('checkUserType:admin');
     });
-
 });
 
 // Edicion de maquinarias
@@ -116,28 +134,15 @@ Route::put('admin/maquinarias/{maquinaria}', [MaquinariaController::class, 'upda
 
 // Eliminar Maquinaria
 Route::delete('admin/maquinarias/{maquinaria}', [MaquinariaController::class, 'destroy'])->name('maquinarias.destroy');
-//Route::get('admin/maquinarias', [MaquinariaController::class, 'index'])->name('maquinarias.index');
 
 // Visualizar catalogo y maquinaria especifica
-Route::get('/catalogo', [MaquinariaController::class, 'index'])->name('catalogo.index'); // Catálogo Adaptativo
-Route::get('/catalogo/{maquinaria}', [MaquinariaController::class, 'show'])->name('catalogo.show'); // Detalle Adaptativo
-
+Route::get('/catalogo', [MaquinariaController::class, 'index'])->name('catalogo.index');
+Route::get('/catalogo/{maquinaria}', [MaquinariaController::class, 'show'])->name('catalogo.show');
 
 // Visualizar informacion
 Route::get('/info-contactos', [ViewsController::class, 'mostrarInformacionContacto'])->name('info.contactos');
 Route::get('/preguntas-frecuentes', [ViewsController::class, 'mostrarPreguntasFrecuentes'])->name('preguntas.frecuentes');
 
-
 // Pagos con tarjeta
 Route::get('/procesar-pago/tarjeta', [PagoController::class, 'mostrarFormularioTarjeta'])->name('pago.procesar.tarjeta');
 Route::post('/procesar-pago/tarjeta', [PagoController::class, 'procesarPagoTarjeta'])->name('procesar.pago.tarjeta');
-
-
-// Estadisticas
-Route::get('/estadisticas', [EstadisticaController::class, 'showStatistics'])->name('admin.estadisticas')->middleware('checkUserType:admin');
-
-Route::get('/maquinarias/devoluciones-pendientes', [MaquinariaController::class, 'devolucionesPendientes'])->name('maquinarias.devoluciones-pendientes');
-Route::put('/reservas/{reserva}/registrar-devolucion', [ReservaController::class, 'registrarDevolucion'])->name('reservas.registrar-devolucion');
-
-Route::get('/reservas/listas-para-entregar', [ReservaController::class, 'listasParaEntregar'])->name('reservas.listas-para-entregar');
-Route::put('/reservas/{reserva}/registrar-entrega', [ReservaController::class, 'registrarEntrega'])->name('reservas.registrar-entrega');

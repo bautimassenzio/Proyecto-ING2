@@ -21,9 +21,18 @@
 {{-- Elemento agregado de tu rama --}}
 <li class="nav-item">
     <a class="nav-link {{ request()->is('/empleado/historial-clientes') ? 'active' : '' }}" href="{{ url('/empleado/historial-clientes') }}">
-        <i class="fas fa-users me-1"></i> Consultar historial cliente
+        <i class="fas fa-history me-1"></i> Consultar historial cliente
     </a>
 </li>
+
+{{-- ** NUEVO ENLACE PARA EL PANEL DE ENTREGAS Y DEVOLUCIONES ** --}}
+<li class="nav-item">
+    <a class="nav-link {{ request()->is('empleado/panel-entregas-devoluciones*') || request()->is('empleado/entregas-pendientes') || request()->is('empleado/devoluciones-pendientes') ? 'active' : '' }}" 
+       href="{{ route('empleado.panel-entregas-devoluciones') }}">
+        <i class="fas fa-truck-ramp-box me-1"></i> Entregas y Devoluciones
+    </a>
+</li>
+{{-- FIN DEL NUEVO ENLACE --}}
 
 {{-- Nuevos elementos de la rama entrante --}}
 <li class="nav-item">
@@ -65,7 +74,15 @@
 
 @section('additional-styles')
 <style>
-    /* Las secciones de estilo son idénticas, así que solo mantenemos una versión */
+    /* Asegúrate de que tus variables CSS estén definidas aquí o en layouts.base */
+    :root {
+        --primary-yellow: #FFC107;
+        --secondary-yellow: #FFD54F;
+        --dark-bg: #343a40;
+        --text-dark: #212529;
+        --text-light: #6c757d;
+    }
+
     .employee-dashboard {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -149,6 +166,41 @@
         display: block;
         font-size: 1.5rem;
         margin-bottom: 0.5rem;
+    }
+
+    /* ** ESTILOS NECESARIOS PARA LOS BOTONES EN EL PANEL DE ENTREGAS/DEVOLUCIONES ** */
+    .btn-primary-small {
+        background-color: var(--primary-yellow);
+        color: var(--dark-bg);
+        font-weight: bold;
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.5rem;
+        border: 2px solid var(--primary-yellow);
+        transition: all 0.3s ease;
+        cursor: pointer;
+        display: inline-block;
+        text-align: center;
+        text-decoration: none;
+        line-height: normal;
+    }
+
+    .btn-primary-small:hover {
+        background-color: var(--secondary-yellow);
+        border-color: var(--secondary-yellow);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(255, 184, 0, 0.2);
+        color: var(--dark-bg);
+    }
+    
+    /* Estilo específico para el botón de devolución en la tabla */
+    .bg-orange-500 {
+        background-color: #f97316; /* Un naranja de Tailwind */
+        border-color: #f97316;
+        color: white; /* Texto blanco para contraste */
+    }
+    .hover\:bg-orange-600:hover {
+        background-color: #ea580c; /* Naranja más oscuro al hover */
+        border-color: #ea580c;
     }
 </style>
 @endsection

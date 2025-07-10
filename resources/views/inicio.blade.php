@@ -22,7 +22,7 @@
 
     @if(Auth::guard('users')->user()->rol === 'admin')
         <!-- Admin Dashboard -->
-         <!--
+          <!--
         <div class="admin-stats">
             <div class="stat-card">
                 <div class="stat-icon">
@@ -62,6 +62,11 @@
                 <i class="fas fa-plus-circle"></i>
                 <div>Nueva Maquinaria</div>
             </a>
+            {{-- ** BOTÓN "REGISTRAR CLIENTE" RESTAURADO ** --}}
+            <a href="{{ url('/registerByEmployee') }}" class="action-btn">
+                <i class="fas fa-user-plus"></i> {{-- Icono para cliente --}}
+                <div>Registrar Cliente</div>
+            </a>
            <!-- <a href="#" class="action-btn">
                 <i class="fas fa-chart-bar"></i>
                 <div>Ver Reportes</div>
@@ -77,7 +82,7 @@
         <!-- Employee Dashboard -->
         <div class="employee-dashboard">
             
-    <div class="task-card">
+            <div class="task-card">
                 <div class="task-header">
                     <div class="task-icon">
                         <i class="fas fa-tools"></i>
@@ -86,7 +91,8 @@
                     
                 </div>
                 <p class="text-muted">Devoluciones esperando confirmacion</p>
-                <a href="{{ route('maquinarias.devoluciones-pendientes') }}" class="btn btn-outline-primary btn-sm">Ver Todos</a>
+                {{-- ** RUTA CORREGIDA ** --}}
+                <a href="{{ route('empleado.devoluciones-pendientes') }}" class="btn btn-outline-primary btn-sm">Ver Todos</a>
             </div>
 
             <div class="task-card">
@@ -95,16 +101,15 @@
                         <i class="fas fa-tools"></i>
                     </div>
                     <h5 class="task-title">Entregas pendientes</h5>
-                   
+                    
                 </div>
                 <p class="text-muted">Entregas esperando confirmacion</p>
-                <a href="{{ route('reservas.listas-para-entregar') }}" class="btn btn-outline-primary btn-sm">Ver Todos</a>
+                {{-- ** RUTA CORREGIDA ** --}}
+                <a href="{{ route('empleado.entregas-pendientes') }}" class="btn btn-outline-primary btn-sm">Ver Todos</a>
             </div>
         </div>
 
             
-
-          
         </div>
 
         <div class="quick-actions">
@@ -112,13 +117,13 @@
                 <i class="fas fa-user-plus"></i>
                 Registrar Cliente
             </a>
-         
+          
         </div>
 
     @else
         <!-- Client Dashboard -->
-         <!--
-     <div class="client-overview">  
+          <!--
+       <div class="client-overview">   
             <div class="overview-card">
                 <div class="overview-icon">
                     <i class="fas fa-shopping-cart"></i>
@@ -157,7 +162,7 @@
                 <i class="fas fa-calculator"></i>
                 <div>Solicitar Cotización</div>
             </a>
-        
+            
             <a href="#" class="client-action">
                 <i class="fas fa-headset"></i>
                 <div>Soporte Técnico</div>
@@ -219,3 +224,4 @@
     }
 </style>
 @endsection
+ 

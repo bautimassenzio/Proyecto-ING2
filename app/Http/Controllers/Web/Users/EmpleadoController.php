@@ -4,55 +4,24 @@ namespace App\Http\Controllers\Web\Users;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Domain\Reserva\Models\Reserva; // De tu rama
-use App\Domain\Maquinaria\Models\Maquinaria; // De tu rama
+use App\Domain\Reserva\Models\Reserva;
+use App\Domain\Maquinaria\Models\Maquinaria;
 use App\Domain\User\Models\Usuario;
-use App\Enums\Estados; // De tu rama (y en incoming)
-use App\Enums\Roles; // De incoming
-use Illuminate\Support\Facades\Hash; // De tu rama (importante para bcrypt si se usa en otro lado)
+use App\Enums\Estados;
+use App\Enums\Roles;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log; // De tu rama
-use Illuminate\Support\Str; // De incoming
-use App\Mail\EnviarContraseña; // De incoming
-use Illuminate\Support\Facades\Mail; // De incoming
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
+use App\Mail\EnviarContraseña;
+use Illuminate\Support\Facades\Mail;
 
 class EmpleadoController extends Controller
 {
     // --- MÉTODOS DE TU RAMA ---
 
-    // 1. Registrar entrega de maquinaria
-    public function registrarEntrega($reserva_id)
-    {
-        $reserva = Reserva::find($reserva_id);
-
-        if (!$reserva) {
-            return response()->json(['mensaje' => 'Reserva no encontrada'], 404);
-        }
-
-        $reserva->update([
-            'fecha_entrega' => now(),
-            'empleado_entrega_id' => Auth::id(), // supondremos que el empleado está logueado
-        ]);
-
-        return response()->json(['mensaje' => 'Entrega registrada con éxito', 'reserva' => $reserva]);
-    }
-
-    // 2. Registrar devolución de maquinaria
-    public function registrarDevolucion($reserva_id)
-    {
-        $reserva = Reserva::find($reserva_id);
-
-        if (!$reserva) {
-            return response()->json(['mensaje' => 'Reserva no encontrada'], 404);
-        }
-
-        $reserva->update([
-            'fecha_devolucion' => now(),
-            'empleado_recepcion_id' => Auth::id(), // suponiendo que también se guarda quien recibe
-        ]);
-
-        return response()->json(['mensaje' => 'Devolución registrada con éxito', 'reserva' => $reserva]);
-    }
+    // Los métodos registrarEntrega y registrarDevolucion han sido movidos a ReservaController.php
+    // para centralizar la lógica de negocio de las reservas.
 
     // 3. Consultar historial de reservas de un cliente
     public function mostrarFormularioHistorial()
@@ -96,7 +65,7 @@ class EmpleadoController extends Controller
             'nombre' => $request->nombre,
             'dni' => $request->dni,
             'email' => $request->email,
-            'contraseña' => Hash::make($request->contraseña), // Usar Hash::make en lugar de bcrypt directamente
+            'contraseña' => Hash::make($request->contraseña),
             'telefono' => $request->telefono,
             'rol' => 'cliente',
             'estado' => Estados::ACTIVO,
@@ -136,13 +105,13 @@ class EmpleadoController extends Controller
     }
 
     // Almacena un usuario con rol empleado (originalmente crearEmpleado en incoming)
-    public function crearEmpleado(Request $request){ // Añadí Request $request para que sea más claro. Si solo se usa internamente, podrías quitarlo si la rama original lo pasaba de otra forma.
+    public function crearEmpleado(Request $request){
         $rol = Roles::EMPLEADO;
         $estado = Estados::ACTIVO;
         return Usuario::create([
             'nombre' => $request->nombre,
             'email' => $request->email,
-            'contraseña' => Hash::make($request->contraseña), // Usar Hash::make
+            'contraseña' => Hash::make($request->contraseña),
             'rol' => $rol,
             'dni' => $request->dni,
             'telefono' => $request->telefono,
@@ -159,7 +128,7 @@ class EmpleadoController extends Controller
             'contraseña' => $contraseñaGenerada
         ]);
         $response = $this->crearEmpleado($request);
-        Mail::to($request->email)->send(new EnviarContraseña($request->nombre, $contraseñaGenerada)); //Envia un mail al nuevo usuario con su contraseña
+        Mail::to($request->email)->send(new EnviarContraseña($request->nombre, $contraseñaGenerada));
         return $response;
     }
 }
