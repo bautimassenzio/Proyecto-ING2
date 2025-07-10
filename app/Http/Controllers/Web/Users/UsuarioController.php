@@ -18,17 +18,41 @@ class UsuarioController extends Controller
         return Usuario::all();
     }
 
-    // Obtener todos los empleados con paginación (nuevo de la rama entrante)
+    // Maneja la búsqueda por nombre o email de un rol específico
+    public function buscarPorRol(Request $request, $rol)
+    {
+        $query = Usuario::query()->where('rol', $rol);
+
+        if ($request->filled('nombre')) {
+            $query->where('nombre', 'LIKE', '%' . $request->nombre . '%');
+        }
+
+        if ($request->filled('email')) {
+            $query->where('email', $request->email);
+        }
+
+        
+        $usuarios = $query->paginate(10);
+        
+        if ($usuarios->isEmpty()) {
+            return redirect()->back()->withErrors(['No se encontraron ' . ($rol === 'empleado' ? 'empleados' : 'clientes') . ' que coincidan con la búsqueda.']);
+        }
+        return view('eliminarUsuario', compact('usuarios','rol'));
+    }
+
+    //Obtener todos los empleados con paginacion
     public function getEmpleados(){
-        $usuarios = Usuario::where('rol', Roles::EMPLEADO)->paginate(10); // 10 por página
-        return view('eliminarUsuario', compact('usuarios')); // Asumo que esta vista es la correcta
+        $rol = Roles::EMPLEADO; 
+        $usuarios = Usuario::where('rol', $rol)->paginate(10); // 10 por página
+        return view('eliminarUsuario', compact('usuarios','rol'));
     }
 
     // Obtener todos los clientes con paginación (nuevo de la rama entrante)
     public function getClientes() {
-        $usuarios = Usuario::where('rol', Roles::CLIENTE)->paginate(10); // 10 por página
-        return view('eliminarUsuario', compact('usuarios')); // Asumo que esta vista es la correcta
-    }
+        $rol = Roles::CLIENTE;
+        $usuarios = Usuario::where('rol', $rol)->paginate(10); // 10 por página
+        return view('eliminarUsuario', compact('usuarios', 'rol'));
+    }   
 
     // Obtener usuario por DNI (GET) (idéntico en ambas ramas, salvo el return en incoming)
     public function getUsuario($dni){
@@ -41,10 +65,10 @@ class UsuarioController extends Controller
         return response()->json($usuario); // Mantener JSON para consistencia API
     }
 
-    // Actualizar usuario por DNI (PUT) (idéntico en ambas ramas, se actualiza bcrypt a Hash::make)
+    // Actualizar usuario por DNI (PUT)
     public function update(Request $request, $dni)
-{
-    $usuario = Usuario::where('dni', $dni)->first();
+    {
+        $usuario = Usuario::where('dni', $dni)->first();
 
     if (!$usuario) {
         // En caso de no encontrar el usuario, redirigimos con un error
@@ -52,15 +76,21 @@ class UsuarioController extends Controller
         return redirect()->back()->with('error', 'Usuario no encontrado para actualizar.');
     }
 
-    $request->validate([
-        'nombre' => 'string',
-        'email' => 'email|unique:usuarios,email,' . $usuario->id_usuario . ',id_usuario',
-        'contraseña' => 'nullable|string|min:4',
-        'rol' => 'string',
-        'telefono' => 'string',
-        'estado' => 'string',
-        // 'fecha_alta' => 'date', // Si este campo no se edita, puedes quitarlo de la validación
-    ]);
+        $request->validate([
+            'nombre' => 'string',
+            'email' => 'email|unique:usuarios,email,' . $usuario->dni . ',dni',
+            'contraseña' => 'string|min:4',
+            'rol' => 'string',
+            'telefono' => 'string',
+            'estado' => 'string',
+            'fecha_alta' => 'date',
+        ], [
+            'nombre.string' => 'El nombre debe ser un texto.',
+            'email.email' => 'El correo electrónico no tiene un formato válido.',
+            'email.unique' => 'Este correo ya está en uso por otro usuario.',
+            'contraseña.string' => 'La contraseña debe ser un texto.',
+            'contraseña.min' => 'La contraseña debe tener al menos 6 caracteres.',
+        ]);
 
     $usuario->update([
         'nombre' => $request->nombre ?? $usuario->nombre,
@@ -72,10 +102,8 @@ class UsuarioController extends Controller
         'fecha_alta' => $request->fecha_alta ?? $usuario->fecha_alta,
     ]);
 
-    // Redirige de vuelta a la página anterior (la de edición)
-    // y guarda un mensaje 'success' en la sesión flash.
-    return redirect()->back()->with('success', 'Usuario actualizado con éxito.');
-}
+        return back()->with('success', 'Operacion realizada correctamente.');
+    }
 
     // Eliminar Lógica de usuario por DNI (DELETE) - Priorizamos la lógica de la rama entrante
     public function delete($dni)

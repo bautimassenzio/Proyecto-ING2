@@ -63,9 +63,25 @@
                                     <td class="py-3 px-6">{{ \Carbon\Carbon::parse($reserva->fecha_fin)->format('d/m/Y') }}</td>
                                     <td class="py-3 px-6">
                                         @if ($reserva->estado === 'aprobada')
-                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                                                Aprobada (Pendiente Entrega)
-                                            </span>
+                                            {{-- Lógica para mostrar el estado de la fecha --}}
+                                            @php
+                                                $fechaInicio = \Carbon\Carbon::parse($reserva->fecha_inicio);
+                                                $fechaFin = \Carbon\Carbon::parse($reserva->fecha_fin);
+                                            @endphp
+
+                                            @if ($fechaInicio->isFuture())
+                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                                                    Aprobada (Futura)
+                                                </span>
+                                            @elseif ($fechaFin->isPast() && !$fechaFin->isToday())
+                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                                                    Aprobada (Expirada)
+                                                </span>
+                                            @else
+                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                                    Aprobada (Pendiente Entrega)
+                                                </span>
+                                            @endif
                                         @elseif ($reserva->estado === 'en_curso')
                                             <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
                                                 Entregada (En Curso)
@@ -77,12 +93,15 @@
                                         @endif
                                     </td>
                                     <td class="py-3 px-6">
-                                        @if ($reserva->estado === 'aprobada')
+                                        {{-- Mostrar el botón de Registrar Entrega SOLO si el estado es 'aprobada' Y la fecha está dentro del rango actual --}}
+                                        @if ($reserva->estado === 'aprobada' && ($fechaInicio->isToday() || $fechaInicio->isPast()) && ($fechaFin->isToday() || $fechaFin->isFuture()))
                                             <form action="{{ route('reservas.registrar-entrega', $reserva->id_reserva) }}" method="POST" onsubmit="return confirm('¿Estás seguro de registrar la entrega de esta maquinaria?');" class="inline-block">
                                                 @csrf
                                                 @method('PUT')
                                                 <button type="submit" class="btn-primary-small bg-blue-500 hover:bg-blue-600">Registrar Entrega</button>
                                             </form>
+                                        @elseif ($reserva->estado === 'aprobada')
+                                            <span class="text-gray-500 italic">Fecha no apta para entrega</span>
                                         @else
                                             <span class="text-gray-500 italic">Acción Completada</span>
                                         @endif
@@ -144,7 +163,7 @@
                                         @if ($reserva->estado === 'en_curso')
                                             <form action="{{ route('reservas.registrar-devolucion', $reserva->id_reserva) }}" method="POST" onsubmit="return confirm('¿Estás seguro de registrar la devolución de esta maquinaria?');" class="inline-block">
                                                 @csrf
-                                                @method('PUT')
+                                                {{--@method('PUT')--}}
                                                 <button type="submit" class="btn-primary-small bg-orange-500 hover:bg-orange-600">Registrar Devolución</button>
                                             </form>
                                         @else

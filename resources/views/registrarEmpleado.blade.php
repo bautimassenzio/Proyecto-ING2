@@ -4,7 +4,7 @@
 
 
     <div class="container mt-5">
-        <h2>Registro de Usuario</h2>
+        <h2>Registro de empleado</h2>
 
 
         <form method="POST" action="{{ route('registerEmployee') }}">

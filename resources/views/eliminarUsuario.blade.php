@@ -2,6 +2,31 @@
 
 @section('content')
 
+@php
+    $rolString = is_object($rol) ? $rol->value : $rol;
+@endphp
+
+<h2 class="text-center mb-4">
+    @if (trim(strtolower($rolString)) === 'empleado')
+        Listado de Empleados
+    @else
+        Listado de Clientes
+    @endif
+</h2>
+
+{{-- Formulario de búsqueda --}}
+<form method="GET" action="{{ route('usuarios.buscar', ['rol' => $rol]) }}" class="row g-3 mb-4">
+    <div class="col-md-5">
+        <input type="text" name="nombre" class="form-control" placeholder="Buscar por nombre" value="{{ request('nombre') }}">
+    </div>
+    <div class="col-md-5">
+        <input type="email" name="email" class="form-control" placeholder="Buscar por email" value="{{ request('email') }}">
+    </div>
+    <div class="col-md-2">
+        <button type="submit" class="btn btn-primary w-100">Buscar</button>
+    </div>
+</form>
+
 <table class="table table-hover table-borderless text-center align-middle mb-0">
     <thead>
         <tr>
@@ -121,5 +146,5 @@
     .btn-success:hover {
         transform: translateY(-2px);
         box-shadow: var(--shadow-lg);
-    }
+    }
 </style>

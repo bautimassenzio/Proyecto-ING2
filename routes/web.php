@@ -9,7 +9,7 @@ use App\Http\Controllers\Web\Users\AdminController;
 use App\Http\Controllers\Web\Users\ClienteController;
 use App\Http\Controllers\Web\Users\UsuarioController;
 use App\Http\Controllers\Web\Users\ViewsController; //Controller donde se redirecciona a las vistas
-use App\Http\Controllers\Web\Estadisticas\EstadisticasController; // Corregido a EstadisticasController
+use App\Http\Controllers\Web\Estadisticas\EstadisticaController; 
 use App\Http\Controllers\Web\Users\EmpleadoController;
 
 // Vista Inicio
@@ -37,6 +37,15 @@ Route::prefix('empleado')->middleware('checkUserType:empleado')->group(function 
     Route::get('/historial/{dni}', [EmpleadoController::class, 'historialReservasCliente'])->name('empleado.historial.mostrar');
     Route::get('/registerByEmployee', [ViewsController::class, 'vistaRegistroPorEmpleado']);
     Route::post('/registerByEmployee', [ClienteController::class, 'crearContraseña'])->name('registerByEmployee');
+
+    // Ruta para iniciar el proceso de devolución (POST) - ¡MANTÉN ESTA!
+    Route::post('/reservas/{reserva}/iniciar-devolucion', [ReservaController::class, 'registrarDevolucion'])->name('reservas.registrar-devolucion');
+
+    // Ruta para mostrar la confirmación del recargo (GET) - ¡MANTÉN ESTA!
+    Route::get('/confirmar-devolucion-recargo', [ReservaController::class, 'confirmarDevolucionConRecargo'])->name('confirmar-devolucion-recargo');
+
+    // Ruta para finalizar la devolución después de la confirmación del recargo (PUT) - ¡MANTÉN ESTA!
+    Route::put('/reservas/{reserva}/finalizar-devolucion', [ReservaController::class, 'finalizarDevolucion'])->name('reservas.finalizar-devolucion');
 
     Route::get('/reservas/{reserva}/seleccionar-alternativa', [ReservaController::class, 'showAlternativeMachinerySelection'])->name('empleado.seleccionar-maquinaria-alternativa');
     Route::put('/reservas/{reserva}/procesar-alternativa', [ReservaController::class, 'processAlternativeDelivery'])->name('reservas.procesar-entrega-alternativa');
@@ -75,6 +84,11 @@ Route::delete('/eliminarCuenta', [ClienteController::class, 'eliminarCuentaPropi
 //Listas paginadas para que admin vea
 Route::get('listaClientes', [UsuarioController::class, 'getClientes'])->middleware('checkUserType:admin')->name('getClientes');
 Route::get('listaEmpleados', [UsuarioController::class, 'getEmpleados'])->middleware('checkUserType:admin')->name('getEmpleados');
+
+//Busqeuda de usuarios por rol, filtrando por nombre o email
+Route::get('/usuarios/buscar/{rol}', [UsuarioController::class, 'buscarPorRol'])->name('usuarios.buscar');
+
+
 
 // Operaciones que solo pueden realizar empleado y admin
 Route::middleware(['checkUserType:empleado,admin'])->group(function () {
@@ -122,9 +136,9 @@ Route::prefix('admin')->group(function () {
     Route::post('/maquinarias', [MaquinariaController::class, 'store'])->name('maquinarias.store');
 
     Route::prefix('estadisticas')->group(function () {
-        Route::get('/nuevos-clientes', [EstadisticasController::class, 'showNewClientsStatistics'])->name('admin.estadisticas.nuevos-clientes')->middleware('checkUserType:admin');
-        Route::get('/maquinas-mas-alquiladas', [EstadisticasController::class, 'showMostRentedMachineryStatistics'])->name('admin.estadisticas.maquinas-mas-alquiladas')->middleware('checkUserType:admin');
-        Route::get('/ingresos', [EstadisticasController::class, 'showIncomeStatistics'])->name('admin.estadisticas.ingresos')->middleware('checkUserType:admin');
+        Route::get('/nuevos-clientes', [EstadisticaController::class, 'showNewClientsStatistics'])->name('admin.estadisticas.nuevos-clientes')->middleware('checkUserType:admin');
+        Route::get('/maquinas-mas-alquiladas', [EstadisticaController::class, 'showMostRentedMachineryStatistics'])->name('admin.estadisticas.maquinas-mas-alquiladas')->middleware('checkUserType:admin');
+        Route::get('/ingresos', [EstadisticaController::class, 'showIncomeStatistics'])->name('admin.estadisticas.ingresos')->middleware('checkUserType:admin');
     });
 });
 

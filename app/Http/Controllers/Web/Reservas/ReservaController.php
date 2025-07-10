@@ -219,24 +219,16 @@ class ReservaController extends Controller
     {
         Log::info('Accediendo a listasParaEntregar.');
 
-        // Obtener la fecha actual para comparaciones
         $today = Carbon::today();
+        $daysOfRecentHistoryForEnCurso = 30; // Mostrar las "en_curso" de los últimos 30 días para historial
 
         $reservasParaGestionEntrega = Reserva::with(['maquinaria', 'cliente'])
-            ->where(function ($query) use ($today) {
-                // Filtro para reservas 'aprobada'
-                $query->where('estado', 'aprobada')
-                      // La fecha de inicio debe ser hoy o anterior
-                      ->whereDate('fecha_inicio', '<=', $today)
-                      // Y la fecha de fin debe ser hoy o posterior
-                      ->whereDate('fecha_fin', '>=', $today);
-            })
-            ->orWhere(function ($query) use ($today) {
-                // Filtro para reservas 'en_curso'
+            ->where('estado', 'aprobada') // Traer TODAS las reservas 'aprobada' sin filtro de fecha aquí
+            ->orWhere(function ($query) use ($today, $daysOfRecentHistoryForEnCurso) {
+                // Filtro para reservas 'en_curso':
+                // Aquellas cuya fecha de fin es hoy o posterior (aún vigentes) O que terminaron en los últimos X días.
                 $query->where('estado', 'en_curso')
-                      // Mostrar las en curso que terminan hoy o en el futuro, o las que terminaron en los últimos 7 días.
-                      // Esto mantiene un registro reciente de las entregadas.
-                      ->whereDate('fecha_fin', '>=', $today->subDays(7));
+                      ->whereDate('fecha_fin', '>=', $today->subDays($daysOfRecentHistoryForEnCurso));
             })
             ->orderBy('fecha_inicio', 'asc')
             ->get();
@@ -244,7 +236,8 @@ class ReservaController extends Controller
         Log::info('Reservas para gestión de entrega encontradas: ' . $reservasParaGestionEntrega->count());
 
         $layout = session('layout', 'layouts.empleado');
-        return view('empleado.entregas-devoluciones', compact('reservasParaGestionEntrega', 'layout'));
+        // Asegúrate de pasar la fecha actual a la vista para la lógica condicional del botón
+        return view('empleado.entregas-devoluciones', compact('reservasParaGestionEntrega', 'layout', 'today'));
     }
     /**
      * Registra la entrega de una maquinaria para una reserva.
@@ -432,49 +425,122 @@ public function listasParaDevolver()
      * @param Reserva $reserva
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function registrarDevolucion(Reserva $reserva)
+    public function registrarDevolucion(Request $request, Reserva $reserva)
     {
-        Log::info('Intentando registrar devolución para Reserva ID: ' . $reserva->id_reserva);
-        $today = Carbon::today();
-
         try {
-            // 1. Verificar si la reserva ya está finalizada o cancelada o no está en curso
+            // Verificar el estado actual de la reserva
             if ($reserva->estado !== 'en_curso') {
-                Log::warning('Intento de registrar devolución para reserva en estado incorrecto. ID: ' . $reserva->id_reserva . ', Estado: ' . $reserva->estado);
-                return redirect()->route('empleado.panel-entregas-devoluciones')->with('error', 'La reserva no está en estado "en curso" para ser devuelta.');
+                return back()->with('error', 'La reserva no está en estado "en curso" para registrar la devolución.');
             }
 
-            // 2. Validar que la devolución se registre en o después de la fecha de inicio
-            $fechaInicioReserva = Carbon::parse($reserva->fecha_inicio);
-            if ($today->lt($fechaInicioReserva)) {
-                Log::warning('Intento de devolver reserva cuya fecha de inicio aún no ha llegado. ID: ' . $reserva->id_reserva);
-                return redirect()->route('empleado.panel-entregas-devoluciones')->with('error', 'No se puede registrar la devolución de una maquinaria cuya reserva aún no ha comenzado.');
+            $fechaDevolucionReal = Carbon::today(); // Asumimos que la devolución se registra hoy
+
+            $recargoPorDemora = 0;
+            $diasDemora = 0;
+
+            // Calcular si hay recargo por demora
+            // Si la fecha de fin de la reserva es anterior a la fecha de devolución real (hoy)
+            if (Carbon::parse($reserva->fecha_fin)->lt($fechaDevolucionReal)) {
+                $diasDemora = Carbon::parse($reserva->fecha_fin)->diffInDays($fechaDevolucionReal);
+
+                // Cargar la maquinaria asociada para obtener su precio_dia
+                // Se asume que $reserva->maquinaria ya carga la maquinaria, gracias a tu modelo Reserva y la relación.
+                $maquinaria = $reserva->maquinaria; 
+
+                // *** CORRECCIÓN AQUÍ: USAR $maquinaria->precio_dia ***
+                if ($maquinaria && isset($maquinaria->precio_dia)) { 
+                    // Valor por día x 1.5
+                    $valorDiarioConRecargo = $maquinaria->precio_dia * 1.5;
+                    $recargoPorDemora = $valorDiarioConRecargo * $diasDemora;
+                } else {
+                    Log::warning("Maquinaria o precio_dia no encontrado para el cálculo de recargo de Reserva ID: {$reserva->id_reserva}");
+                    // Puedes decidir si abortar o continuar sin recargo si no se puede calcular
+                }
             }
 
-            // 3. Actualizar el estado de la reserva a 'finalizada' y asignar empleado
+            // Si hay recargo, redirigimos a una página de confirmación/detalle
+            if ($recargoPorDemora > 0) {
+                return redirect()->route('confirmar-devolucion-recargo', [
+                    'reserva_id' => $reserva->id_reserva,
+                    'recargo' => $recargoPorDemora,
+                    'dias_demora' => $diasDemora,
+                    'fecha_fin_original' => Carbon::parse($reserva->fecha_fin)->format('d/m/Y'),
+                    'fecha_devolucion_real' => $fechaDevolucionReal->format('d/m/Y')
+                ]);
+            }
+
+            // Si no hay recargo, o si se decide no implementarlo y simplemente registrar,
+            // procedemos con la devolución normal.
             $reserva->estado = 'finalizada';
-            $reserva->id_empleado = Auth::id(); // Asigna el ID del empleado que registra la devolución
+            // Opcional: registrar la fecha de devolución real si tienes un campo para ello
+            // $reserva->fecha_devolucion_real = $fechaDevolucionReal;
             $reserva->save();
-            Log::info('Reserva ID ' . $reserva->id_reserva . ' actualizada a estado "finalizada".');
 
-            // 4. Actualizar el estado de la maquinaria a 'disponible'
             if ($reserva->maquinaria) {
-                $reserva->maquinaria->estado = 'disponible';
-                $reserva->maquinaria->save();
-                Log::info('Maquinaria ID ' . $reserva->maquinaria->id_maquinaria . ' actualizada a estado "disponible".');
-            } else {
-                Log::error('No se pudo encontrar la maquinaria asociada para la Reserva ID: ' . $reserva->id_reserva);
-                return redirect()->route('empleado.panel-entregas-devoluciones')->with('error', 'No se pudo encontrar la maquinaria asociada a la reserva.');
+                 $reserva->maquinaria->estado = 'disponible';
+                 $reserva->maquinaria->save();
             }
 
-            return redirect()->route('empleado.panel-entregas-devoluciones')->with('success', 'Devolución registrada exitosamente. Reserva finalizada y maquinaria disponible.');
+            Log::info("Devolución de reserva registrada con éxito: ID {$reserva->id_reserva}.");
+            return back()->with('success', 'Devolución de maquinaria registrada con éxito (sin recargo).');
 
         } catch (QueryException $e) {
-            Log::error('Error de base de datos al registrar devolución para Reserva ID ' . $reserva->id_reserva . ': ' . $e->getMessage());
-            return redirect()->route('empleado.panel-entregas-devoluciones')->with('error', 'Error al registrar la devolución en la base de datos: ' . $e->getMessage());
+            Log::error('Error de base de datos al registrar devolución: ' . $e->getMessage(), ['reserva_id' => $reserva->id_reserva]);
+            return back()->with('error', 'Hubo un error de base de datos al registrar la devolución.');
         } catch (\Exception $e) {
-            Log::error('Error inesperado al registrar devolución para Reserva ID ' . $reserva->id_reserva . ': ' . $e->getMessage());
-            return redirect()->route('empleado.panel-entregas-devoluciones')->with('error', 'Ocurrió un error inesperado al registrar la devolución: ' . $e->getMessage());
+            Log::error('Error al registrar devolución: ' . $e->getMessage(), ['reserva_id' => $reserva->id_reserva]);
+            return back()->with('error', 'Hubo un error al registrar la devolución: ' . $e->getMessage());
+        }
+    }
+
+    public function confirmarDevolucionConRecargo(Request $request) // <-- ¡Asegúrate de que este nombre sea EXACTO!
+    {
+        // Se espera que los datos del recargo vengan en la URL (query parameters)
+        $reservaId = $request->query('reserva_id');
+        $recargo = $request->query('recargo');
+        $diasDemora = $request->query('dias_demora');
+        $fechaFinOriginal = $request->query('fecha_fin_original');
+        $fechaDevolucionReal = $request->query('fecha_devolucion_real');
+
+        // Opcional: Recargar la reserva para mostrar más detalles
+        $reserva = Reserva::with(['maquinaria', 'cliente'])->find($reservaId);
+
+        if (!$reserva) {
+            return redirect()->route('empleado.devoluciones-pendientes')->with('error', 'Reserva no encontrada para confirmar devolución.');
+        }
+
+        $layout = session('layout', 'layouts.empleado');
+        return view('empleado.confirmar-devolucion-recargo', compact('reserva', 'recargo', 'diasDemora', 'fechaFinOriginal', 'fechaDevolucionReal', 'layout'));
+    }
+
+    public function finalizarDevolucion(Request $request, Reserva $reserva) // <-- ¡ASEGÚRATE DE QUE ESTE NOMBRE SEA EXACTO!
+    {
+        try {
+            // Asegurarse de que la reserva esté en estado 'en_curso' antes de finalizarla
+            if ($reserva->estado !== 'en_curso') {
+                return back()->with('error', 'La reserva no está en estado "en curso" para finalizar la devolución.');
+            }
+
+            $reserva->estado = 'finalizada';
+            // Opcional: registrar la fecha de devolución real si tienes un campo para ello
+            // $reserva->fecha_devolucion_real = Carbon::today();
+            $reserva->save();
+
+            // Opcional: Actualizar el estado de la maquinaria a 'disponible'
+            // if ($reserva->maquinaria) {
+            //     $reserva->maquinaria->estado = 'disponible';
+            //     $reserva->maquinaria->save();
+            // }
+
+            Log::info("Devolución de reserva finalizada (con recargo) con éxito: ID {$reserva->id_reserva}.");
+            return redirect()->route('empleado.devoluciones-pendientes')->with('success', 'Devolución registrada y recargo informado con éxito.');
+
+        } catch (QueryException $e) {
+            Log::error('Error de base de datos al finalizar devolución (recargo): ' . $e->getMessage(), ['reserva_id' => $reserva->id_reserva]);
+            return back()->with('error', 'Hubo un error de base de datos al finalizar la devolución.');
+        } catch (\Exception $e) {
+            Log::error('Error al finalizar devolución (recargo): ' . $e->getMessage(), ['reserva_id' => $reserva->id_reserva]);
+            return back()->with('error', 'Hubo un error al finalizar la devolución: ' . $e->getMessage());
         }
     }
 
