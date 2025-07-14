@@ -1,34 +1,24 @@
 {{-- resources/views/pago/estado.blade.php --}}
 
-@extends($layout) {{-- Asegúrate de que 'layouts.base' sea el nombre correcto de tu layout --}}
+@extends('layouts.base') {{-- CAMBIO AQUÍ: Ruta del layout codificada --}}
 
-@section('title', 'Estado de Pago') {{-- Título específico para esta página --}}
+@section('title', 'Estado de Pago')
 
 {{-- Opcional: Define la navegación para esta vista si la necesitas --}}
 
-
 @section('content')
-<div class="row justify-content-center text-center"> {{-- Centra el contenido en el medio de la página --}}
-    <div class="col-md-8 col-lg-6"> {{-- Limita el ancho del contenido para mejor lectura --}}
-        {{-- Muestra el mensaje de estado (éxito/error) --}}
+<div class="row justify-content-center text-center">
+    <div class="col-md-8 col-lg-6">
         @if ($mensaje)
-            <h1 class="mb-4">{{ $mensaje }}</h1> {{-- Clase de Bootstrap para margen inferior --}}
+            <h1 class="mb-4">{{ $mensaje }}</h1>
         @else
             <h1 class="mb-4">Estado de Pago Desconocido</h1>
         @endif
 
         {{-- Formulario para volver al inicio --}}
-        {{-- CAMBIO AQUÍ: URL absoluta forzada a localhost --}}
-        <form action="http://127.0.0.1:8000" method="get">
-            <button type="submit" class="btn btn-primary btn-lg">Volver al inicio</button> {{-- Clases de Bootstrap para el botón --}}
+        <form action="{{ url('/') }}" method="get"> {{-- MEJORA AQUÍ: Usar url('/') en lugar de http://127.0.0.1:8000 --}}
+            <button type="submit" class="btn btn-primary btn-lg">Volver al inicio</button>
         </form>
     </div>
 </div>
 @endsection
-
-{{-- No se requieren scripts adicionales en este caso simple --}}
-{{-- @section('additional-scripts')
-<script>
-    // Tu JavaScript aquí
-</script>
-@endsection --}}

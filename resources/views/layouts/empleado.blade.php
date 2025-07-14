@@ -3,7 +3,7 @@
 @section('navigation')
 <li class="nav-item">
     <a class="nav-link {{ request()->is('/') ? 'active' : '' }}" href="{{ url('/') }}">
-        <i class="fas fa-home me-1"></i> Dashboard
+        <i class="fas fa-home me-1"></i> Inicio
     </a>
 </li>
 <li class="nav-item">
