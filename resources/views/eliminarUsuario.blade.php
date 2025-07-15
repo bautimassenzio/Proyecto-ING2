@@ -14,18 +14,21 @@
     @endif
 </h2>
 
-{{-- Formulario de búsqueda --}}
-<form method="GET" action="{{ route('usuarios.buscar', ['rol' => $rol]) }}" class="row g-3 mb-4">
-    <div class="col-md-5">
-        <input type="text" name="nombre" class="form-control" placeholder="Buscar por nombre" value="{{ request('nombre') }}">
-    </div>
-    <div class="col-md-5">
-        <input type="email" name="email" class="form-control" placeholder="Buscar por email" value="{{ request('email') }}">
-    </div>
-    <div class="col-md-2">
-        <button type="submit" class="btn btn-primary w-100">Buscar</button>
-    </div>
-</form>
+@if ($usuarios->count() > 0)
+    {{-- Formulario de búsqueda --}}
+    <form method="GET" action="{{ route('usuarios.buscar', ['rol' => $rol]) }}" class="row g-3 mb-4">
+        <div class="col-md-5">
+            <input type="text" name="nombre" class="form-control" placeholder="Buscar por nombre" value="{{ request('nombre') }}">
+        </div>
+        <div class="col-md-5">
+            <input type="email" name="email" class="form-control" placeholder="Buscar por email" value="{{ request('email') }}">
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary w-100">Buscar</button>
+        </div>
+    </form>
+@endif
+
 
 <table class="table table-hover table-borderless text-center align-middle mb-0">
     <thead>
@@ -95,13 +98,24 @@
                                 <label for="telefono{{ $usuario->dni }}" class="form-label">Teléfono</label>
                                 <input type="text" class="form-control" id="telefono{{ $usuario->dni }}" name="telefono" value="{{ $usuario->telefono }}">
                             </div>
-
                             <div class="mb-3 text-start">
-                                <label for="rol{{ $usuario->dni }}" class="form-label">Rol</label>
-                                <select class="form-select" id="rol{{ $usuario->dni }}" name="rol">
-                                    <option value="cliente" {{ $usuario->rol === 'cliente' ? 'selected' : '' }}>Cliente</option>
-                                    <option value="empleado" {{ $usuario->rol === 'empleado' ? 'selected' : '' }}>Empleado</option>
-                                </select>
+                            <label class="form-label">DNI</label>
+                            <select class="form-select" disabled>
+                                <option selected>{{ $usuario->dni }}</option>
+                            </select>
+                            <input type="hidden" name="dni" value="{{ $usuario->dni }}">
+                            </div>
+                            <div class="mb-3">
+                                <label for="fecha_nacimiento" class="form-label">Fecha de nacimiento</label>
+                                <input 
+                                    type="date" 
+                                    class="form-control"
+                                    id="fecha_nacimiento" 
+                                    name="fecha_nacimiento" 
+                                    value="{{ $usuario->fecha_nacimiento }}"
+                                    max="{{ date('Y-m-d') }}" 
+                                    required
+                                >
                             </div>
                         </div>
 
@@ -115,6 +129,19 @@
         </div>
 
         @endforeach
+        @forelse ($usuarios as $usuario)
+    
+    @empty
+    <tr>
+    <td colspan="3">
+        <div class="alert alert-info text-center fs-5 mb-0">
+            No hay {{ strtolower($rolString) === 'empleado' ? 'empleados' : 'clientes' }} disponibles para mostrar.
+        </div>
+    </td>
+</tr>
+
+    @endforelse
+
     </tbody>
 </table>
 

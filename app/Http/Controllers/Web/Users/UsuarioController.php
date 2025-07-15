@@ -79,16 +79,18 @@ class UsuarioController extends Controller
             'nombre' => 'string',
             'email' => 'email|unique:usuarios,email,' . $usuario->dni . ',dni',
             'contraseña' => 'string|min:4',
-            'rol' => 'string',
+            'fecha_nacimiento' => 'date',
             'telefono' => 'string',
             'estado' => 'string',
             'fecha_alta' => 'date',
+            'fecha_nacimiento' => ['required', 'date', 'before:' . now()->subYears(18)->format('Y-m-d')],
         ], [
             'nombre.string' => 'El nombre debe ser un texto.',
             'email.email' => 'El correo electrónico no tiene un formato válido.',
             'email.unique' => 'Este correo ya está en uso por otro usuario.',
             'contraseña.string' => 'La contraseña debe ser un texto.',
             'contraseña.min' => 'La contraseña debe tener al menos 6 caracteres.',
+            'fecha_nacimiento.before' => 'No se pueden registrar usuarios menores a 18 años'
         ]);
 
         $usuario->update([
@@ -99,6 +101,7 @@ class UsuarioController extends Controller
             'telefono' => $request->telefono ?? $usuario->telefono,
             'estado' => $request->estado ?? $usuario->estado,
             'fecha_alta' => $request->fecha_alta ?? $usuario->fecha_alta,
+            'fecha_nacimiento' => $request->fecha_nacimiento ?? $usuario->fecha_nacimiento,
         ]);
 
         return back()->with('success', 'Operacion realizada correctamente.');
