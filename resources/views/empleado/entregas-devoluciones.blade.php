@@ -22,7 +22,7 @@
     @endif
 
     {{-- Selector de Pestañas/Secciones --}}
-    <div class="mb-6 flex justify-center">
+    <div class="mb-6 flex justify-center items-center">
         <a href="{{ route('empleado.entregas-pendientes') }}"
            class="px-6 py-3 rounded-l-lg {{ request()->routeIs('empleado.entregas-pendientes') ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' }} font-semibold transition duration-200">
             Reservas para Entregar
@@ -245,6 +245,19 @@
             @endif
         </div>
     @endif
+
+    {{-- Botón para mostrar/ocultar escenario vacío (Ahora al final de la página) --}}
+    <div class="mt-8 pt-4 border-t border-gray-200 text-center">
+        @if(request()->has('empty_scenario'))
+            <a href="{{ request()->url() }}" class="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition duration-200 text-sm">
+                Ocultar Escenario Vacío
+            </a>
+        @else
+            <a href="{{ request()->url() }}?empty_scenario=true" class="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition duration-200 text-sm">
+                Mostrar Escenario Vacío (Debug)
+            </a>
+        @endif
+    </div>
 </div>
 @endsection
 
@@ -268,6 +281,10 @@
         --red-500: #ef4444;
         --orange-500: #f97316; /* Para el botón de devolución */
         --orange-600: #ea580c; /* Para el hover del botón de devolución */
+        --purple-500: #8b5cf6; /* Nuevo color para el botón de escenario vacío */
+        --purple-600: #7c3aed; /* Hover para el botón de escenario vacío */
+        --gray-500: #6b7280; /* Para el botón de escenario vacío (más discreto) */
+        --gray-600: #4b5563; /* Hover para el botón de escenario vacío (más discreto) */
     }
 
     /* Clases de utilidad de Tailwind si no las tienes importadas directamente */
@@ -291,9 +308,10 @@
     .bg-red-100 { background-color: #fff5f5; }
     .border-red-400 { border-color: #fc8181; }
     .text-red-700 { color: #c53030; }
-    .mb-6 { margin-bottom: 1.5rem; }
     .flex { display: flex; }
     .justify-center { justify-content: center; }
+    .items-center { align-items: center; } /* Added for button alignment */
+    .gap-4 { gap: 1rem; } /* Added for spacing between buttons */
     .px-6 { padding-left: 1.5rem; padding-right: 1.5rem; }
     .py-3 { padding-top: 0.75rem; padding-bottom: 0.75rem; }
     .rounded-l-lg { border-top-left-radius: 0.5rem; border-bottom-left-radius: 0.5rem; }
@@ -352,6 +370,20 @@
     .hover\:bg-orange-600:hover { background-color: var(--orange-600); }
     .mt-8 { margin-top: 2rem; }
     .mb-8 { margin-bottom: 2rem; } /* Added for spacing between sections */
+    .ml-4 { margin-left: 1rem; } /* For the new button */
+    .px-4 { padding-left: 1rem; padding-right: 1rem; } /* For the new button */
+    .py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; } /* For the new button */
+    .rounded-md { border-radius: 0.375rem; } /* For the new button */
+    .bg-purple-500 { background-color: var(--purple-500); } /* New color */
+    .hover\:bg-purple-600:hover { background-color: var(--purple-600); } /* New color hover */
+    .bg-red-500 { background-color: var(--red-500); } /* Existing red for "hide" button */
+    .hover\:bg-red-600:hover { background-color: var(--red-600); } /* Existing red hover */
+    .bg-gray-500 { background-color: var(--gray-500); } /* Nuevo para el botón "Mostrar Escenario Vacío" */
+    .hover\:bg-gray-600:hover { background-color: var(--gray-600); } /* Hover para el botón "Mostrar Escenario Vacío" */
+    .text-center { text-align: center; } /* Para centrar el botón */
+    .pt-4 { padding-top: 1rem; }
+    .border-t { border-top-width: 1px; }
+
 
     /* Estilos para botones de acción (Mantener consistencia) */
     .btn-primary-small {

@@ -215,47 +215,52 @@ class ReservaController extends Controller
      *
      * @return \Illuminate\View\View
      */
-    public function listasParaEntregar()
+        public function listasParaEntregar(Request $request) // Inject Request
     {
         Log::info('Accediendo a listasParaEntregar.');
 
         $today = Carbon::today();
 
-        // 1. Get reservations that are 'aprobada' (approved) and need to be delivered.
-        // These are current or future deliveries.
-        $entregasPendientesHoyOProximas = Reserva::with(['maquinaria', 'cliente'])
-            ->where('estado', 'aprobada')
-            // Only include 'aprobada' where the start date is today or in the future,
-            // or if the start date is in the past but the end date is still in the future or today
-            // (this covers cases where a delivery was supposed to happen before today but is still valid)
-            ->where(function ($query) use ($today) {
-                $query->whereDate('fecha_inicio', '>=', $today)
-                      ->orWhere(function ($q) use ($today) {
-                          $q->whereDate('fecha_inicio', '<', $today)
-                            ->whereDate('fecha_fin', '>=', $today);
-                      });
-            })
-            ->orderBy('fecha_inicio', 'asc') // Order by the earliest start date
-            ->get();
+        // --- Lógica para el Escenario Vacío ---
+        if ($request->has('empty_scenario')) {
+            Log::info('Modo de escenario vacío activado para Entregas.');
+            $entregasPendientesHoyOProximas = collect(); // Colección vacía
+            $entregasHistorial = collect();             // Colección vacía
+        } else {
+            // 1. Get reservations that are 'aprobada' (approved) and need to be delivered.
+            // These are current or future deliveries.
+            $entregasPendientesHoyOProximas = Reserva::with(['maquinaria', 'cliente'])
+                ->where('estado', 'aprobada')
+                ->where(function ($query) use ($today) {
+                    $query->whereDate('fecha_inicio', '>=', $today)
+                          ->orWhere(function ($q) use ($today) {
+                              $q->whereDate('fecha_inicio', '<', $today)
+                                ->whereDate('fecha_fin', '>=', $today);
+                          });
+                })
+                ->orderBy('fecha_inicio', 'asc') // Order by the earliest start date
+                ->get();
 
-        // 2. Get reservations that are 'en_curso' or 'finalizada' (delivery history).
-        // These are items that have already been delivered or completed.
-        // We'll also include 'aprobada' reservations whose 'fecha_inicio' is in the past
-        // and 'fecha_fin' is also in the past, meaning they expired without delivery.
-        $entregasHistorial = Reserva::with(['maquinaria', 'cliente'])
-            ->whereIn('estado', ['en_curso', 'finalizada', 'cancelada'])
-            ->orWhere(function ($query) use ($today) {
-                $query->where('estado', 'aprobada')
-                      ->whereDate('fecha_fin', '<', $today); // 'Aprobada' but expired without being delivered
-            })
-            ->orderBy('fecha_inicio', 'desc') // Order by the most recent deliveries first
-            ->get();
+            // 2. Get reservations that are 'en_curso' or 'finalizada' (delivery history).
+            // These are items that have already been delivered or completed.
+            // We'll also include 'aprobada' reservations whose 'fecha_inicio' is in the past
+            // and 'fecha_fin' is also in the past, meaning they expired without delivery.
+            $entregasHistorial = Reserva::with(['maquinaria', 'cliente'])
+                ->whereIn('estado', ['en_curso', 'finalizada', 'cancelada'])
+                ->orWhere(function ($query) use ($today) {
+                    $query->where('estado', 'aprobada')
+                          ->whereDate('fecha_fin', '<', $today); // 'Aprobada' but expired without being delivered
+                })
+                ->orderBy('fecha_inicio', 'desc') // Order by the most recent deliveries first
+                ->get();
+        }
+        // --- FIN Lógica para el Escenario Vacío ---
 
         Log::info('Reservas pendientes de entrega (hoy/próximas): ' . $entregasPendientesHoyOProximas->count());
         Log::info('Historial de entregas (en curso/finalizadas/expiradas): ' . $entregasHistorial->count());
 
         $layout = session('layout', 'layouts.empleado');
-        
+
         return view('empleado.entregas-devoluciones', compact(
             'entregasPendientesHoyOProximas',
             'entregasHistorial',
@@ -441,21 +446,29 @@ class ReservaController extends Controller
      *
      * @return \Illuminate\View\View
      */
-public function listasParaDevolver()
+public function listasParaDevolver(Request $request) // Inject Request
     {
         Log::info('Accediendo a listasParaDevolver.');
 
-        // 1. Obtener las reservas "en_curso" (pendientes de devolver)
-        $devolucionesPendientes = Reserva::with(['maquinaria', 'cliente'])
-            ->where('estado', 'en_curso')
-            ->orderBy('fecha_fin', 'asc') // Las más próximas a vencer/pasar primero
-            ->get();
+        // --- Lógica para el Escenario Vacío ---
+        if ($request->has('empty_scenario')) {
+            Log::info('Modo de escenario vacío activado para Devoluciones.');
+            $devolucionesPendientes = collect(); // Colección vacía
+            $devolucionesHistorial = collect();  // Colección vacía
+        } else {
+            // 1. Obtener las reservas "en_curso" (pendientes de devolver)
+            $devolucionesPendientes = Reserva::with(['maquinaria', 'cliente'])
+                ->where('estado', 'en_curso')
+                ->orderBy('fecha_fin', 'asc') // Las más próximas a vencer/pasar primero
+                ->get();
 
-        // 2. Obtener las reservas "finalizada" (historial de devoluciones)
-        $devolucionesHistorial = Reserva::with(['maquinaria', 'cliente'])
-            ->where('estado', 'finalizada')
-            ->orderBy('fecha_fin', 'desc') // Las más recientes primero en el historial
-            ->get();
+            // 2. Obtener las reservas "finalizada" (historial de devoluciones)
+            $devolucionesHistorial = Reserva::with(['maquinaria', 'cliente'])
+                ->where('estado', 'finalizada')
+                ->orderBy('fecha_fin', 'desc') // Las más recientes primero en el historial
+                ->get();
+        }
+        // --- FIN Lógica para el Escenario Vacío ---
 
         Log::info('Reservas pendientes de devolución: ' . $devolucionesPendientes->count());
         Log::info('Historial de devoluciones: ' . $devolucionesHistorial->count());

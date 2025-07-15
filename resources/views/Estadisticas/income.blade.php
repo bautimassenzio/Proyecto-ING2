@@ -1,3 +1,4 @@
+{{-- resources/views/admin/statistics/income.blade.php --}}
 @extends($layout)
 
 @section('title', 'Estadísticas - Ingresos')
@@ -6,17 +7,7 @@
 <div class="container mx-auto p-4">
     <h1 class="text-3xl font-bold text-gray-800 mb-6">Estadísticas: Ingresos del Sistema</h1>
 
-    {{-- ** MENSAJE DE ERROR DE VALIDACIÓN ** --}}
-    @if(session('error'))
-        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
-            <strong class="font-bold">¡Error!</strong>
-            <span class="block sm:inline">{{ session('error') }}</span>
-        </div>
-    @endif
-    {{-- FIN MENSAJE DE ERROR --}}
-
     <div class="grid grid-cols-1 gap-6">
-        <!-- Tarjeta: Ingresos Totales por Período -->
         <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-green-500">
             <h2 class="text-xl font-semibold text-gray-700 mb-4">Ingresos por Período</h2>
             
@@ -44,9 +35,22 @@
                     </select>
                 </div>
 
-                <button type="submit" class="btn-primary-small">
-                    Consultar
-                </button>
+                <div class="flex items-center gap-2"> {{-- Contenedor para los botones --}}
+                    <button type="submit" class="btn-primary-small">
+                        Consultar
+                    </button>
+                    {{-- ** Condición para mostrar el botón de PDF ** --}}
+                    {{-- Solo se muestra si $totalIncome está definido Y es mayor que 0 --}}
+                    @if(isset($totalIncome) && $totalIncome > 0)
+                        <a href="{{ route('admin.estadisticas.ingresos.pdf', [
+                            'fecha_inicio' => request('fecha_inicio', \Carbon\Carbon::now()->subMonths(6)->startOfMonth()->format('Y-m-d')),
+                            'fecha_fin' => request('fecha_fin', \Carbon\Carbon::now()->endOfMonth()->format('Y-m-d')),
+                            'period_type' => ($periodType ?? 'month')
+                        ]) }}" class="btn-secondary-small" target="_blank">
+                            Descargar PDF
+                        </a>
+                    @endif
+                </div>
             </form>
 
             <div class="mt-4">
@@ -64,8 +68,7 @@
         </div>
     </div>
 
-    <!-- Sección del Gráfico -->
-    @if(count($chartData) > 0)
+    @if($totalIncome > 0)
     <div class="mt-8 p-6 bg-white rounded-lg shadow-md">
         <h2 class="text-xl font-semibold text-gray-700 mb-4">Tendencia de Ingresos ({{ ($periodType ?? 'month') === 'month' ? 'Por Mes' : 'Por Semana' }})</h2>
         <canvas id="incomeChart" style="max-height: 400px;"></canvas>
@@ -101,7 +104,7 @@
             }
 
             window.incomeChartInstance = new Chart(ctx, {
-                type: 'bar',
+                type: 'bar', // Cambiado a 'bar' como en tu script
                 data: {
                     labels: chartLabels,
                     datasets: [{
@@ -157,3 +160,37 @@
     });
 </script>
 @endpush
+
+{{-- Estilos CSS básicos para los botones (pueden ir en tu archivo CSS principal si usas Tailwind u otro framework) --}}
+<style>
+    .btn-secondary-small {
+        display: inline-block;
+        background-color: #6c757d; /* Un color gris */
+        color: white;
+        padding: 8px 16px;
+        border-radius: 0.375rem; /* Equivalente a rounded en Tailwind */
+        font-weight: 600; /* Equivalente a font-semibold */
+        font-size: 0.875rem; /* Equivalente a text-sm */
+        text-align: center;
+        text-decoration: none;
+        transition: background-color 0.2s;
+    }
+    .btn-secondary-small:hover {
+        background-color: #5a6268;
+    }
+    .btn-primary-small {
+        display: inline-block;
+        background-color: #9B59B6; /* Color morado */
+        color: white;
+        padding: 8px 16px;
+        border-radius: 0.375rem; /* Equivalente a rounded en Tailwind */
+        font-weight: 600; /* Equivalente a font-semibold */
+        font-size: 0.875rem; /* Equivalente a text-sm */
+        text-align: center;
+        text-decoration: none;
+        transition: background-color 0.2s;
+    }
+    .btn-primary-small:hover {
+        background-color: #8E44AD;
+    }
+</style>

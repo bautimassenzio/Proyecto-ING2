@@ -11,6 +11,7 @@ use App\Domain\Maquinaria\Models\Maquinaria;
 use App\Enums\Roles;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
+use Barryvdh\DomPDF\Facade\Pdf; 
 
 class EstadisticaController extends Controller
 {
@@ -47,8 +48,8 @@ class EstadisticaController extends Controller
 
             // ** VALIDACIÓN: Fecha de inicio debe ser menor o igual a la fecha de fin **
             if ($fechaInicio->greaterThan($fechaFin)) {
-                session()->flash('error', 'La fecha de inicio no puede ser posterior a la fecha de fin.');
-                return view('admin.statistics.new-clients', compact('layout', 'nuevosClientesCount', 'chartLabels', 'chartData', 'periodType'));
+                return redirect()->route('admin.estadisticas.nuevos-clientes')
+                         ->with('error', 'La fecha de inicio no puede ser posterior a la fecha de fin.');
             }
 
             $nuevosClientesCount = Usuario::where('rol', Roles::CLIENTE->value)
@@ -138,8 +139,8 @@ class EstadisticaController extends Controller
 
             // ** VALIDACIÓN: Fecha de inicio debe ser menor o igual a la fecha de fin **
             if ($fechaInicio->greaterThan($fechaFin)) {
-                session()->flash('error', 'La fecha de inicio no puede ser posterior a la fecha de fin.');
-                return view('estadisticas.most-rented-machinery', compact('layout', 'mostRentedMachinery', 'chartLabels', 'chartData', 'fechaInicioStr', 'fechaFinStr'));
+                return redirect()->route('admin.estadisticas.maquinas-mas-alquiladas')
+                         ->with('error', 'La fecha de inicio no puede ser posterior a la fecha de fin.');
             }
 
             $rentals = Reserva::selectRaw('id_maquinaria, COUNT(*) as count')
@@ -206,8 +207,8 @@ class EstadisticaController extends Controller
 
             // ** VALIDACIÓN: Fecha de inicio debe ser menor o igual a la fecha de fin **
             if ($fechaInicio->greaterThan($fechaFin)) {
-                session()->flash('error', 'La fecha de inicio no puede ser posterior a la fecha de fin.');
-                return view('admin.statistics.income', compact('layout', 'totalIncome', 'chartLabels', 'chartData', 'periodType'));
+                return redirect()->route('admin.estadisticas.ingresos')
+                         ->with('error', 'La fecha de inicio no puede ser posterior a la fecha de fin.');
             }
 
             $pagos = Pago::whereBetween('fecha_pago', [$fechaInicio, $fechaFin])
@@ -261,5 +262,254 @@ class EstadisticaController extends Controller
         }
 
         return view('estadisticas.income', compact('layout', 'totalIncome', 'chartLabels', 'chartData', 'periodType'));
+    }
+
+    //DESCARGAR PDF
+
+    public function downloadNewClientsStatisticsPdf(Request $request)
+    {
+        $fechaInicioStr = $request->input('fecha_inicio');
+        $fechaFinStr = $request->input('fecha_fin');
+        $periodType = $request->input('period_type', 'month');
+
+        if (!$fechaInicioStr) {
+            $fechaInicioStr = Carbon::now()->subMonths(6)->startOfMonth()->format('Y-m-d');
+        }
+        if (!$fechaFinStr) {
+            $fechaFinStr = Carbon::now()->endOfMonth()->format('Y-m-d');
+        }
+
+        try {
+            $fechaInicio = Carbon::parse($fechaInicioStr)->startOfDay();
+            $fechaFin = Carbon::parse($fechaFinStr)->endOfDay();
+
+            if ($fechaInicio->greaterThan($fechaFin)) {
+                 return redirect()->route('admin.estadisticas.nuevos-clientes')->with('error', 'La fecha de inicio no puede ser posterior a la fecha de fin para generar el PDF.');
+            }
+
+            $nuevosClientesCount = Usuario::where('rol', Roles::CLIENTE->value)
+                                            ->whereBetween('fecha_alta', [$fechaInicio, $fechaFin])
+                                            ->count();
+
+            // ** Validar si no hay clientes antes de generar el PDF **
+            if ($nuevosClientesCount === 0) {
+                return redirect()->route('admin.estadisticas.nuevos-clientes')->with('error', 'No hay nuevos clientes registrados en el período seleccionado para generar el PDF.');
+            }
+
+            $clientesPorFecha = Usuario::where('rol', Roles::CLIENTE->value)
+                                            ->whereBetween('fecha_alta', [$fechaInicio, $fechaFin])
+                                            ->select('fecha_alta')
+                                            ->get();
+
+            $groupedCounts = [];
+            $chartLabels = [];
+
+            if ($periodType === 'week') {
+                $period = CarbonPeriod::create($fechaInicio->startOfWeek(), '1 week', $fechaFin->endOfWeek());
+                foreach ($period as $date) {
+                    $weekLabel = 'Semana ' . $date->weekOfYear . ' de ' . $date->startOfWeek()->translatedFormat('M');
+                    $chartLabels[] = $weekLabel;
+                    $groupedCounts[$weekLabel] = 0;
+                }
+
+                foreach ($clientesPorFecha as $cliente) {
+                    $date = Carbon::parse($cliente->fecha_alta);
+                    $weekLabel = 'Semana ' . $date->weekOfYear . ' de ' . $date->startOfWeek()->translatedFormat('M');
+                    if (isset($groupedCounts[$weekLabel])) {
+                        $groupedCounts[$weekLabel]++;
+                    }
+                }
+            } else { // Default: 'month'
+                $period = CarbonPeriod::create($fechaInicio->startOfMonth(), '1 month', $fechaFin->endOfMonth());
+                foreach ($period as $date) {
+                    $monthYear = $date->format('M Y');
+                    $chartLabels[] = $monthYear;
+                    $groupedCounts[$monthYear] = 0;
+                }
+
+                foreach ($clientesPorFecha as $cliente) {
+                    $monthYear = Carbon::parse($cliente->fecha_alta)->format('M Y');
+                    if (isset($groupedCounts[$monthYear])) {
+                        $groupedCounts[$monthYear]++;
+                    }
+                }
+            }
+
+            $chartData = array_values($groupedCounts);
+
+            $data = [
+                'nuevosClientesCount' => $nuevosClientesCount,
+                'chartLabels' => $chartLabels,
+                'chartData' => $chartData,
+                'periodType' => $periodType,
+                'fechaInicio' => $fechaInicio->format('d/m/Y'),
+                'fechaFin' => $fechaFin->format('d/m/Y'),
+            ];
+
+            $pdf = Pdf::loadView('estadisticas.new-clients-pdf', $data);
+
+            return $pdf->download('estadisticas-nuevos-clientes.pdf');
+
+        } catch (\Exception $e) {
+            \Log::error('Error al generar PDF de estadísticas de nuevos clientes: ' . $e->getMessage());
+            return redirect()->route('admin.estadisticas.nuevos-clientes')->with('error', 'Hubo un error al generar el PDF de estadísticas. Inténtalo de nuevo.');
+        }
+    }
+
+    public function downloadMostRentedMachineryStatisticsPdf(Request $request)
+    {
+        $fechaInicioStr = $request->input('fecha_inicio');
+        $fechaFinStr = $request->input('fecha_fin');
+
+        if (!$fechaInicioStr) {
+            $fechaInicioStr = Carbon::now()->subMonths(12)->startOfMonth()->format('Y-m-d');
+        }
+        if (!$fechaFinStr) {
+            $fechaFinStr = Carbon::now()->endOfMonth()->format('Y-m-d');
+        }
+
+        try {
+            $fechaInicio = Carbon::parse($fechaInicioStr)->startOfDay();
+            $fechaFin = Carbon::parse($fechaFinStr)->endOfDay();
+
+            if ($fechaInicio->greaterThan($fechaFin)) {
+                 return redirect()->route('admin.estadisticas.maquinas-mas-alquiladas')->with('error', 'La fecha de inicio no puede ser posterior a la fecha de fin para generar el PDF.');
+            }
+
+            $rentals = Reserva::selectRaw('id_maquinaria, COUNT(*) as count')
+                               ->whereBetween('fecha_inicio', [$fechaInicio, $fechaFin])
+                               ->groupBy('id_maquinaria')
+                               ->orderByDesc('count')
+                               ->limit(10)
+                               ->get();
+
+            // ** Validar si no hay datos antes de generar el PDF **
+            if ($rentals->isEmpty()) {
+                return redirect()->route('admin.estadisticas.maquinas-mas-alquiladas')->with('error', 'No hay datos de maquinarias alquiladas en el período seleccionado para generar el PDF.');
+            }
+
+            $mostRentedMachinery = [];
+            $chartLabels = [];
+            $chartData = [];
+
+            foreach ($rentals as $rental) {
+                $maquinaria = Maquinaria::find($rental->id_maquinaria);
+                if ($maquinaria) {
+                    $nombreMaquinaria = $maquinaria->marca . ' ' . $maquinaria->modelo; 
+                    
+                    $mostRentedMachinery[] = [
+                        'nombre' => $nombreMaquinaria,
+                        'cantidad_alquileres' => $rental->count,
+                    ];
+                    $chartLabels[] = $nombreMaquinaria;
+                    $chartData[] = $rental->count;
+                }
+            }
+
+            // Preparar datos para la vista del PDF
+            $data = [
+                'mostRentedMachinery' => $mostRentedMachinery,
+                'chartLabels' => $chartLabels,
+                'chartData' => $chartData,
+                'fechaInicio' => $fechaInicio->format('d/m/Y'),
+                'fechaFin' => $fechaFin->format('d/m/Y'),
+            ];
+
+            $pdf = Pdf::loadView('estadisticas.most-rented-machinery-pdf', $data); // Nueva vista Blade para el PDF
+
+            return $pdf->download('estadisticas-maquinas-mas-alquiladas.pdf');
+
+        } catch (\Exception $e) {
+            \Log::error('Error al generar PDF de estadísticas de maquinarias más alquiladas: ' . $e->getMessage());
+            return redirect()->route('admin.estadisticas.maquinas-mas-alquiladas')->with('error', 'Hubo un error al generar el PDF de estadísticas. Inténtalo de nuevo.');
+        }
+    }
+
+    public function downloadIncomeStatisticsPdf(Request $request)
+    {
+        $fechaInicioStr = $request->input('fecha_inicio');
+        $fechaFinStr = $request->input('fecha_fin');
+        $periodType = $request->input('period_type', 'month');
+
+        if (!$fechaInicioStr) {
+            $fechaInicioStr = Carbon::now()->subMonths(6)->startOfMonth()->format('Y-m-d');
+        }
+        if (!$fechaFinStr) {
+            $fechaFinStr = Carbon::now()->endOfMonth()->format('Y-m-d');
+        }
+
+        try {
+            $fechaInicio = Carbon::parse($fechaInicioStr)->startOfDay();
+            $fechaFin = Carbon::parse($fechaFinStr)->endOfDay();
+
+            if ($fechaInicio->greaterThan($fechaFin)) {
+                return redirect()->route('admin.estadisticas.ingresos')->with('error', 'La fecha de inicio no puede ser posterior a la fecha de fin para generar el PDF.');
+            }
+
+            $pagos = Pago::whereBetween('fecha_pago', [$fechaInicio, $fechaFin])
+                            ->where('estado_pago', 'completo')
+                            ->get();
+
+            $totalIncome = $pagos->sum('monto');
+
+            // ** Validar si no hay ingresos antes de generar el PDF **
+            if ($totalIncome === 0) {
+                return redirect()->route('admin.estadisticas.ingresos')->with('error', 'No hay ingresos registrados en el período seleccionado para generar el PDF.');
+            }
+
+            $groupedIncome = [];
+            $chartLabels = [];
+
+            if ($periodType === 'week') {
+                $period = CarbonPeriod::create($fechaInicio->startOfWeek(), '1 week', $fechaFin->endOfWeek());
+                foreach ($period as $date) {
+                    $weekLabel = 'Semana ' . $date->weekOfYear . ' de ' . $date->startOfWeek()->translatedFormat('M');
+                    $chartLabels[] = $weekLabel;
+                    $groupedIncome[$weekLabel] = 0;
+                }
+
+                foreach ($pagos as $pago) {
+                    $date = Carbon::parse($pago->fecha_pago);
+                    $weekLabel = 'Semana ' . $date->weekOfYear . ' de ' . $date->startOfWeek()->translatedFormat('M');
+                    if (isset($groupedIncome[$weekLabel])) {
+                        $groupedIncome[$weekLabel] += $pago->monto;
+                    }
+                }
+            } else { // Default: 'month'
+                $period = CarbonPeriod::create($fechaInicio->startOfMonth(), '1 month', $fechaFin->endOfMonth());
+                foreach ($period as $date) {
+                    $monthYear = $date->format('M Y');
+                    $chartLabels[] = $monthYear;
+                    $groupedIncome[$monthYear] = 0;
+                }
+
+                foreach ($pagos as $pago) {
+                    $monthYear = Carbon::parse($pago->fecha_pago)->format('M Y');
+                    if (isset($groupedIncome[$monthYear])) {
+                        $groupedIncome[$monthYear] += $pago->monto; 
+                    }
+                }
+            }
+
+            $chartData = array_values($groupedIncome);
+
+            $data = [
+                'totalIncome' => $totalIncome,
+                'chartLabels' => $chartLabels,
+                'chartData' => $chartData,
+                'periodType' => $periodType,
+                'fechaInicio' => $fechaInicio->format('d/m/Y'),
+                'fechaFin' => $fechaFin->format('d/m/Y'),
+            ];
+
+            // Asegúrate de que esta vista sea correcta: 'admin.statistics.income-pdf'
+            $pdf = Pdf::loadView('estadisticas.income-pdf', $data);
+
+            return $pdf->download('estadisticas-ingresos.pdf');
+
+        } catch (\Exception $e) {
+            \Log::error('Error al generar PDF de estadísticas de ingresos: ' . $e->getMessage());
+            return redirect()->route('admin.estadisticas.ingresos')->with('error', 'Hubo un error al generar el PDF de estadísticas. Inténtalo de nuevo.');
+        }
     }
 }

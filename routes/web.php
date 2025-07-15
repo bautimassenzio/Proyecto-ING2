@@ -137,8 +137,11 @@ Route::prefix('admin')->group(function () {
 
     Route::prefix('estadisticas')->group(function () {
         Route::get('/nuevos-clientes', [EstadisticaController::class, 'showNewClientsStatistics'])->name('admin.estadisticas.nuevos-clientes')->middleware('checkUserType:admin');
+        Route::get('/nuevos-clientes/pdf', [EstadisticaController::class, 'downloadNewClientsStatisticsPdf'])->name('admin.estadisticas.nuevos-clientes.pdf');
         Route::get('/maquinas-mas-alquiladas', [EstadisticaController::class, 'showMostRentedMachineryStatistics'])->name('admin.estadisticas.maquinas-mas-alquiladas')->middleware('checkUserType:admin');
+        Route::get('/maquinas-mas-alquiladas/pdf', [EstadisticaController::class, 'downloadMostRentedMachineryStatisticsPdf'])->name('admin.estadisticas.maquinas-mas-alquiladas.pdf');
         Route::get('/ingresos', [EstadisticaController::class, 'showIncomeStatistics'])->name('admin.estadisticas.ingresos')->middleware('checkUserType:admin');
+        Route::get('/ingresos/pdf', [EstadisticaController::class, 'downloadIncomeStatisticsPdf'])->name('admin.estadisticas.ingresos.pdf');
     });
 });
 
