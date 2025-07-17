@@ -21,7 +21,7 @@
 @if ($usuarios->count() > 0)
     {{-- Formulario de búsqueda solo visible si hay usuarios --}}
     {{-- Corregido: se usa $rol->value para la ruta --}}
-    <form method="GET" action="{{ route('usuarios.buscar', ['rol' => $rol->value]) }}" class="row g-3 mb-4">
+    <form method="GET" action="{{ route('usuarios.buscar', ['rol' => $rol]) }}" class="row g-3 mb-4">
         <div class="col-md-5">
             <input type="text" name="nombre" class="form-control" placeholder="Buscar por nombre" value="{{ request('nombre') }}">
         </div>

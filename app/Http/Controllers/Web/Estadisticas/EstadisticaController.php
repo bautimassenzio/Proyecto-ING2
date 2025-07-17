@@ -47,12 +47,9 @@ class EstadisticaController extends Controller
         $fechaFin = Carbon::parse($fechaFinStr)->endOfDay();
 
         if ($fechaInicio->greaterThan($fechaFin)) {
-            session()->flash('info', 'La fecha de inicio no puede ser posterior a la fecha de fin. Se muestran datos vacíos.');
-            $nuevosClientesCount = 0;
-            $chartLabels = [];
-            $chartData = [];
-            // Limpiamos la sesión en caso de error
-            session()->forget(['fechas_clientes', 'fechas_rango']);
+            return redirect()->route('admin.estadisticas.nuevos-clientes')
+            ->with('error', 'La fecha de inicio no puede ser posterior a la fecha de fin.');
+            
         } else {
             // Comparamos las fechas actuales con las de la sesión
             $fechasGuardadas = session('fechas_rango');
@@ -175,11 +172,8 @@ class EstadisticaController extends Controller
         $fechaFin = Carbon::parse($fechaFinStr)->endOfDay();
 
         if ($fechaInicio->greaterThan($fechaFin)) {
-            $mostRentedMachinery = [];
-            $chartLabels = [];
-            $chartData = [];
-            session()->flash('info', 'La fecha de inicio no puede ser posterior a la fecha de fin. Se muestran datos vacíos.');
-            session()->forget(['alquileres_ficticios', 'fechas_rango_maquinas']);
+            return redirect()->route('admin.estadisticas.maquinas-mas-alquiladas')
+            ->with('error', 'La fecha de inicio no puede ser posterior a la fecha de fin.');
         } else {
             $fechasGuardadas = session('fechas_rango_maquinas');
             $fechasHanCambiado = false;
@@ -293,9 +287,8 @@ class EstadisticaController extends Controller
         $fechaFin = Carbon::parse($fechaFinStr)->endOfDay();
 
         if ($fechaInicio->greaterThan($fechaFin)) {
-            session()->flash('info', 'La fecha de inicio no puede ser posterior a la fecha de fin. Se muestran datos vacíos.');
-            
-            return view('estadisticas.income', compact('layout', 'totalIncome', 'chartLabels', 'chartData', 'periodType'));
+            return redirect()->route('admin.estadisticas.ingresos')
+            ->with('error', 'La fecha de inicio no puede ser posterior a la fecha de fin.');
         } 
         
         $fechasGuardadas = session('fechas_rango_ingresos');
