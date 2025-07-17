@@ -47,7 +47,7 @@
                             'fecha_fin' => request('fecha_fin', \Carbon\Carbon::now()->endOfMonth()->format('Y-m-d')),
                             'period_type' => ($periodType ?? 'month')
                         ]) }}" class="btn-secondary-small" target="_blank">
-                            Descargar PDF
+                            Generar PDF
                         </a>
                     @endif
                 </div>

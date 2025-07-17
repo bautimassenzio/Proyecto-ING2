@@ -1,5 +1,5 @@
 @extends($layout)
-
+@section('title', 'Catálogo de Maquinarias - MannyMaquinarias')
 @section('content')
 <div class="container">
     <h1 class="mb-4">Catálogo de Maquinarias</h1>

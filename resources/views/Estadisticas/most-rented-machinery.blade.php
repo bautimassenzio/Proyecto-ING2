@@ -37,7 +37,7 @@
                             'fecha_inicio' => request('fecha_inicio', \Carbon\Carbon::now()->subMonths(12)->startOfMonth()->format('Y-m-d')),
                             'fecha_fin' => request('fecha_fin', \Carbon\Carbon::now()->endOfMonth()->format('Y-m-d')),
                         ]) }}" class="btn-secondary-small" target="_blank">
-                            Descargar PDF
+                            Generar PDF
                         </a>
                     @endif
                 </div>

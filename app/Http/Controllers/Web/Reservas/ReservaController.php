@@ -355,7 +355,7 @@ class ReservaController extends Controller
                 return redirect()->route('empleado.panel-entregas-devoluciones')->with('error', 'No se pudo encontrar la maquinaria asociada a la reserva.');
             }
             
-            return redirect()->route('empleado.panel-entregas-devoluciones')->with('success', 'Entrega registrada exitosamente. Maquinaria en curso de alquiler.');
+            return redirect()->route('empleado.entregas-pendientes')->with('success', 'Entrega registrada exitosamente. Maquinaria en curso de alquiler.');
 
         } catch (QueryException $e) {
             Log::error('Error de base de datos al registrar entrega para Reserva ID ' . $reserva->id_reserva . ': ' . $e->getMessage());
@@ -428,7 +428,7 @@ class ReservaController extends Controller
             // y no estaba realmente "alquilada" o "inactiva", podrías revertir su estado aquí.
             // Para este flujo, asumimos que 'alquilada' o 'inactiva' significa que no se puede usar.
 
-            return redirect()->route('empleado.panel-entregas-devoluciones')->with('success', 'Entrega registrada con maquinaria alternativa exitosamente.');
+            return redirect()->route('empleado.entregas-pendientes')->with('success', 'Entrega registrada con maquinaria alternativa exitosamente.');
 
         } catch (QueryException $e) {
             Log::error('Error de base de datos al procesar entrega con alternativa para Reserva ID ' . $reserva->id_reserva . ': ' . $e->getMessage());
@@ -549,6 +549,7 @@ public function listasParaDevolver(Request $request) // Inject Request
 
             Log::info("Devolución de reserva registrada con éxito: ID {$reserva->id_reserva}.");
             return back()->with('success', 'Devolución de maquinaria registrada con éxito (sin recargo).');
+            
 
         } catch (QueryException $e) {
             Log::error('Error de base de datos al registrar devolución: ' . $e->getMessage(), ['reserva_id' => $reserva->id_reserva]);
@@ -620,6 +621,27 @@ public function listasParaDevolver(Request $request) // Inject Request
         }
 
         try {
+            // **Paso 1: Calcular el monto a reembolsar ANTES de cambiar el estado de la reserva**
+            // Asegúrate de que las fechas estén en formato Carbon para el cálculo.
+            // Las fechas en el modelo Reserva son strings, hay que convertirlas a objetos Carbon.
+            $fechaInicio = Carbon::parse($reserva->fecha_inicio);
+            $fechaFin = Carbon::parse($reserva->fecha_fin);
+
+            // Calcular la cantidad de días (incluyendo el día de inicio y fin si la política lo considera,
+            // normalmente es la diferencia en días, +1 si el último día es completo)
+            // Carbon::diffInDays() calcula la diferencia estricta. Para días "completos" de reserva, a menudo se añade 1.
+            // Si una reserva del 01/01 al 01/01 es 1 día, entonces es diffInDays + 1.
+            // Si del 01/01 al 02/01 son 2 días, entonces es diffInDays + 1.
+            $diasReserva = $fechaInicio->diffInDays($fechaFin) + 1;
+
+            // Obtener el precio por día de la maquinaria relacionada con la reserva
+            // Asegúrate de que la relación 'maquinaria' esté cargada o se pueda cargar.
+            // Puedes usar ->load('maquinaria') si no estás seguro de que ya está cargada.
+            $precioPorDia = $reserva->maquinaria->precio_dia;
+
+            $montoAReembolsar = $diasReserva * $precioPorDia;
+
+            // **Paso 2: Proceder con la cancelación de la reserva**
             $reserva->estado = 'cancelada';
             $reserva->id_empleado = Auth::id(); // Asigna el empleado que realiza la cancelación
             $reserva->save();
@@ -630,7 +652,10 @@ public function listasParaDevolver(Request $request) // Inject Request
             // $politicaCancelacion = $reserva->maquinaria->politica->tipo;
             // Mail::to($cliente->email)->send(new ReservaCancelada($reserva, $politicaCancelacion));
 
-            return redirect()->route('empleado.panel-entregas-devoluciones')->with('success', 'Reserva cancelada directamente con éxito.');
+            // **Paso 3: Retornar el mensaje de éxito incluyendo el monto**
+            // Usamos number_format para un formato de moneda amigable (ej. 1.234,50)
+            $mensajeExito = 'Reserva cancelada directamente con éxito. Monto a reembolsar: $' . number_format($montoAReembolsar, 2, ',', '.');
+            return redirect()->route('empleado.entregas-pendientes')->with('success', $mensajeExito);
 
         } catch (QueryException $e) {
             Log::error('Error de base de datos al cancelar directamente la Reserva ID ' . $reserva->id_reserva . ': ' . $e->getMessage());

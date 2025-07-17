@@ -40,7 +40,7 @@
         </div>
 <div class="mb-3">
     <label for="localidad_id" class="form-label">Localidad:</label>
-    <select class="form-control" id="localidad_id" name="localidad_id" required>
+    <select class="form-control" id="localidad_id" name="localidad" required>
         <option value="">Seleccione una localidad</option>
         @foreach($localidades as $localidad)
             <option value="{{ $localidad->id }}" {{ old('localidad_id') == $localidad->id ? 'selected' : '' }}>
@@ -59,7 +59,7 @@
 
             <div class="mb-3">
             <label for="tipo_de_uso_id" class="form-label">Tipo de Uso:</label>
-            <select class="form-control" id="tipo_de_uso_id" name="tipo_de_uso_id" required>
+            <select class="form-control" id="tipo_de_uso_id" name="uso" required>
                 <option value="">Seleccione un tipo de uso</option>
                 @foreach($tiposDeUso as $tipo)
                     <option value="{{ $tipo->id }}" {{ old('tipo_de_uso_id') == $tipo->id ? 'selected' : '' }}>
